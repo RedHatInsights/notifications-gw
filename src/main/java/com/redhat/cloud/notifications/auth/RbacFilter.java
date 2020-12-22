@@ -61,7 +61,7 @@ public class RbacFilter implements ContainerRequestFilter {
     RbacRaw result;
 
     String path = requestContext.getUriInfo().getPath(true);
-    if (path.startsWith("/admin")) {
+    if (path.startsWith("/admin") ||path.startsWith("/sample")) {
       return;
     }
 

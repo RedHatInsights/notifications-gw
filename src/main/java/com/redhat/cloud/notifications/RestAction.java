@@ -16,6 +16,9 @@
  */
 package com.redhat.cloud.notifications;
 
+import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Pattern;
 import java.util.Map;
 
 /**
@@ -24,10 +27,24 @@ import java.util.Map;
  */
 public class RestAction {
 
+    @NotNull
+    @NotEmpty
+    @Pattern(regexp = "[a-z][a-z_0-9-]*")
     public String application;
+
+    @NotNull
+    @NotEmpty
+    @Pattern(regexp = "[a-z][a-z_0-9-]*")
     public String eventType;
+
+    @ISO8601Timestamp
     public String timestamp;
+
+    @javax.validation.constraints.Positive
+    @NotNull
+    @NotEmpty
     public String accountId;
+
     public java.util.Map<String,Object> payload;
 
     public String getApplication() {

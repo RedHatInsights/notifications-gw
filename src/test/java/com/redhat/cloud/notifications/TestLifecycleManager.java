@@ -55,8 +55,8 @@ public class TestLifecycleManager implements QuarkusTestResourceLifecycleManager
         }
 
         // Helper to debug mock server issues
-           System.err.println(mockServerClient.retrieveLogMessages(request()));
-           System.err.println(mockServerClient.retrieveRecordedRequests(request()));
+//           System.err.println(mockServerClient.retrieveLogMessages(request()));
+//           System.err.println(mockServerClient.retrieveRecordedRequests(request()));
 
     }
 

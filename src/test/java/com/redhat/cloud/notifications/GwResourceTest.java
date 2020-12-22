@@ -2,6 +2,7 @@ package com.redhat.cloud.notifications;
 
 import io.quarkus.test.common.QuarkusTestResource;
 import io.quarkus.test.junit.QuarkusTest;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import javax.ws.rs.core.MediaType;
@@ -12,11 +13,12 @@ import java.util.HashMap;
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.CoreMatchers.is;
 
-//@QuarkusTest
-//@QuarkusTestResource(TestLifecycleManager.class)
+@QuarkusTest
+@QuarkusTestResource(TestLifecycleManager.class)
 public class GwResourceTest {
 
-//    @Test
+    @Disabled("Class loading issues in Quarkus testing apparently")
+    @Test
     public void testHelloEndpoint() {
 
         RestAction ra = new RestAction();
