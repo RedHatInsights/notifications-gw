@@ -25,41 +25,19 @@ import java.security.Principal;
 public class RhIdPrincipal implements Principal {
 
   private String name;
-  private String account;
-  private boolean canReadAll;
-  private boolean canWriteAll;
   private String rawRhId;
 
   public RhIdPrincipal() {
   }
 
-  public RhIdPrincipal(String name, String account) {
+  public RhIdPrincipal(String name) {
     this.name = name;
-    this.account = account;
   }
 
-  void setRbac(boolean canReadAll, boolean canWriteAll) {
-
-    this.canReadAll = canReadAll;
-    this.canWriteAll = canWriteAll;
-  }
   @Override
   public String getName() {
     return name;
   }
-
-  public String getAccount() {
-    return account;
-  }
-
-  public boolean canReadAll() {
-    return canReadAll;
-  }
-
-  public boolean canWriteAll() {
-    return canWriteAll;
-  }
-
 
   public void setRawRhIdHeader(String rawRhId) {
     this.rawRhId = rawRhId;

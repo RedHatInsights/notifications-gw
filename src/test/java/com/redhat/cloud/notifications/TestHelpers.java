@@ -21,10 +21,11 @@ import static org.junit.Assert.fail;
 public class TestHelpers {
     public static String encodeIdentityInfo(String tenant, String username) {
         JsonObject identity = new JsonObject();
-        JsonObject user = new JsonObject();
-        user.put("username", username);
-        identity.put("account_number", tenant);
-        identity.put("user", user);
+        JsonObject x509 = new JsonObject();
+        x509.put("subject_dn", "/dn="+username);
+        x509.put("issuer_dn","/dn=Acme/o=org");
+        identity.put("x509", x509);
+        identity.put("type", "X509");
         JsonObject header = new JsonObject();
         header.put("identity", identity);
 
