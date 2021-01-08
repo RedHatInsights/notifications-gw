@@ -47,6 +47,9 @@ public abstract class HeaderHelper {
 
   public static Optional<XRhIdentity> getRhIdFromString(String xRhIdHeader)  {
     XRhIdentity rhIdentity;
+    if (xRhIdHeader==null) {
+      return Optional.empty();
+    }
     try {
       String json_string = new String(Base64.getDecoder().decode(xRhIdHeader));
       rhIdentity = om.readValue(json_string, XRhIdentity.class);

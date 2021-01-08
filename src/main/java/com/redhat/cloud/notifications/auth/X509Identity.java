@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 Red Hat, Inc. and/or its affiliates
+ * Copyright 2021 Red Hat, Inc. and/or its affiliates
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,22 +16,19 @@
  */
 package com.redhat.cloud.notifications.auth;
 
-
-import com.fasterxml.jackson.annotation.JsonProperty;
-
 /**
- * Data model of the representation of a x-rh-identity header.
- * This class is the outer header. The real story is inside
- * the #identity property
  * @author hrupp
  */
+public class X509Identity extends Identity {
+     public X509 x509;
 
-public class XRhIdentity {
+     @Override
+     public String getSubject() {
+         return x509.subject_dn;
+     }
 
-    @JsonProperty("identity")
-    public Identity identity;
-
-      public String getSubject() {
-          return identity.getSubject();
-      }
-  }
+     public class X509 {
+       public String subject_dn;
+       public String issuer_dn;
+     }
+ }
