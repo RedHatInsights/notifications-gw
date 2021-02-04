@@ -1,5 +1,8 @@
 # notifications-gw project
 
+To run the application or the testsuite you'll need Kafka running on port 9092.
+To start kafka you can use the included `docker-compose.yaml` file and use it via `docker-compose up`
+
 This project uses Quarkus, the Supersonic Subatomic Java Framework.
 
 If you want to learn more about Quarkus, please visit its website: https://quarkus.io/ .
