@@ -19,6 +19,9 @@ package com.redhat.cloud.notifications;
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import java.util.Map;
 
 /**
@@ -35,6 +38,7 @@ public class RestAction {
     @NotNull
     @NotEmpty
     @Pattern(regexp = "[a-z][a-z_0-9-]*")
+    @JsonProperty("event_type")
     public String eventType;
 
     @ISO8601Timestamp
@@ -43,6 +47,7 @@ public class RestAction {
     @javax.validation.constraints.Positive
     @NotNull
     @NotEmpty
+    @JsonProperty("account_id")
     public String accountId;
 
     public java.util.Map<String,Object> payload;
