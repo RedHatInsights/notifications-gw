@@ -62,7 +62,7 @@ public class SamplesTest {
         RestAction ra =new RestAction();
         ra.accountId="123";
         ra.application="policies";
-        ra.application="insights";
+        ra.bundle="insights";
         ra.eventType="policy triggered";
         ra.timestamp="2020-12-18T17:04:04.417921";
 
@@ -74,8 +74,8 @@ public class SamplesTest {
             .then()
                 .statusCode(400);
     }
-    @Test
 
+    @Test
     void testBad2() {
         RestAction ra =new RestAction();
         ra.accountId="123";
