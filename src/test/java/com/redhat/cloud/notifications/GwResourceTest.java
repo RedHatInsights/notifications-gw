@@ -23,6 +23,7 @@ public class GwResourceTest {
 
         RestAction ra = new RestAction();
         ra.accountId="42";
+        ra.bundle="bundle-test";
         ra.application="test";
         ra.eventType="hulla";
         ra.payload = new HashMap();

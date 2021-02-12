@@ -68,6 +68,7 @@ public class GwResource {
         builder.setPayload(ra.payload);
         builder.setEventType(ra.eventType);
         builder.setApplication(ra.application);
+        builder.setBundle(ra.bundle);
         builder.setAccountId(ra.accountId);
 
         Action message = builder.build();
@@ -90,6 +91,7 @@ public class GwResource {
     public Response getSample() {
         RestAction a = new RestAction();
         a.setAccountId("123");
+        a.setBundle("my-bundle");
         a.setApplication("my-app");
         a.setEventType("a type");
         Map<String, Object> payload = new HashMap<>();
