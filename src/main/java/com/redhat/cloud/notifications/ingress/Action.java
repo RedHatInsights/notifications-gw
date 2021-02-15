@@ -5,29 +5,30 @@
  */
 package com.redhat.cloud.notifications.ingress;
 
-import org.apache.avro.message.BinaryMessageDecoder;
-import org.apache.avro.message.BinaryMessageEncoder;
-import org.apache.avro.message.SchemaStore;
+import org.apache.avro.generic.GenericArray;
 import org.apache.avro.specific.SpecificData;
+import org.apache.avro.util.Utf8;
+import org.apache.avro.message.BinaryMessageEncoder;
+import org.apache.avro.message.BinaryMessageDecoder;
+import org.apache.avro.message.SchemaStore;
 
 @org.apache.avro.specific.AvroGenerated
 public class Action extends org.apache.avro.specific.SpecificRecordBase implements org.apache.avro.specific.SpecificRecord {
-  private static final long serialVersionUID = -1443364343745473624L;
-  public static final org.apache.avro.Schema SCHEMA$ = new org.apache.avro.Schema.Parser().parse("{\"type\":\"record\",\"name\":\"Action\",\"namespace\":\"com.redhat.cloud.notifications.ingress\",\"fields\":[{\"name\":\"application\",\"type\":{\"type\":\"string\",\"avro.java.string\":\"String\"}},{\"name\":\"event_type\",\"type\":{\"type\":\"string\",\"avro.java.string\":\"String\"}},{\"name\":\"timestamp\",\"type\":{\"type\":\"string\",\"logicalType\":\"iso-8601\"}},{\"name\":\"account_id\",\"type\":{\"type\":\"string\",\"avro.java.string\":\"String\"}},{\"name\":\"payload\",\"type\":{\"type\":\"string\",\"logicalType\":\"json-object\"},\"default\":\"{}\"}]}");
+  private static final long serialVersionUID = -3675686353663277755L;
+  public static final org.apache.avro.Schema SCHEMA$ = new org.apache.avro.Schema.Parser().parse("{\"type\":\"record\",\"name\":\"Action\",\"namespace\":\"com.redhat.cloud.notifications.ingress\",\"fields\":[{\"name\":\"bundle\",\"type\":{\"type\":\"string\",\"avro.java.string\":\"String\"}},{\"name\":\"application\",\"type\":{\"type\":\"string\",\"avro.java.string\":\"String\"}},{\"name\":\"event_type\",\"type\":{\"type\":\"string\",\"avro.java.string\":\"String\"}},{\"name\":\"timestamp\",\"type\":{\"type\":\"string\",\"logicalType\":\"iso-8601\"}},{\"name\":\"account_id\",\"type\":{\"type\":\"string\",\"avro.java.string\":\"String\"}},{\"name\":\"payload\",\"type\":{\"type\":\"string\",\"logicalType\":\"json-object\"},\"default\":\"{}\"}]}");
   public static org.apache.avro.Schema getClassSchema() { return SCHEMA$; }
 
   private static SpecificData MODEL$ = new SpecificData();
-static {
+  static {
     MODEL$.addLogicalTypeConversion(new com.redhat.cloud.notifications.avro.JsonObjectConversion());
     MODEL$.addLogicalTypeConversion(new org.apache.avro.data.TimeConversions.LocalTimestampMillisConversion());
-    MODEL$.addLogicalTypeConversion(new com.redhat.cloud.notifications.avro.Iso8601Conversion());
   }
 
   private static final BinaryMessageEncoder<Action> ENCODER =
-      new BinaryMessageEncoder<Action>(MODEL$, SCHEMA$);
+          new BinaryMessageEncoder<Action>(MODEL$, SCHEMA$);
 
   private static final BinaryMessageDecoder<Action> DECODER =
-      new BinaryMessageDecoder<Action>(MODEL$, SCHEMA$);
+          new BinaryMessageDecoder<Action>(MODEL$, SCHEMA$);
 
   /**
    * Return the BinaryMessageEncoder instance used by this class.
@@ -70,15 +71,16 @@ static {
    * @throws java.io.IOException if the given bytes could not be deserialized into an instance of this class
    */
   public static Action fromByteBuffer(
-      java.nio.ByteBuffer b) throws java.io.IOException {
+          java.nio.ByteBuffer b) throws java.io.IOException {
     return DECODER.decode(b);
   }
 
-   private String application;
-   private String event_type;
-   private java.time.LocalDateTime timestamp;
-   private String account_id;
-   private java.util.Map payload;
+  private java.lang.String bundle;
+  private java.lang.String application;
+  private java.lang.String event_type;
+  private java.time.LocalDateTime timestamp;
+  private java.lang.String account_id;
+  private java.util.Map payload;
 
   /**
    * Default constructor.  Note that this does not initialize fields
@@ -89,13 +91,15 @@ static {
 
   /**
    * All-args constructor.
+   * @param bundle The new value for bundle
    * @param application The new value for application
    * @param event_type The new value for event_type
    * @param timestamp The new value for timestamp
    * @param account_id The new value for account_id
    * @param payload The new value for payload
    */
-  public Action(String application, String event_type, java.time.LocalDateTime timestamp, String account_id, java.util.Map payload) {
+  public Action(java.lang.String bundle, java.lang.String application, java.lang.String event_type, java.time.LocalDateTime timestamp, java.lang.String account_id, java.util.Map payload) {
+    this.bundle = bundle;
     this.application = application;
     this.event_type = event_type;
     this.timestamp = timestamp;
@@ -103,29 +107,31 @@ static {
     this.payload = payload;
   }
 
-  public SpecificData getSpecificData() { return MODEL$; }
+  public org.apache.avro.specific.SpecificData getSpecificData() { return MODEL$; }
   public org.apache.avro.Schema getSchema() { return SCHEMA$; }
   // Used by DatumWriter.  Applications should not call.
-  public Object get(int field$) {
+  public java.lang.Object get(int field$) {
     switch (field$) {
-    case 0: return application;
-    case 1: return event_type;
-    case 2: return timestamp;
-    case 3: return account_id;
-    case 4: return payload;
-    default: throw new IndexOutOfBoundsException("Invalid index: " + field$);
+      case 0: return bundle;
+      case 1: return application;
+      case 2: return event_type;
+      case 3: return timestamp;
+      case 4: return account_id;
+      case 5: return payload;
+      default: throw new IndexOutOfBoundsException("Invalid index: " + field$);
     }
   }
 
   private static final org.apache.avro.Conversion<?>[] conversions =
-      new org.apache.avro.Conversion<?>[] {
-      null,
-      null,
-      new com.redhat.cloud.notifications.avro.Iso8601Conversion(),
-      null,
-      new com.redhat.cloud.notifications.avro.JsonObjectConversion(),
-      null
-  };
+          new org.apache.avro.Conversion<?>[] {
+                  null,
+                  null,
+                  null,
+                  new com.redhat.cloud.notifications.avro.Iso8601Conversion(),
+                  null,
+                  new com.redhat.cloud.notifications.avro.JsonObjectConversion(),
+                  null
+          };
 
   @Override
   public org.apache.avro.Conversion<?> getConversion(int field) {
@@ -134,22 +140,40 @@ static {
 
   // Used by DatumReader.  Applications should not call.
   @SuppressWarnings(value="unchecked")
-  public void put(int field$, Object value$) {
+  public void put(int field$, java.lang.Object value$) {
     switch (field$) {
-    case 0: application = value$ != null ? value$.toString() : null; break;
-    case 1: event_type = value$ != null ? value$.toString() : null; break;
-    case 2: timestamp = (java.time.LocalDateTime)value$; break;
-    case 3: account_id = value$ != null ? value$.toString() : null; break;
-    case 4: payload = (java.util.Map)value$; break;
-    default: throw new IndexOutOfBoundsException("Invalid index: " + field$);
+      case 0: bundle = value$ != null ? value$.toString() : null; break;
+      case 1: application = value$ != null ? value$.toString() : null; break;
+      case 2: event_type = value$ != null ? value$.toString() : null; break;
+      case 3: timestamp = (java.time.LocalDateTime)value$; break;
+      case 4: account_id = value$ != null ? value$.toString() : null; break;
+      case 5: payload = (java.util.Map)value$; break;
+      default: throw new IndexOutOfBoundsException("Invalid index: " + field$);
     }
+  }
+
+  /**
+   * Gets the value of the 'bundle' field.
+   * @return The value of the 'bundle' field.
+   */
+  public java.lang.String getBundle() {
+    return bundle;
+  }
+
+
+  /**
+   * Sets the value of the 'bundle' field.
+   * @param value the value to set.
+   */
+  public void setBundle(java.lang.String value) {
+    this.bundle = value;
   }
 
   /**
    * Gets the value of the 'application' field.
    * @return The value of the 'application' field.
    */
-  public String getApplication() {
+  public java.lang.String getApplication() {
     return application;
   }
 
@@ -158,7 +182,7 @@ static {
    * Sets the value of the 'application' field.
    * @param value the value to set.
    */
-  public void setApplication(String value) {
+  public void setApplication(java.lang.String value) {
     this.application = value;
   }
 
@@ -166,7 +190,7 @@ static {
    * Gets the value of the 'event_type' field.
    * @return The value of the 'event_type' field.
    */
-  public String getEventType() {
+  public java.lang.String getEventType() {
     return event_type;
   }
 
@@ -175,7 +199,7 @@ static {
    * Sets the value of the 'event_type' field.
    * @param value the value to set.
    */
-  public void setEventType(String value) {
+  public void setEventType(java.lang.String value) {
     this.event_type = value;
   }
 
@@ -200,7 +224,7 @@ static {
    * Gets the value of the 'account_id' field.
    * @return The value of the 'account_id' field.
    */
-  public String getAccountId() {
+  public java.lang.String getAccountId() {
     return account_id;
   }
 
@@ -209,7 +233,7 @@ static {
    * Sets the value of the 'account_id' field.
    * @param value the value to set.
    */
-  public void setAccountId(String value) {
+  public void setAccountId(java.lang.String value) {
     this.account_id = value;
   }
 
@@ -234,8 +258,8 @@ static {
    * Creates a new Action RecordBuilder.
    * @return A new Action RecordBuilder
    */
-  public static Builder newBuilder() {
-    return new Builder();
+  public static com.redhat.cloud.notifications.ingress.Action.Builder newBuilder() {
+    return new com.redhat.cloud.notifications.ingress.Action.Builder();
   }
 
   /**
@@ -243,11 +267,11 @@ static {
    * @param other The existing builder to copy.
    * @return A new Action RecordBuilder
    */
-  public static Builder newBuilder(Builder other) {
+  public static com.redhat.cloud.notifications.ingress.Action.Builder newBuilder(com.redhat.cloud.notifications.ingress.Action.Builder other) {
     if (other == null) {
-      return new Builder();
+      return new com.redhat.cloud.notifications.ingress.Action.Builder();
     } else {
-      return new Builder(other);
+      return new com.redhat.cloud.notifications.ingress.Action.Builder(other);
     }
   }
 
@@ -256,11 +280,11 @@ static {
    * @param other The existing instance to copy.
    * @return A new Action RecordBuilder
    */
-  public static Builder newBuilder(Action other) {
+  public static com.redhat.cloud.notifications.ingress.Action.Builder newBuilder(com.redhat.cloud.notifications.ingress.Action other) {
     if (other == null) {
-      return new Builder();
+      return new com.redhat.cloud.notifications.ingress.Action.Builder();
     } else {
-      return new Builder(other);
+      return new com.redhat.cloud.notifications.ingress.Action.Builder(other);
     }
   }
 
@@ -269,12 +293,13 @@ static {
    */
   @org.apache.avro.specific.AvroGenerated
   public static class Builder extends org.apache.avro.specific.SpecificRecordBuilderBase<Action>
-    implements org.apache.avro.data.RecordBuilder<Action> {
+          implements org.apache.avro.data.RecordBuilder<Action> {
 
-    private String application;
-    private String event_type;
+    private java.lang.String bundle;
+    private java.lang.String application;
+    private java.lang.String event_type;
     private java.time.LocalDateTime timestamp;
-    private String account_id;
+    private java.lang.String account_id;
     private java.util.Map payload;
 
     /** Creates a new Builder */
@@ -286,27 +311,31 @@ static {
      * Creates a Builder by copying an existing Builder.
      * @param other The existing Builder to copy.
      */
-    private Builder(Builder other) {
+    private Builder(com.redhat.cloud.notifications.ingress.Action.Builder other) {
       super(other);
-      if (isValidValue(fields()[0], other.application)) {
-        this.application = data().deepCopy(fields()[0].schema(), other.application);
+      if (isValidValue(fields()[0], other.bundle)) {
+        this.bundle = data().deepCopy(fields()[0].schema(), other.bundle);
         fieldSetFlags()[0] = other.fieldSetFlags()[0];
       }
-      if (isValidValue(fields()[1], other.event_type)) {
-        this.event_type = data().deepCopy(fields()[1].schema(), other.event_type);
+      if (isValidValue(fields()[1], other.application)) {
+        this.application = data().deepCopy(fields()[1].schema(), other.application);
         fieldSetFlags()[1] = other.fieldSetFlags()[1];
       }
-      if (isValidValue(fields()[2], other.timestamp)) {
-        this.timestamp = data().deepCopy(fields()[2].schema(), other.timestamp);
+      if (isValidValue(fields()[2], other.event_type)) {
+        this.event_type = data().deepCopy(fields()[2].schema(), other.event_type);
         fieldSetFlags()[2] = other.fieldSetFlags()[2];
       }
-      if (isValidValue(fields()[3], other.account_id)) {
-        this.account_id = data().deepCopy(fields()[3].schema(), other.account_id);
+      if (isValidValue(fields()[3], other.timestamp)) {
+        this.timestamp = data().deepCopy(fields()[3].schema(), other.timestamp);
         fieldSetFlags()[3] = other.fieldSetFlags()[3];
       }
-      if (isValidValue(fields()[4], other.payload)) {
-        this.payload = data().deepCopy(fields()[4].schema(), other.payload);
+      if (isValidValue(fields()[4], other.account_id)) {
+        this.account_id = data().deepCopy(fields()[4].schema(), other.account_id);
         fieldSetFlags()[4] = other.fieldSetFlags()[4];
+      }
+      if (isValidValue(fields()[5], other.payload)) {
+        this.payload = data().deepCopy(fields()[5].schema(), other.payload);
+        fieldSetFlags()[5] = other.fieldSetFlags()[5];
       }
     }
 
@@ -314,227 +343,271 @@ static {
      * Creates a Builder by copying an existing Action instance
      * @param other The existing instance to copy.
      */
-    private Builder(Action other) {
+    private Builder(com.redhat.cloud.notifications.ingress.Action other) {
       super(SCHEMA$);
-      if (isValidValue(fields()[0], other.application)) {
-        this.application = data().deepCopy(fields()[0].schema(), other.application);
+      if (isValidValue(fields()[0], other.bundle)) {
+        this.bundle = data().deepCopy(fields()[0].schema(), other.bundle);
         fieldSetFlags()[0] = true;
       }
-      if (isValidValue(fields()[1], other.event_type)) {
-        this.event_type = data().deepCopy(fields()[1].schema(), other.event_type);
+      if (isValidValue(fields()[1], other.application)) {
+        this.application = data().deepCopy(fields()[1].schema(), other.application);
         fieldSetFlags()[1] = true;
       }
-      if (isValidValue(fields()[2], other.timestamp)) {
-        this.timestamp = data().deepCopy(fields()[2].schema(), other.timestamp);
+      if (isValidValue(fields()[2], other.event_type)) {
+        this.event_type = data().deepCopy(fields()[2].schema(), other.event_type);
         fieldSetFlags()[2] = true;
       }
-      if (isValidValue(fields()[3], other.account_id)) {
-        this.account_id = data().deepCopy(fields()[3].schema(), other.account_id);
+      if (isValidValue(fields()[3], other.timestamp)) {
+        this.timestamp = data().deepCopy(fields()[3].schema(), other.timestamp);
         fieldSetFlags()[3] = true;
       }
-      if (isValidValue(fields()[4], other.payload)) {
-        this.payload = data().deepCopy(fields()[4].schema(), other.payload);
+      if (isValidValue(fields()[4], other.account_id)) {
+        this.account_id = data().deepCopy(fields()[4].schema(), other.account_id);
         fieldSetFlags()[4] = true;
+      }
+      if (isValidValue(fields()[5], other.payload)) {
+        this.payload = data().deepCopy(fields()[5].schema(), other.payload);
+        fieldSetFlags()[5] = true;
       }
     }
 
     /**
-      * Gets the value of the 'application' field.
-      * @return The value.
-      */
-    public String getApplication() {
-      return application;
+     * Gets the value of the 'bundle' field.
+     * @return The value.
+     */
+    public java.lang.String getBundle() {
+      return bundle;
     }
 
 
     /**
-      * Sets the value of the 'application' field.
-      * @param value The value of 'application'.
-      * @return This builder.
-      */
-    public Builder setApplication(String value) {
+     * Sets the value of the 'bundle' field.
+     * @param value The value of 'bundle'.
+     * @return This builder.
+     */
+    public com.redhat.cloud.notifications.ingress.Action.Builder setBundle(java.lang.String value) {
       validate(fields()[0], value);
-      this.application = value;
+      this.bundle = value;
       fieldSetFlags()[0] = true;
       return this;
     }
 
     /**
-      * Checks whether the 'application' field has been set.
-      * @return True if the 'application' field has been set, false otherwise.
-      */
-    public boolean hasApplication() {
+     * Checks whether the 'bundle' field has been set.
+     * @return True if the 'bundle' field has been set, false otherwise.
+     */
+    public boolean hasBundle() {
       return fieldSetFlags()[0];
     }
 
 
     /**
-      * Clears the value of the 'application' field.
-      * @return This builder.
-      */
-    public Builder clearApplication() {
-      application = null;
+     * Clears the value of the 'bundle' field.
+     * @return This builder.
+     */
+    public com.redhat.cloud.notifications.ingress.Action.Builder clearBundle() {
+      bundle = null;
       fieldSetFlags()[0] = false;
       return this;
     }
 
     /**
-      * Gets the value of the 'event_type' field.
-      * @return The value.
-      */
-    public String getEventType() {
-      return event_type;
+     * Gets the value of the 'application' field.
+     * @return The value.
+     */
+    public java.lang.String getApplication() {
+      return application;
     }
 
 
     /**
-      * Sets the value of the 'event_type' field.
-      * @param value The value of 'event_type'.
-      * @return This builder.
-      */
-    public Builder setEventType(String value) {
+     * Sets the value of the 'application' field.
+     * @param value The value of 'application'.
+     * @return This builder.
+     */
+    public com.redhat.cloud.notifications.ingress.Action.Builder setApplication(java.lang.String value) {
       validate(fields()[1], value);
-      this.event_type = value;
+      this.application = value;
       fieldSetFlags()[1] = true;
       return this;
     }
 
     /**
-      * Checks whether the 'event_type' field has been set.
-      * @return True if the 'event_type' field has been set, false otherwise.
-      */
-    public boolean hasEventType() {
+     * Checks whether the 'application' field has been set.
+     * @return True if the 'application' field has been set, false otherwise.
+     */
+    public boolean hasApplication() {
       return fieldSetFlags()[1];
     }
 
 
     /**
-      * Clears the value of the 'event_type' field.
-      * @return This builder.
-      */
-    public Builder clearEventType() {
-      event_type = null;
+     * Clears the value of the 'application' field.
+     * @return This builder.
+     */
+    public com.redhat.cloud.notifications.ingress.Action.Builder clearApplication() {
+      application = null;
       fieldSetFlags()[1] = false;
       return this;
     }
 
     /**
-      * Gets the value of the 'timestamp' field.
-      * @return The value.
-      */
+     * Gets the value of the 'event_type' field.
+     * @return The value.
+     */
+    public java.lang.String getEventType() {
+      return event_type;
+    }
+
+
+    /**
+     * Sets the value of the 'event_type' field.
+     * @param value The value of 'event_type'.
+     * @return This builder.
+     */
+    public com.redhat.cloud.notifications.ingress.Action.Builder setEventType(java.lang.String value) {
+      validate(fields()[2], value);
+      this.event_type = value;
+      fieldSetFlags()[2] = true;
+      return this;
+    }
+
+    /**
+     * Checks whether the 'event_type' field has been set.
+     * @return True if the 'event_type' field has been set, false otherwise.
+     */
+    public boolean hasEventType() {
+      return fieldSetFlags()[2];
+    }
+
+
+    /**
+     * Clears the value of the 'event_type' field.
+     * @return This builder.
+     */
+    public com.redhat.cloud.notifications.ingress.Action.Builder clearEventType() {
+      event_type = null;
+      fieldSetFlags()[2] = false;
+      return this;
+    }
+
+    /**
+     * Gets the value of the 'timestamp' field.
+     * @return The value.
+     */
     public java.time.LocalDateTime getTimestamp() {
       return timestamp;
     }
 
 
     /**
-      * Sets the value of the 'timestamp' field.
-      * @param value The value of 'timestamp'.
-      * @return This builder.
-      */
-    public Builder setTimestamp(java.time.LocalDateTime value) {
-      validate(fields()[2], value);
-      this.timestamp = value;
-      fieldSetFlags()[2] = true;
-      return this;
-    }
-
-    /**
-      * Checks whether the 'timestamp' field has been set.
-      * @return True if the 'timestamp' field has been set, false otherwise.
-      */
-    public boolean hasTimestamp() {
-      return fieldSetFlags()[2];
-    }
-
-
-    /**
-      * Clears the value of the 'timestamp' field.
-      * @return This builder.
-      */
-    public Builder clearTimestamp() {
-      timestamp = null;
-      fieldSetFlags()[2] = false;
-      return this;
-    }
-
-    /**
-      * Gets the value of the 'account_id' field.
-      * @return The value.
-      */
-    public String getAccountId() {
-      return account_id;
-    }
-
-
-    /**
-      * Sets the value of the 'account_id' field.
-      * @param value The value of 'account_id'.
-      * @return This builder.
-      */
-    public Builder setAccountId(String value) {
+     * Sets the value of the 'timestamp' field.
+     * @param value The value of 'timestamp'.
+     * @return This builder.
+     */
+    public com.redhat.cloud.notifications.ingress.Action.Builder setTimestamp(java.time.LocalDateTime value) {
       validate(fields()[3], value);
-      this.account_id = value;
+      this.timestamp = value;
       fieldSetFlags()[3] = true;
       return this;
     }
 
     /**
-      * Checks whether the 'account_id' field has been set.
-      * @return True if the 'account_id' field has been set, false otherwise.
-      */
-    public boolean hasAccountId() {
+     * Checks whether the 'timestamp' field has been set.
+     * @return True if the 'timestamp' field has been set, false otherwise.
+     */
+    public boolean hasTimestamp() {
       return fieldSetFlags()[3];
     }
 
 
     /**
-      * Clears the value of the 'account_id' field.
-      * @return This builder.
-      */
-    public Builder clearAccountId() {
-      account_id = null;
+     * Clears the value of the 'timestamp' field.
+     * @return This builder.
+     */
+    public com.redhat.cloud.notifications.ingress.Action.Builder clearTimestamp() {
+      timestamp = null;
       fieldSetFlags()[3] = false;
       return this;
     }
 
     /**
-      * Gets the value of the 'payload' field.
-      * @return The value.
-      */
+     * Gets the value of the 'account_id' field.
+     * @return The value.
+     */
+    public java.lang.String getAccountId() {
+      return account_id;
+    }
+
+
+    /**
+     * Sets the value of the 'account_id' field.
+     * @param value The value of 'account_id'.
+     * @return This builder.
+     */
+    public com.redhat.cloud.notifications.ingress.Action.Builder setAccountId(java.lang.String value) {
+      validate(fields()[4], value);
+      this.account_id = value;
+      fieldSetFlags()[4] = true;
+      return this;
+    }
+
+    /**
+     * Checks whether the 'account_id' field has been set.
+     * @return True if the 'account_id' field has been set, false otherwise.
+     */
+    public boolean hasAccountId() {
+      return fieldSetFlags()[4];
+    }
+
+
+    /**
+     * Clears the value of the 'account_id' field.
+     * @return This builder.
+     */
+    public com.redhat.cloud.notifications.ingress.Action.Builder clearAccountId() {
+      account_id = null;
+      fieldSetFlags()[4] = false;
+      return this;
+    }
+
+    /**
+     * Gets the value of the 'payload' field.
+     * @return The value.
+     */
     public java.util.Map getPayload() {
       return payload;
     }
 
 
     /**
-      * Sets the value of the 'payload' field.
-      * @param value The value of 'payload'.
-      * @return This builder.
-      */
-    public Builder setPayload(java.util.Map value) {
-      validate(fields()[4], value);
+     * Sets the value of the 'payload' field.
+     * @param value The value of 'payload'.
+     * @return This builder.
+     */
+    public com.redhat.cloud.notifications.ingress.Action.Builder setPayload(java.util.Map value) {
+      validate(fields()[5], value);
       this.payload = value;
-      fieldSetFlags()[4] = true;
+      fieldSetFlags()[5] = true;
       return this;
     }
 
     /**
-      * Checks whether the 'payload' field has been set.
-      * @return True if the 'payload' field has been set, false otherwise.
-      */
+     * Checks whether the 'payload' field has been set.
+     * @return True if the 'payload' field has been set, false otherwise.
+     */
     public boolean hasPayload() {
-      return fieldSetFlags()[4];
+      return fieldSetFlags()[5];
     }
 
 
     /**
-      * Clears the value of the 'payload' field.
-      * @return This builder.
-      */
-    public Builder clearPayload() {
+     * Clears the value of the 'payload' field.
+     * @return This builder.
+     */
+    public com.redhat.cloud.notifications.ingress.Action.Builder clearPayload() {
       payload = null;
-      fieldSetFlags()[4] = false;
+      fieldSetFlags()[5] = false;
       return this;
     }
 
@@ -543,15 +616,16 @@ static {
     public Action build() {
       try {
         Action record = new Action();
-        record.application = fieldSetFlags()[0] ? this.application : (String) defaultValue(fields()[0]);
-        record.event_type = fieldSetFlags()[1] ? this.event_type : (String) defaultValue(fields()[1]);
-        record.timestamp = fieldSetFlags()[2] ? this.timestamp : (java.time.LocalDateTime) defaultValue(fields()[2]);
-        record.account_id = fieldSetFlags()[3] ? this.account_id : (String) defaultValue(fields()[3]);
-        record.payload = fieldSetFlags()[4] ? this.payload : (java.util.Map) defaultValue(fields()[4]);
+        record.bundle = fieldSetFlags()[0] ? this.bundle : (java.lang.String) defaultValue(fields()[0]);
+        record.application = fieldSetFlags()[1] ? this.application : (java.lang.String) defaultValue(fields()[1]);
+        record.event_type = fieldSetFlags()[2] ? this.event_type : (java.lang.String) defaultValue(fields()[2]);
+        record.timestamp = fieldSetFlags()[3] ? this.timestamp : (java.time.LocalDateTime) defaultValue(fields()[3]);
+        record.account_id = fieldSetFlags()[4] ? this.account_id : (java.lang.String) defaultValue(fields()[4]);
+        record.payload = fieldSetFlags()[5] ? this.payload : (java.util.Map) defaultValue(fields()[5]);
         return record;
       } catch (org.apache.avro.AvroMissingFieldException e) {
         throw e;
-      } catch (Exception e) {
+      } catch (java.lang.Exception e) {
         throw new org.apache.avro.AvroRuntimeException(e);
       }
     }
@@ -559,30 +633,20 @@ static {
 
   @SuppressWarnings("unchecked")
   private static final org.apache.avro.io.DatumWriter<Action>
-    WRITER$ = (org.apache.avro.io.DatumWriter<Action>)MODEL$.createDatumWriter(SCHEMA$);
+          WRITER$ = (org.apache.avro.io.DatumWriter<Action>)MODEL$.createDatumWriter(SCHEMA$);
 
   @Override public void writeExternal(java.io.ObjectOutput out)
-    throws java.io.IOException {
+          throws java.io.IOException {
     WRITER$.write(this, SpecificData.getEncoder(out));
   }
 
   @SuppressWarnings("unchecked")
   private static final org.apache.avro.io.DatumReader<Action>
-    READER$ = (org.apache.avro.io.DatumReader<Action>)MODEL$.createDatumReader(SCHEMA$);
+          READER$ = (org.apache.avro.io.DatumReader<Action>)MODEL$.createDatumReader(SCHEMA$);
 
   @Override public void readExternal(java.io.ObjectInput in)
-    throws java.io.IOException {
+          throws java.io.IOException {
     READER$.read(this, SpecificData.getDecoder(in));
   }
 
 }
-
-
-
-
-
-
-
-
-
-

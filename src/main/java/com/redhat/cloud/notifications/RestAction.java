@@ -30,6 +30,11 @@ public class RestAction {
     @NotNull
     @NotEmpty
     @Pattern(regexp = "[a-z][a-z_0-9-]*")
+    public String bundle;
+
+    @NotNull
+    @NotEmpty
+    @Pattern(regexp = "[a-z][a-z_0-9-]*")
     public String application;
 
     @NotNull
@@ -46,6 +51,14 @@ public class RestAction {
     public String accountId;
 
     public java.util.Map<String,Object> payload;
+
+    public String getBundle() {
+        return bundle;
+    }
+
+    public void setBundle(String bundle) {
+        this.bundle = bundle;
+    }
 
     public String getApplication() {
         return application;

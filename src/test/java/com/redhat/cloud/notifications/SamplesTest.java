@@ -43,6 +43,7 @@ public class SamplesTest {
     void testGood() {
         RestAction ra =new RestAction();
         ra.accountId="123";
+        ra.bundle="insights";
         ra.application="policies";
         ra.eventType="policy_triggered";
         ra.timestamp="2020-12-18T17:04:04.417921";
@@ -61,6 +62,7 @@ public class SamplesTest {
         RestAction ra =new RestAction();
         ra.accountId="123";
         ra.application="policies";
+        ra.bundle="insights";
         ra.eventType="policy triggered";
         ra.timestamp="2020-12-18T17:04:04.417921";
 
@@ -70,6 +72,23 @@ public class SamplesTest {
             .when()
                 .post("/sample/verify")
             .then()
+                .statusCode(400);
+    }
+
+    @Test
+    void testBad2() {
+        RestAction ra =new RestAction();
+        ra.accountId="123";
+        ra.application="policies";
+        ra.eventType="policy triggered";
+        ra.timestamp="2020-12-18T17:04:04.417921";
+
+        given()
+                .body(ra)
+                .contentType(ContentType.JSON)
+                .when()
+                .post("/sample/verify")
+                .then()
                 .statusCode(400);
     }
 }

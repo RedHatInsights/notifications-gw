@@ -33,6 +33,7 @@ public class SamplesResource {
     public Response getSample() {
         RestAction a = new RestAction();
         a.setAccountId("123");
+        a.setBundle("my-bundle");
         a.setApplication("my-app");
         a.setEventType("a_type");
         Map<String, Object> payload = new HashMap<>();
