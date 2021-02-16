@@ -16,7 +16,10 @@
  */
 package com.redhat.cloud.notifications;
 
+import com.redhat.cloud.notifications.avro.Iso8601Factory;
+import com.redhat.cloud.notifications.avro.JsonObjectFactory;
 import io.quarkus.test.common.QuarkusTestResourceLifecycleManager;
+import org.apache.avro.LogicalTypes;
 import org.mockserver.client.MockServerClient;
 import org.testcontainers.containers.KafkaContainer;
 import org.testcontainers.containers.MockServerContainer;
@@ -41,6 +44,7 @@ public class TestLifecycleManager implements QuarkusTestResourceLifecycleManager
         System.out.println("++++  TestLifecycleManager start +++");
         Map<String, String> properties = new HashMap<>();
 
+        registerAvroTypes();
         setupKafka(properties);
         setupMockServer(properties);
 
@@ -58,6 +62,19 @@ public class TestLifecycleManager implements QuarkusTestResourceLifecycleManager
 //           System.err.println(mockServerClient.retrieveLogMessages(request()));
 //           System.err.println(mockServerClient.retrieveRecordedRequests(request()));
 
+    }
+
+    /*
+     * It is not guaranteed that the Startup over code in NotificationLogicalTypeFactory
+     * is called before the Action class is loaded, so we explicitly call it here.
+     * See https://quarkusio.zulipchat.com/#narrow/stream/187030-users/topic/App.20code.20fails.20in.20test.2C.20but.20works.20in.20normal.20deployment
+     */
+    private void registerAvroTypes() {
+        LogicalTypes.LogicalTypeFactory[] logicalTypeFactories = {new JsonObjectFactory(), new Iso8601Factory()};
+
+        for (LogicalTypes.LogicalTypeFactory ltf : logicalTypeFactories) {
+            LogicalTypes.register(ltf.getTypeName(), ltf);
+        }
     }
 
     private void setupKafka(Map<String, String> properties) {

@@ -16,22 +16,27 @@
  */
 package com.redhat.cloud.notifications;
 
-import com.redhat.cloud.notifications.ingress.Action;
+import io.vertx.core.json.Json;
 import org.eclipse.microprofile.reactive.messaging.Incoming;
 
 import javax.enterprise.context.ApplicationScoped;
+import java.util.Map;
 
 /**
- * @author hrupp
+ * Test receiver that works together with the
+ * {@link GwResourceTest#testHelloEndpoint()}
+ * to receive the message on Kafka and provide it
+ * back to the test.
+ *
  */
 @ApplicationScoped
 public class TestReceiver {
 
+    public static Map<String,Object> theAction = null;
+
     @Incoming("ingress")
-    public void receive(Action action) {
+    public void receive(String action) {
 
-        System.out.println("Got " + action);
-
+        theAction = Json.decodeValue(action, Map.class);
     }
-
 }
