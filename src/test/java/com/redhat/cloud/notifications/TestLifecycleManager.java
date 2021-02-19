@@ -16,13 +16,11 @@
  */
 package com.redhat.cloud.notifications;
 
-import com.redhat.cloud.notifications.avro.Iso8601Factory;
-import com.redhat.cloud.notifications.avro.JsonObjectFactory;
 import io.quarkus.test.common.QuarkusTestResourceLifecycleManager;
-import org.apache.avro.LogicalTypes;
 import org.mockserver.client.MockServerClient;
 import org.testcontainers.containers.KafkaContainer;
 import org.testcontainers.containers.MockServerContainer;
+import org.testcontainers.utility.DockerImageName;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -35,6 +33,7 @@ import static org.mockserver.model.HttpResponse.response;
  */
 public class TestLifecycleManager implements QuarkusTestResourceLifecycleManager {
 
+    public static final String KAFKA_CONTAINER_IMAGE = "confluentinc/cp-kafka:5.4.3";
     private KafkaContainer kafkaContainer;
     private MockServerContainer mockEngineServer;
     private MockServerClient mockServerClient;
@@ -65,7 +64,8 @@ public class TestLifecycleManager implements QuarkusTestResourceLifecycleManager
 
 
     private void setupKafka(Map<String, String> properties) {
-        kafkaContainer = new KafkaContainer();
+        DockerImageName kafkaImage = DockerImageName.parse(KAFKA_CONTAINER_IMAGE);
+        kafkaContainer = new KafkaContainer(kafkaImage);
         kafkaContainer.start();
         String boostrapServers = kafkaContainer.getBootstrapServers();
         properties.put("kafka.bootstrap.servers", boostrapServers);
