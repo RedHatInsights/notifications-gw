@@ -16,13 +16,11 @@
  */
 package com.redhat.cloud.notifications;
 
-import com.redhat.cloud.notifications.avro.Iso8601Factory;
-import com.redhat.cloud.notifications.avro.JsonObjectFactory;
 import io.quarkus.test.common.QuarkusTestResourceLifecycleManager;
-import org.apache.avro.LogicalTypes;
 import org.mockserver.client.MockServerClient;
 import org.testcontainers.containers.KafkaContainer;
 import org.testcontainers.containers.MockServerContainer;
+import org.testcontainers.utility.DockerImageName;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -35,6 +33,7 @@ import static org.mockserver.model.HttpResponse.response;
  */
 public class TestLifecycleManager implements QuarkusTestResourceLifecycleManager {
 
+    public static final String KAFKA_CONTAINER_IMAGE = "confluentinc/cp-kafka:5.4.3";
     private KafkaContainer kafkaContainer;
     private MockServerContainer mockEngineServer;
     private MockServerClient mockServerClient;
@@ -44,7 +43,6 @@ public class TestLifecycleManager implements QuarkusTestResourceLifecycleManager
         System.out.println("++++  TestLifecycleManager start +++");
         Map<String, String> properties = new HashMap<>();
 
-        registerAvroTypes();
         setupKafka(properties);
         setupMockServer(properties);
 
@@ -64,21 +62,10 @@ public class TestLifecycleManager implements QuarkusTestResourceLifecycleManager
 
     }
 
-    /*
-     * It is not guaranteed that the Startup over code in NotificationLogicalTypeFactory
-     * is called before the Action class is loaded, so we explicitly call it here.
-     * See https://quarkusio.zulipchat.com/#narrow/stream/187030-users/topic/App.20code.20fails.20in.20test.2C.20but.20works.20in.20normal.20deployment
-     */
-    private void registerAvroTypes() {
-        LogicalTypes.LogicalTypeFactory[] logicalTypeFactories = {new JsonObjectFactory(), new Iso8601Factory()};
-
-        for (LogicalTypes.LogicalTypeFactory ltf : logicalTypeFactories) {
-            LogicalTypes.register(ltf.getTypeName(), ltf);
-        }
-    }
 
     private void setupKafka(Map<String, String> properties) {
-        kafkaContainer = new KafkaContainer();
+        DockerImageName kafkaImage = DockerImageName.parse(KAFKA_CONTAINER_IMAGE);
+        kafkaContainer = new KafkaContainer(kafkaImage);
         kafkaContainer.start();
         String boostrapServers = kafkaContainer.getBootstrapServers();
         properties.put("kafka.bootstrap.servers", boostrapServers);

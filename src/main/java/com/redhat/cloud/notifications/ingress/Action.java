@@ -5,9 +5,10 @@
  */
 package com.redhat.cloud.notifications.ingress;
 
-import org.apache.avro.generic.GenericArray;
+import com.redhat.cloud.notifications.avro.Iso8601Factory;
+import com.redhat.cloud.notifications.avro.JsonObjectFactory;
+import org.apache.avro.LogicalTypes;
 import org.apache.avro.specific.SpecificData;
-import org.apache.avro.util.Utf8;
 import org.apache.avro.message.BinaryMessageEncoder;
 import org.apache.avro.message.BinaryMessageDecoder;
 import org.apache.avro.message.SchemaStore;
@@ -15,13 +16,21 @@ import org.apache.avro.message.SchemaStore;
 @org.apache.avro.specific.AvroGenerated
 public class Action extends org.apache.avro.specific.SpecificRecordBase implements org.apache.avro.specific.SpecificRecord {
   private static final long serialVersionUID = -3675686353663277755L;
-  public static final org.apache.avro.Schema SCHEMA$ = new org.apache.avro.Schema.Parser().parse("{\"type\":\"record\",\"name\":\"Action\",\"namespace\":\"com.redhat.cloud.notifications.ingress\",\"fields\":[{\"name\":\"bundle\",\"type\":{\"type\":\"string\",\"avro.java.string\":\"String\"}},{\"name\":\"application\",\"type\":{\"type\":\"string\",\"avro.java.string\":\"String\"}},{\"name\":\"event_type\",\"type\":{\"type\":\"string\",\"avro.java.string\":\"String\"}},{\"name\":\"timestamp\",\"type\":{\"type\":\"string\",\"logicalType\":\"iso-8601\"}},{\"name\":\"account_id\",\"type\":{\"type\":\"string\",\"avro.java.string\":\"String\"}},{\"name\":\"payload\",\"type\":{\"type\":\"string\",\"logicalType\":\"json-object\"},\"default\":\"{}\"}]}");
+  public static final org.apache.avro.Schema SCHEMA$;
   public static org.apache.avro.Schema getClassSchema() { return SCHEMA$; }
 
   private static SpecificData MODEL$ = new SpecificData();
   static {
     MODEL$.addLogicalTypeConversion(new com.redhat.cloud.notifications.avro.JsonObjectConversion());
     MODEL$.addLogicalTypeConversion(new org.apache.avro.data.TimeConversions.LocalTimestampMillisConversion());
+
+    // Required to register logical types early enough
+    LogicalTypes.LogicalTypeFactory[] logicalTypeFactories = {new JsonObjectFactory(), new Iso8601Factory()};
+        for (LogicalTypes.LogicalTypeFactory ltf : logicalTypeFactories) {
+          LogicalTypes.register(ltf.getTypeName(), ltf);
+        }
+
+    SCHEMA$ = new org.apache.avro.Schema.Parser().parse("{\"type\":\"record\",\"name\":\"Action\",\"namespace\":\"com.redhat.cloud.notifications.ingress\",\"fields\":[{\"name\":\"bundle\",\"type\":{\"type\":\"string\",\"avro.java.string\":\"String\"}},{\"name\":\"application\",\"type\":{\"type\":\"string\",\"avro.java.string\":\"String\"}},{\"name\":\"event_type\",\"type\":{\"type\":\"string\",\"avro.java.string\":\"String\"}},{\"name\":\"timestamp\",\"type\":{\"type\":\"string\",\"logicalType\":\"iso-8601\"}},{\"name\":\"account_id\",\"type\":{\"type\":\"string\",\"avro.java.string\":\"String\"}},{\"name\":\"payload\",\"type\":{\"type\":\"string\",\"logicalType\":\"json-object\"},\"default\":\"{}\"}]}");
   }
 
   private static final BinaryMessageEncoder<Action> ENCODER =

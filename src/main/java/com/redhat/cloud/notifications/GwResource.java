@@ -17,7 +17,6 @@ import org.eclipse.microprofile.reactive.messaging.Emitter;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import javax.ws.rs.Consumes;
-import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
@@ -84,24 +83,6 @@ public class GwResource {
 
         return Response.ok().build();
 
-    }
-
-    @GET
-    @Path("/sample")
-    public Response getSample() {
-        RestAction a = new RestAction();
-        a.setAccountId("123");
-        a.setBundle("my-bundle");
-        a.setApplication("my-app");
-        a.setEventType("a type");
-        Map<String, Object> payload = new HashMap<>();
-        payload.put("key1","value1");
-        payload.put("key2","value2");
-        a.setPayload(payload);
-        DateTimeFormatter formatter = DateTimeFormatter.ISO_LOCAL_DATE_TIME;
-        a.setTimestamp(LocalDateTime.now().format(formatter));
-
-        return Response.ok().entity(a).build();
     }
 
     public static String serializeAction(Action action) throws IOException {
