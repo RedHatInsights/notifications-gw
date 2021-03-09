@@ -57,32 +57,41 @@ public class ClowderConfigSource implements ConfigSource {
 
     @Override
     public int getOrdinal() {
+        // Provide a value higher than 250 to it overrides application.properties
         return 270;
     }
 
+    /**
+     * Return a value for a config property.
+     * We need to look at the clowder provided data and eventually replace
+     * the requested values from application.properties with what clowder
+     * provides us, which may be different.
+     * @param configKey The key to look up
+     * @return The value.
+     */
     @Override
-    public String getValue(String s) {
+    public String getValue(String configKey) {
 
         // This matches against the property as in application.properties
         // For profiles != prod, values are requested first like
         // %<profile>.property. E.g. %dev.quarkus.http.port
 
 
-        if (s.equals("quarkus.http.port")) {
+        if (configKey.equals("quarkus.http.port")) {
             JsonNumber webPort = root.getJsonNumber("webPort");
             return webPort.toString();
         }
-        if (s.equals("kafka.bootstrap.servers")) {
+        if (configKey.equals("kafka.bootstrap.servers")) {
             JsonArray brokers = root.getJsonObject("kafka").getJsonArray("brokers");
             JsonObject broker = brokers.getJsonObject(0);
             String b = broker.getString("hostname") + ":" + broker.getJsonNumber("port").toString();
             return b;
         }
 
-        if (s.startsWith("mp.messaging") && s.endsWith(".topic")) {
+        if (configKey.startsWith("mp.messaging") && configKey.endsWith(".topic")) {
             // We need to find the replaced topic by first finding
             // the requested name and then getting the replaced name
-            String requested = existingValues.get(s).getValue();
+            String requested = existingValues.get(configKey).getValue();
             JsonArray topics = root.getJsonObject("kafka").getJsonArray("topics");
             for (int i = 0 ; i < topics.size(); i++) {
                 JsonObject aTopic = topics.getJsonObject(i);
@@ -94,8 +103,8 @@ public class ClowderConfigSource implements ConfigSource {
             return requested;
         }
 
-        if (s.startsWith("quarkus.database")) {
-            String item = s.substring("quarkus.database.".length());
+        if (configKey.startsWith("quarkus.database")) {
+            String item = configKey.substring("quarkus.database.".length());
             JsonObject dbObject = root.getJsonObject("database");
             if (item.equals("username")) {
                 return dbObject.getString("username");
@@ -115,8 +124,8 @@ public class ClowderConfigSource implements ConfigSource {
         }
 
 
-        if (existingValues.containsKey(s)) {
-            return existingValues.get(s).getValue();
+        if (existingValues.containsKey(configKey)) {
+            return existingValues.get(configKey).getValue();
         }
         else {
             return null;

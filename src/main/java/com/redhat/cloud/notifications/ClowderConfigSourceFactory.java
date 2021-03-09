@@ -12,6 +12,11 @@ import java.util.Map;
 import java.util.OptionalInt;
 
 /**
+ * This factory obtains the already existing config properties and values
+ * and feeds them into our new Clowder ConfigSource so that they can be
+ * mangled there is needed.
+ * <p/>
+ * In case use-clowder-source is set to <tt>false</tt>, we skip this config source.
  *
  */
 public class ClowderConfigSourceFactory  implements ConfigSourceFactory {
@@ -42,6 +47,8 @@ public class ClowderConfigSourceFactory  implements ConfigSourceFactory {
 
     @Override
     public OptionalInt getPriority() {
-        return OptionalInt.of(270); // TODO like in C-source
+        // This is the order of factory evaluation in case there are multiple
+        // factories.
+        return OptionalInt.of(270);
     }
 }
