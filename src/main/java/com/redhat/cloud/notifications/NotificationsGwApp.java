@@ -36,7 +36,7 @@ public class NotificationsGwApp {
     }
 
     private void showVersionInfo() {
-        LOG.info("Starting notifications backend");
+        LOG.info("Starting notifications gw");
         String buildCommit = System.getenv(BUILD_COMMIT_ENV_NAME);
         if (buildCommit != null) {
             String osBuildRef = System.getenv(BUILD_REFERENCE_ENV_NAME);

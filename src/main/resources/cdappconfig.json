@@ -1,0 +1,69 @@
+{
+  "database": {
+    "adminPassword": "hulla",
+    "adminUsername": "postgres",
+    "hostname": "some.host",
+    "name": "some-db",
+    "password": "secret",
+    "port": 5432,
+    "sslMode": "disable",
+    "username": "aUser"
+  },
+  "endpoints": [
+    {
+      "app": "notifications",
+      "hostname": "n-api.svc",
+      "name": "api",
+      "port": 8000
+    },
+    {
+      "app": "notifications",
+      "hostname": "n-gw.svc",
+      "name": "gw",
+      "port": 8000
+    }
+  ],
+  "kafka": {
+    "brokers": [
+      {
+        "hostname": "ephemeral-host.svc",
+        "port": 29092
+      }
+    ],
+    "topics": [
+      {
+        "name": "platform-tmp-12345",
+        "requestedName": "platform.notifications.ingress"
+      }
+    ]
+  },
+  "logging": {
+    "cloudwatch": {
+      "accessKeyId": "",
+      "logGroup": "",
+      "region": "",
+      "secretAccessKey": ""
+    },
+    "type": "null"
+  },
+  "metricsPath": "/metrics",
+  "metricsPort": 9000,
+  "objectStore": {
+    "accessKey": "secret",
+    "buckets": [
+      {
+        "accessKey": "more-secret",
+        "name": "returned-name",
+        "requestedName": "a-bucket",
+        "secretKey": "really-secret"
+      }
+    ],
+    "hostname": "minio12345.svc",
+    "port": 9000,
+    "secretKey": "another-secret",
+    "tls": false
+  },
+  "privatePort": 10000,
+  "publicPort": 8000,
+  "webPort": 8000
+}
