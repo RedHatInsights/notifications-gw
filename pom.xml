@@ -6,7 +6,6 @@
   <artifactId>notifications-gw</artifactId>
   <version>1.0.0-SNAPSHOT</version>
   <properties>
-    <avro.version>1.10.0</avro.version>
     <compiler-plugin.version>3.8.1</compiler-plugin.version>
     <maven.compiler.parameters>true</maven.compiler.parameters>
     <maven.compiler.source>11</maven.compiler.source>
@@ -20,6 +19,7 @@
     <surefire-plugin.version>2.22.1</surefire-plugin.version>
     <testcontainers.version>1.15.1</testcontainers.version>
     <mockserver-client-java.version>5.5.4</mockserver-client-java.version> <!-- not the newest, but matches what is in org.testcontainers:mockserver -->
+    <insights-notification-schemas-java.version>0.2</insights-notification-schemas-java.version>
   </properties>
   <dependencyManagement>
     <dependencies>
@@ -33,6 +33,12 @@
     </dependencies>
   </dependencyManagement>
   <dependencies>
+    <!-- Insights -->
+    <dependency>
+      <groupId>com.redhat.cloud.common</groupId>
+      <artifactId>insights-notification-schemas-java</artifactId>
+      <version>${insights-notification-schemas-java.version}</version>
+    </dependency>
     <dependency>
       <groupId>io.quarkus</groupId>
       <artifactId>quarkus-smallrye-reactive-messaging-kafka</artifactId>
@@ -48,11 +54,6 @@
     <dependency>
       <groupId>io.quarkus</groupId>
       <artifactId>quarkus-resteasy-jackson</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.avro</groupId>
-      <artifactId>avro</artifactId>
-      <version>${avro.version}</version>
     </dependency>
 
     <dependency>
