@@ -33,3 +33,8 @@ If you want to build an _über-jar_, execute the following command:
 ----
 
 The application is now runnable using `java -jar target/notifications-gw-1.0.0-SNAPSHOT-runner.jar`.
+
+## Usage of the Clowder Config Source
+
+This project uses the Clowder Config Source from https://github.com/RedHatInsights/clowder-quarkus-config-source To configure this source to use
+a different file than `/cdappconfig/cdappconfig.json` you can use the property `clowder.file=/path/to/file.json`.

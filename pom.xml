@@ -20,6 +20,7 @@
     <testcontainers.version>1.15.1</testcontainers.version>
     <mockserver-client-java.version>5.5.4</mockserver-client-java.version> <!-- not the newest, but matches what is in org.testcontainers:mockserver -->
     <insights-notification-schemas-java.version>0.2</insights-notification-schemas-java.version>
+    <clowder-quarkus-config-source.version>0.1.1</clowder-quarkus-config-source.version>
   </properties>
   <dependencyManagement>
     <dependencies>
@@ -87,6 +88,11 @@
     <dependency>
       <groupId>io.quarkus</groupId>
       <artifactId>quarkus-hibernate-validator</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.redhat.cloud.common</groupId>
+      <artifactId>clowder-quarkus-config-source</artifactId>
+      <version>${clowder-quarkus-config-source.version}</version>
     </dependency>
 
     <dependency>
