@@ -7,8 +7,6 @@ FROM registry.access.redhat.com/ubi8/openjdk-11:latest AS build
 USER root
 COPY src /home/jboss/src
 COPY pom.xml /home/jboss
-COPY checkstyle.xml /home/jboss
-COPY checkstyle-suppressions.xml /home/jboss
 WORKDIR /home/jboss
 RUN mvn clean package -DskipTests
 
