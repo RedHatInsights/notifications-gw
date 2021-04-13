@@ -7,6 +7,8 @@ FROM registry.access.redhat.com/ubi8/openjdk-11:latest AS build
 USER root
 COPY src /home/jboss/src
 COPY pom.xml /home/jboss
+COPY checkstyle.xml /home/jboss
+COPY checkstyle-suppressions.xml /home/jboss
 WORKDIR /home/jboss
 RUN mvn clean package -DskipTests
 
@@ -34,8 +36,8 @@ RUN microdnf install curl ca-certificates ${JAVA_PACKAGE} \
 
 # Configure the JAVA_OPTIONS, you can add -XshowSettings:vm to also display the heap size.
 ENV JAVA_OPTIONS="-Dquarkus.http.host=0.0.0.0 -Djava.util.logging.manager=org.jboss.logmanager.LogManager"
-COPY target/lib/* /deployments/lib/
-COPY target/*-runner.jar /deployments/app.jar
+
+COPY --from=build --chown=1001 /home/jboss/target/quarkus-app/ /deployments/
 
 EXPOSE 8080
 USER 1001
