@@ -30,7 +30,7 @@ public class GwResourceTest {
         ra.bundle = "bundle-test";
         ra.application = "test";
         ra.eventType = "hulla";
-        ra.payload = new HashMap();
+        ra.payload = new HashMap<>();
         ra.payload.put("key1", "value1");
         ra.payload.put("uuid",random);
 
@@ -64,5 +64,35 @@ public class GwResourceTest {
             }
         }
         fail("Should not have reached this");
+    }
+
+    @Test
+    void noEmptyContent() {
+
+        String identity = TestHelpers.encodeIdentityInfo("test", "user");
+
+        given()
+            .header("x-rh-identity", identity)
+            .contentType(MediaType.APPLICATION_JSON)
+            .when().post("/notifications/")
+            .then()
+            .statusCode(400);
+    }
+
+    @Test
+    void testValidData() {
+
+        String identity = TestHelpers.encodeIdentityInfo("test", "user");
+
+        RestAction ra = new RestAction();
+        ra.application="this.is_a Application";
+
+        given()
+            .body(ra)
+            .header("x-rh-identity", identity)
+            .contentType(MediaType.APPLICATION_JSON)
+            .when().post("/notifications/")
+            .then()
+            .statusCode(400);
     }
 }

@@ -6,7 +6,6 @@ import org.apache.avro.io.EncoderFactory;
 import org.apache.avro.io.JsonEncoder;
 import org.apache.avro.specific.SpecificDatumWriter;
 import org.eclipse.microprofile.metrics.Counter;
-import org.eclipse.microprofile.metrics.annotation.Counted;
 import org.eclipse.microprofile.metrics.annotation.Metric;
 import org.eclipse.microprofile.openapi.annotations.Operation;
 import org.eclipse.microprofile.openapi.annotations.responses.APIResponse;
@@ -16,6 +15,8 @@ import org.eclipse.microprofile.reactive.messaging.Emitter;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
+import javax.validation.Valid;
+import javax.validation.constraints.NotNull;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
@@ -50,16 +51,17 @@ public class GwResource {
 
     @Inject
     @Metric
-    Counter fowardedActions;
+    Counter forwardedActions;
 
     @POST
     @Operation(summary = "Forward one message to the notification system")
     @APIResponses({
         @APIResponse(responseCode = "200", description = "Message forwarded"),
         @APIResponse(responseCode = "403", description = "No permission"),
-        @APIResponse(responseCode = "401")
+        @APIResponse(responseCode = "401"),
+        @APIResponse(responseCode = "400", description = "Incoming message was not valid")
     })
-    public Response forward(RestAction ra) {
+    public Response forward(@NotNull @Valid RestAction ra) {
         receivedActions.inc();
 
         Action.Builder builder = Action.newBuilder();
@@ -76,7 +78,7 @@ public class GwResource {
         try {
             String serializedAction = serializeAction(message);
             CompletionStage<Void> res = emitter.send(serializedAction);
-            fowardedActions.inc();
+            forwardedActions.inc();
         } catch (IOException e) {
             e.printStackTrace();  // TODO: Customise this generated block
             return Response.serverError().entity(e.getMessage()).build();
