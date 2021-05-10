@@ -1,6 +1,8 @@
 package com.redhat.cloud.notifications;
 
 import com.redhat.cloud.notifications.ingress.Action;
+import com.redhat.cloud.notifications.ingress.Event;
+import com.redhat.cloud.notifications.ingress.Metadata;
 import org.apache.avro.io.DatumWriter;
 import org.apache.avro.io.EncoderFactory;
 import org.apache.avro.io.JsonEncoder;
@@ -29,9 +31,10 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
-import java.util.concurrent.CompletionStage;
 
 
 @ApplicationScoped
@@ -46,11 +49,11 @@ public class GwResource {
     Emitter<String> emitter;
 
     @Inject
-    @Metric
+    @Metric(name = "notifications.gw.received")
     Counter receivedActions;
 
     @Inject
-    @Metric
+    @Metric(name = "notifications.gw.forwarded")
     Counter forwardedActions;
 
     @POST
@@ -67,7 +70,12 @@ public class GwResource {
         Action.Builder builder = Action.newBuilder();
         LocalDateTime parsedTime = LocalDateTime.parse(ra.timestamp, DateTimeFormatter.ISO_LOCAL_DATE_TIME);
         builder.setTimestamp(parsedTime);
-        builder.setPayload(ra.payload);
+        builder.setContext(new HashMap());
+        List<Event> eventList = new ArrayList<>(1);
+        Metadata meta = new com.redhat.cloud.notifications.ingress.Metadata();
+        Event event = new Event(meta, ra.getPayload());
+        eventList.add(event);
+        builder.setEvents(eventList);
         builder.setEventType(ra.eventType);
         builder.setApplication(ra.application);
         builder.setBundle(ra.bundle);
@@ -77,7 +85,7 @@ public class GwResource {
 
         try {
             String serializedAction = serializeAction(message);
-            CompletionStage<Void> res = emitter.send(serializedAction);
+            emitter.send(serializedAction);
             forwardedActions.inc();
         } catch (IOException e) {
             e.printStackTrace();  // TODO: Customise this generated block
