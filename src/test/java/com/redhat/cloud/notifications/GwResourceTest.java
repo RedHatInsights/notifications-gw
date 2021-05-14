@@ -9,6 +9,7 @@ import javax.ws.rs.core.MediaType;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -56,7 +57,10 @@ public class GwResourceTest {
                 Map<String,Object> am = TestReceiver.theAction;
                 assertEquals(ra.application, am.get("application"));
                 assertEquals(ra.accountId, am.get("account_id"));
-                Map<String,String> payload = Json.decodeValue((String)am.get("payload"), Map.class);
+                List<Map> eventList = (List<Map>) am.get("events");
+                assertEquals(1, eventList.size());
+                Map<String, Object> event = eventList.get(0);
+                Map<String,String> payload = Json.decodeValue((String)event.get("payload"), Map.class);
                 assertEquals(2, payload.size());
                 assertEquals(random.toString(), payload.get("uuid"));
 
