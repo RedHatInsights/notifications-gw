@@ -52,6 +52,8 @@ objects:
           value: ${CLOWDER_ENABLED}
         - name: QUARKUS_LOG_LEVEL
           value: ${LOG_LEVEL}
+        - name: QUARKUS_LOG_CLOUDWATCH_ENABLED
+          value: ${CLOUDWATCH_LOGGING_ENABLED}
         resources:
           limits:
             cpu: ${CPU_LIMIT}
@@ -102,3 +104,6 @@ parameters:
 - name: CLOWDER_FILE
   value: /cdapp/cdappconfig.json
   description: default path for cdappconfig file
+- name: CLOUDWATCH_LOGGING_ENABLED
+  description: Enable Cloudwatch (or not)
+  value: false
