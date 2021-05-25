@@ -106,4 +106,4 @@ parameters:
   description: default path for cdappconfig file
 - name: CLOUDWATCH_LOGGING_ENABLED
   description: Enable Cloudwatch (or not)
-  value: false
+  value: "false"
