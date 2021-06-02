@@ -24,6 +24,9 @@ import org.junit.jupiter.api.Test;
 import static io.restassured.RestAssured.given;
 import static io.restassured.RestAssured.when;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * @author hrupp
  */
@@ -40,13 +43,49 @@ public class SamplesTest {
     }
 
     @Test
-    void testGood() {
+    void testGood1() {
         RestAction ra =new RestAction();
-        ra.accountId="123";
-        ra.bundle="insights";
-        ra.application="policies";
-        ra.eventType="policy_triggered";
+        ra.setBundle("my-bundle");
+        ra.setAccountId("123");
+        ra.setApplication("my-app");
+        ra.setEventType("a_type");
+        List<RestEvent> events = new ArrayList<RestEvent>();
+        RestEvent event = new RestEvent();
+        event.setPayload("{\"key\" : \"value\"}");
+        event.setMetadata("{}");
+        events.add(event);
+        ra.setEvents(events);
         ra.timestamp="2020-12-18T17:04:04.417921";
+        ra.setContext("{}");
+
+        given()
+                .body(ra)
+                .contentType(ContentType.JSON)
+            .when()
+                .post("/sample/verify")
+            .then()
+                .statusCode(200);
+    }
+
+    @Test
+    void testGood2() {
+        RestAction ra =new RestAction();
+        ra.setBundle("my-bundle");
+        ra.setAccountId("123");
+        ra.setApplication("my-app");
+        ra.setEventType("a_type");
+        List<RestEvent> events = new ArrayList<RestEvent>();
+        RestEvent event1 = new RestEvent();
+        event1.setPayload("{\"key\" : \"value\"}");
+        event1.setMetadata("{}");
+        events.add(event1);
+        RestEvent event2 = new RestEvent();
+        event2.setPayload("{\"key\" : \"value\"}");
+        event2.setMetadata("{}");
+        events.add(event2);
+        ra.setEvents(events);
+        ra.timestamp="2020-12-18T17:04:04.417921";
+        ra.setContext("{}");
 
         given()
                 .body(ra)

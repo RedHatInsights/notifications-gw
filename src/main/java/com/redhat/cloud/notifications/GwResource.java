@@ -2,7 +2,6 @@ package com.redhat.cloud.notifications;
 
 import com.redhat.cloud.notifications.ingress.Action;
 import com.redhat.cloud.notifications.ingress.Event;
-import com.redhat.cloud.notifications.ingress.Metadata;
 import org.apache.avro.io.DatumWriter;
 import org.apache.avro.io.EncoderFactory;
 import org.apache.avro.io.JsonEncoder;
@@ -20,7 +19,6 @@ import javax.inject.Inject;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 import javax.ws.rs.Consumes;
-import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
@@ -32,10 +30,12 @@ import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.jboss.logging.Logger;
+
+import io.vertx.core.json.Json;
 
 @ApplicationScoped
 @Path("/notifications")
@@ -43,6 +43,7 @@ import java.util.Map;
 @Produces(MediaType.APPLICATION_JSON)
 public class GwResource {
 
+    private static final Logger LOG = Logger.getLogger(NotificationsGwApp.class);
 
     @Inject
     @Channel("egress")
@@ -70,16 +71,19 @@ public class GwResource {
         Action.Builder builder = Action.newBuilder();
         LocalDateTime parsedTime = LocalDateTime.parse(ra.timestamp, DateTimeFormatter.ISO_LOCAL_DATE_TIME);
         builder.setTimestamp(parsedTime);
-        builder.setContext(new HashMap());
         List<Event> eventList = new ArrayList<>(1);
-        Metadata meta = new com.redhat.cloud.notifications.ingress.Metadata();
-        Event event = new Event(meta, ra.getPayload());
-        eventList.add(event);
+        List<RestEvent> events = ra.getEvents();
+        for (RestEvent restEvent : events) {
+            Event event = new Event(Json.decodeValue(restEvent.getMetadata(), com.redhat.cloud.notifications.ingress.Metadata.class), Json.decodeValue(restEvent.getPayload(), Map.class));
+            eventList.add(event);    
+        }
+          
         builder.setEvents(eventList);
         builder.setEventType(ra.eventType);
         builder.setApplication(ra.application);
         builder.setBundle(ra.bundle);
         builder.setAccountId(ra.accountId);
+        builder.setContext(Json.decodeValue(ra.getContext(), Map.class));
 
         Action message = builder.build();
 
@@ -95,24 +99,22 @@ public class GwResource {
         return Response.ok().build();
 
     }
-
-    @GET
-    @Path("/sample")
-    public Response getSample() {
-        RestAction a = new RestAction();
-        a.setAccountId("123");
-        a.setBundle("my-bundle");
-        a.setApplication("my-app");
-        a.setEventType("a type");
-        Map<String, Object> payload = new HashMap<>();
-        payload.put("key1","value1");
-        payload.put("key2","value2");
-        a.setPayload(payload);
-        DateTimeFormatter formatter = DateTimeFormatter.ISO_LOCAL_DATE_TIME;
-        a.setTimestamp(LocalDateTime.now().format(formatter));
-
-        return Response.ok().entity(a).build();
-    }
+    // @GET
+    // @Path("/sample")
+    // public Response getSample() {
+    //     RestAction a = new RestAction();
+    //     a.setAccountId("123");
+    //     a.setBundle("my-bundle");
+    //     a.setApplication("my-app");
+    //     a.setEventType("a type");
+    //     Map<String, Object> payload = new HashMap<>();
+    //     payload.put("key1","value1");
+    //     payload.put("key2","value2");
+    //     a.setPayload(payload);
+    //     DateTimeFormatter formatter = DateTimeFormatter.ISO_LOCAL_DATE_TIME;
+    //     a.setTimestamp(LocalDateTime.now().format(formatter));
+    //     return Response.ok().entity(a).build();
+    // }
 
     public static String serializeAction(Action action) throws IOException {
         ByteArrayOutputStream baos = new ByteArrayOutputStream();

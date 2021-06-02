@@ -2,13 +2,13 @@ package com.redhat.cloud.notifications;
 
 import io.quarkus.test.common.QuarkusTestResource;
 import io.quarkus.test.junit.QuarkusTest;
+
 import io.vertx.core.json.Json;
 import org.junit.jupiter.api.Test;
 
 import javax.ws.rs.core.MediaType;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-import java.util.HashMap;
+
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -27,17 +27,18 @@ public class GwResourceTest {
         UUID random = UUID.randomUUID();
 
         RestAction ra = new RestAction();
-        ra.accountId = "42";
-        ra.bundle = "bundle-test";
-        ra.application = "test";
-        ra.eventType = "hulla";
-        ra.payload = new HashMap<>();
-        ra.payload.put("key1", "value1");
-        ra.payload.put("uuid",random);
-
-        DateTimeFormatter formatter = DateTimeFormatter.ISO_LOCAL_DATE_TIME;
-        ra.timestamp = LocalDateTime.now().format(formatter);
-        ra.setTimestamp("2020-12-11T12:13:03.507753");
+        ra.setBundle("my-bundle");
+        ra.setAccountId("123");
+        ra.setApplication("my-app");
+        ra.setEventType("a_type");
+        List<RestEvent> events = new ArrayList<RestEvent>();
+        RestEvent event = new RestEvent();
+        event.setPayload("{\"key1\" : \"value1\", \"uuid\" : \"" + random.toString() + "\"}");
+        event.setMetadata("{}");
+        events.add(event);
+        ra.setEvents(events);
+        ra.setTimestamp("2020-12-18T17:04:04.417921");
+        ra.setContext("{}");
 
         String identity = TestHelpers.encodeIdentityInfo("test", "user");
 
@@ -48,8 +49,7 @@ public class GwResourceTest {
                 .when().post("/notifications/")
                 .then()
                 .statusCode(200);
-
-
+        
         // Now check if we got a message
         for (int i = 0; i < 10; i++) {
             Thread.sleep(1000L);
@@ -59,8 +59,8 @@ public class GwResourceTest {
                 assertEquals(ra.accountId, am.get("account_id"));
                 List<Map> eventList = (List<Map>) am.get("events");
                 assertEquals(1, eventList.size());
-                Map<String, Object> event = eventList.get(0);
-                Map<String,String> payload = Json.decodeValue((String)event.get("payload"), Map.class);
+                Map<String, Object> eventR = eventList.get(0);
+                Map<String,String> payload = Json.decodeValue((String)eventR.get("payload"), Map.class);
                 assertEquals(2, payload.size());
                 assertEquals(random.toString(), payload.get("uuid"));
 

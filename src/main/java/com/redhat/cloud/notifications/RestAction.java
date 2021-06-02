@@ -22,7 +22,7 @@ import javax.validation.constraints.Pattern;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-import java.util.Map;
+import java.util.List;
 
 /**
  * Based on the Avro 'Action'
@@ -55,7 +55,12 @@ public class RestAction {
     @JsonProperty("account_id")
     public String accountId;
 
-    public java.util.Map<String,Object> payload;
+    @NotNull
+    public List<RestEvent> events;
+
+    @NotNull
+    public String context;
+
 
     public String getBundle() {
         return bundle;
@@ -97,11 +102,19 @@ public class RestAction {
         this.accountId = accountId;
     }
 
-    public Map<String,Object> getPayload() {
-        return payload;
+    public List<RestEvent> getEvents() {
+        return events;
     }
 
-    public void setPayload(Map<String,Object> payload) {
-        this.payload = payload;
+    public void setEvents(List<RestEvent> events) {
+        this.events = events;
+    }
+
+    public String getContext() {
+        return context;
+    }
+
+    public void setContext(String context) {
+        this.context = context;
     }
 }
