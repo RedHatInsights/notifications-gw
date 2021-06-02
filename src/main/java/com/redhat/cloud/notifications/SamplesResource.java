@@ -13,7 +13,9 @@ import javax.ws.rs.core.Response;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Locale;
+import java.util.Map;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 @ApplicationScoped
@@ -32,13 +34,15 @@ public class SamplesResource {
         a.setEventType("a_type");
         List<RestEvent> events = new ArrayList<RestEvent>();
         RestEvent event = new RestEvent();
-        event.setPayload("{\"key\" : \"value\"}");
-        event.setMetadata("{}");
+        Map<String, Object> payload = new HashMap<String, Object>();
+        payload.put("key", "value");
+        // event.setMetadata(new RestMetadata());
+        event.setPayload(payload);
         events.add(event);
         a.setEvents(events);
         DateTimeFormatter formatter = DateTimeFormatter.ISO_LOCAL_DATE_TIME.withLocale(Locale.US);
         a.setTimestamp(LocalDateTime.now().format(formatter));
-        a.setContext("{}");
+        a.setContext(new HashMap<String, Object>());
         return Response.ok().entity(a).build();
     }
 

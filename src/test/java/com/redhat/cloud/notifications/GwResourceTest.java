@@ -2,13 +2,16 @@ package com.redhat.cloud.notifications;
 
 import io.quarkus.test.common.QuarkusTestResource;
 import io.quarkus.test.junit.QuarkusTest;
-
+import io.restassured.response.Response;
 import io.vertx.core.json.Json;
+
+import org.apache.avro.io.JsonDecoder;
 import org.junit.jupiter.api.Test;
 
 import javax.ws.rs.core.MediaType;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -31,14 +34,18 @@ public class GwResourceTest {
         ra.setAccountId("123");
         ra.setApplication("my-app");
         ra.setEventType("a_type");
+
         List<RestEvent> events = new ArrayList<RestEvent>();
         RestEvent event = new RestEvent();
-        event.setPayload("{\"key1\" : \"value1\", \"uuid\" : \"" + random.toString() + "\"}");
-        event.setMetadata("{}");
+        Map<String, Object> payload = new HashMap<String, Object>();
+        payload.put("key", "value");
+        payload.put("uuid", random.toString());
+        event.setMetadata(new RestMetadata());
+        event.setPayload(payload);
         events.add(event);
         ra.setEvents(events);
         ra.setTimestamp("2020-12-18T17:04:04.417921");
-        ra.setContext("{}");
+        ra.setContext(new HashMap());
 
         String identity = TestHelpers.encodeIdentityInfo("test", "user");
 
@@ -60,9 +67,9 @@ public class GwResourceTest {
                 List<Map> eventList = (List<Map>) am.get("events");
                 assertEquals(1, eventList.size());
                 Map<String, Object> eventR = eventList.get(0);
-                Map<String,String> payload = Json.decodeValue((String)eventR.get("payload"), Map.class);
-                assertEquals(2, payload.size());
-                assertEquals(random.toString(), payload.get("uuid"));
+                Map<String, Object> payloadR = Json.decodeValue((String)eventR.get("payload"), Map.class);
+                assertEquals(2, payloadR.size());
+                assertEquals(random.toString(), payloadR.get("uuid"));
 
                 return;
             }

@@ -16,30 +16,31 @@
  */
 package com.redhat.cloud.notifications;
 
+import java.util.Map;
+
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 
 public class RestEvent {
     @NotNull
     @NotEmpty
-    public String payload;
+    public Map<String, Object> payload;
 
-    @NotNull
-    public String metadata;
+    public RestMetadata metadata;
 
-    public String getPayload() {
+    public Map<String, Object> getPayload() {
         return payload;
     }
 
-    public void setPayload(String payload) {
+    public void setPayload(Map<String, Object> payload) {
         this.payload = payload;
     }
 
-    public String getMetadata() {
+    public RestMetadata getMetadata() {
         return metadata;
     }
 
-    public void setMetadata(String metadata) {
+    public void setMetadata(RestMetadata metadata) {
         this.metadata = metadata;
     }
 }

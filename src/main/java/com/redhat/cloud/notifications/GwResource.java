@@ -2,6 +2,8 @@ package com.redhat.cloud.notifications;
 
 import com.redhat.cloud.notifications.ingress.Action;
 import com.redhat.cloud.notifications.ingress.Event;
+import com.redhat.cloud.notifications.ingress.Metadata;
+
 import org.apache.avro.io.DatumWriter;
 import org.apache.avro.io.EncoderFactory;
 import org.apache.avro.io.JsonEncoder;
@@ -74,7 +76,8 @@ public class GwResource {
         List<Event> eventList = new ArrayList<>(1);
         List<RestEvent> events = ra.getEvents();
         for (RestEvent restEvent : events) {
-            Event event = new Event(Json.decodeValue(restEvent.getMetadata(), com.redhat.cloud.notifications.ingress.Metadata.class), Json.decodeValue(restEvent.getPayload(), Map.class));
+            Metadata.Builder metadataBuilder = Metadata.newBuilder();
+            Event event = new Event(metadataBuilder.build(), restEvent.getPayload());
             eventList.add(event);    
         }
           
@@ -83,7 +86,7 @@ public class GwResource {
         builder.setApplication(ra.application);
         builder.setBundle(ra.bundle);
         builder.setAccountId(ra.accountId);
-        builder.setContext(Json.decodeValue(ra.getContext(), Map.class));
+        builder.setContext(ra.getContext());
 
         Action message = builder.build();
 

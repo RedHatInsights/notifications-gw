@@ -23,6 +23,7 @@ import javax.validation.constraints.Pattern;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * Based on the Avro 'Action'
@@ -58,8 +59,7 @@ public class RestAction {
     @NotNull
     public List<RestEvent> events;
 
-    @NotNull
-    public String context;
+    public Map<String, Object> context;
 
 
     public String getBundle() {
@@ -110,11 +110,11 @@ public class RestAction {
         this.events = events;
     }
 
-    public String getContext() {
+    public Map<String, Object> getContext() {
         return context;
     }
 
-    public void setContext(String context) {
+    public void setContext(Map<String, Object> context) {
         this.context = context;
     }
 }

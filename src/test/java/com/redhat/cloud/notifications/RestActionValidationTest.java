@@ -24,7 +24,9 @@ import javax.validation.Validator;
 import javax.validation.ValidatorFactory;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -45,13 +47,14 @@ public class RestActionValidationTest {
         a.setApplication("my-app");
         a.setEventType("a_type");
         List<RestEvent> events = new ArrayList<RestEvent>();
-        RestEvent event = new RestEvent();
-        event.setPayload("{\"key\" : \"value\"}");
-        event.setMetadata("{}");
-        events.add(event);
+        RestEvent event1 = new RestEvent();
+        Map<String, Object> payload = new HashMap<String, Object>();
+        payload.put("key", "value");
+        event1.setMetadata(new RestMetadata());
+        event1.setPayload(payload);
         a.setEvents(events);
         a.setTimestamp("2020-12-18T17:04:04.417921");
-        a.setContext("{}");
+        a.setContext(new HashMap());
 
         Set<ConstraintViolation<RestAction>> violations = validator.validate(a);
         assertEquals(0,violations.size(), violations.toString());
@@ -66,16 +69,19 @@ public class RestActionValidationTest {
         a.setEventType("a_type");
         List<RestEvent> events = new ArrayList<RestEvent>();
         RestEvent event1 = new RestEvent();
-        event1.setPayload("{\"key\" : \"value\"}");
-        event1.setMetadata("{}");
+        Map<String, Object> payload = new HashMap<String, Object>();
+        payload.put("key", "value");
+        event1.setMetadata(new RestMetadata());
+        event1.setPayload(payload);
         events.add(event1);
+
         RestEvent event2 = new RestEvent();
-        event1.setPayload("{\"key2\" : \"value2\"}");
-        event1.setMetadata("{}");
-        events.add(event2);
+        event2.setMetadata(new RestMetadata());
+        event2.setPayload(payload);
+        events.add(event1);
+
         a.setEvents(events);
         a.setTimestamp("2020-12-18T17:04:04.417921");
-        a.setContext("{}");
 
         Set<ConstraintViolation<RestAction>> violations = validator.validate(a);
         assertEquals(0,violations.size(), violations.toString());
@@ -90,7 +96,7 @@ public class RestActionValidationTest {
         ra.timestamp="2020-12-18T17:04:04.417921";
 
         Set<ConstraintViolation<RestAction>> violations = validator.validate(ra);
-        assertEquals(7,violations.size(), violations.toString());
+        assertEquals(6,violations.size(), violations.toString());
     }
 
     @Test
@@ -103,7 +109,7 @@ public class RestActionValidationTest {
         ra.timestamp="2020-12-18T17:04:04.417921";
 
         Set<ConstraintViolation<RestAction>> violations = validator.validate(ra);
-        assertEquals(4,violations.size(), violations.toString());
+        assertEquals(3,violations.size(), violations.toString());
     }
 
     @Test
@@ -115,7 +121,7 @@ public class RestActionValidationTest {
         ra.timestamp="2020-12-18T17:04:04.417921";
 
         Set<ConstraintViolation<RestAction>> violations = validator.validate(ra);
-        assertEquals(4,violations.size(), violations.toString());
+        assertEquals(3,violations.size(), violations.toString());
     }
 
 }

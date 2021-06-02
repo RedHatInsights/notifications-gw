@@ -25,7 +25,9 @@ import static io.restassured.RestAssured.given;
 import static io.restassured.RestAssured.when;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * @author hrupp
@@ -51,12 +53,13 @@ public class SamplesTest {
         ra.setEventType("a_type");
         List<RestEvent> events = new ArrayList<RestEvent>();
         RestEvent event = new RestEvent();
-        event.setPayload("{\"key\" : \"value\"}");
-        event.setMetadata("{}");
+        Map<String, Object> payload = new HashMap<String, Object>();
+        payload.put("key", "value");
+        event.setMetadata(new RestMetadata());
+        event.setPayload(payload);
         events.add(event);
         ra.setEvents(events);
         ra.timestamp="2020-12-18T17:04:04.417921";
-        ra.setContext("{}");
 
         given()
                 .body(ra)
@@ -76,16 +79,20 @@ public class SamplesTest {
         ra.setEventType("a_type");
         List<RestEvent> events = new ArrayList<RestEvent>();
         RestEvent event1 = new RestEvent();
-        event1.setPayload("{\"key\" : \"value\"}");
-        event1.setMetadata("{}");
+        Map<String, Object> payload = new HashMap<String, Object>();
+        payload.put("key", "value");
+        // event1.setMetadata(new RestMetadata());
+        event1.setPayload(payload);
         events.add(event1);
+
         RestEvent event2 = new RestEvent();
-        event2.setPayload("{\"key\" : \"value\"}");
-        event2.setMetadata("{}");
-        events.add(event2);
+        // event2.setMetadata(new RestMetadata());
+        event2.setPayload(payload);
+        events.add(event1);
+
         ra.setEvents(events);
         ra.timestamp="2020-12-18T17:04:04.417921";
-        ra.setContext("{}");
+        ra.setContext(new HashMap());
 
         given()
                 .body(ra)
