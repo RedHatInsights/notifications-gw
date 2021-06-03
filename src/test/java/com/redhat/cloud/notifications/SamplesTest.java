@@ -24,6 +24,11 @@ import org.junit.jupiter.api.Test;
 import static io.restassured.RestAssured.given;
 import static io.restassured.RestAssured.when;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 /**
  * @author hrupp
  */
@@ -40,13 +45,54 @@ public class SamplesTest {
     }
 
     @Test
-    void testGood() {
+    void testGood1() {
         RestAction ra =new RestAction();
-        ra.accountId="123";
-        ra.bundle="insights";
-        ra.application="policies";
-        ra.eventType="policy_triggered";
+        ra.setBundle("my-bundle");
+        ra.setAccountId("123");
+        ra.setApplication("my-app");
+        ra.setEventType("a_type");
+        List<RestEvent> events = new ArrayList<RestEvent>();
+        RestEvent event = new RestEvent();
+        Map<String, Object> payload = new HashMap<String, Object>();
+        payload.put("key", "value");
+        event.setMetadata(new RestMetadata());
+        event.setPayload(payload);
+        events.add(event);
+        ra.setEvents(events);
         ra.timestamp="2020-12-18T17:04:04.417921";
+
+        given()
+                .body(ra)
+                .contentType(ContentType.JSON)
+            .when()
+                .post("/sample/verify")
+            .then()
+                .statusCode(200);
+    }
+
+    @Test
+    void testGood2() {
+        RestAction ra =new RestAction();
+        ra.setBundle("my-bundle");
+        ra.setAccountId("123");
+        ra.setApplication("my-app");
+        ra.setEventType("a_type");
+        List<RestEvent> events = new ArrayList<RestEvent>();
+        RestEvent event1 = new RestEvent();
+        Map<String, Object> payload = new HashMap<String, Object>();
+        payload.put("key", "value");
+        // event1.setMetadata(new RestMetadata());
+        event1.setPayload(payload);
+        events.add(event1);
+
+        RestEvent event2 = new RestEvent();
+        // event2.setMetadata(new RestMetadata());
+        event2.setPayload(payload);
+        events.add(event1);
+
+        ra.setEvents(events);
+        ra.timestamp="2020-12-18T17:04:04.417921";
+        ra.setContext(new HashMap());
 
         given()
                 .body(ra)

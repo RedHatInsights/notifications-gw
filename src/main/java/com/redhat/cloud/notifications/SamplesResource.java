@@ -1,13 +1,7 @@
 package com.redhat.cloud.notifications;
 
-import org.apache.avro.io.EncoderFactory;
-import org.apache.avro.io.JsonEncoder;
-import org.apache.avro.specific.SpecificDatumWriter;
-import org.eclipse.microprofile.reactive.messaging.Channel;
-import org.eclipse.microprofile.reactive.messaging.Emitter;
 
 import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Inject;
 import javax.validation.Valid;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
@@ -18,9 +12,11 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 
 @ApplicationScoped
 @Path("/sample")
@@ -32,20 +28,23 @@ public class SamplesResource {
     @Path("/")
     public Response getSample() {
         RestAction a = new RestAction();
-        a.setAccountId("123");
         a.setBundle("my-bundle");
+        a.setAccountId("123");
         a.setApplication("my-app");
         a.setEventType("a_type");
-        Map<String, Object> payload = new HashMap<>();
-        payload.put("key1","value1");
-        payload.put("key2","value2");
-        a.setPayload(payload);
+        List<RestEvent> events = new ArrayList<RestEvent>();
+        RestEvent event = new RestEvent();
+        Map<String, Object> payload = new HashMap<String, Object>();
+        payload.put("key", "value");
+        // event.setMetadata(new RestMetadata());
+        event.setPayload(payload);
+        events.add(event);
+        a.setEvents(events);
         DateTimeFormatter formatter = DateTimeFormatter.ISO_LOCAL_DATE_TIME.withLocale(Locale.US);
         a.setTimestamp(LocalDateTime.now().format(formatter));
-
+        a.setContext(new HashMap<String, Object>());
         return Response.ok().entity(a).build();
     }
-
 
     @POST
     @Path("/verify")
