@@ -15,7 +15,7 @@
     <quarkus-plugin.version>1.13.6.Final</quarkus-plugin.version>
     <quarkus.platform.artifact-id>quarkus-bom</quarkus.platform.artifact-id>
     <quarkus.platform.group-id>io.quarkus</quarkus.platform.group-id>
-    <quarkus.platform.version>1.13.6.Final</quarkus.platform.version>
+    <quarkus.platform.version>1.13.7.Final</quarkus.platform.version>
     <surefire-plugin.version>2.22.2</surefire-plugin.version>
     <testcontainers.version>1.15.3</testcontainers.version>
     <mockserver-client-java.version>5.5.4</mockserver-client-java.version> <!-- not the newest, but matches what is in org.testcontainers:mockserver -->
