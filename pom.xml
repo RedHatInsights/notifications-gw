@@ -192,6 +192,7 @@
           </execution>
         </executions>
         <configuration>
+          <useNativeGit>true</useNativeGit>
           <includeOnlyProperties>
             <includeOnlyProperty>git.commit.id</includeOnlyProperty>
             <includeOnlyProperty>git.commit.message.short</includeOnlyProperty>
