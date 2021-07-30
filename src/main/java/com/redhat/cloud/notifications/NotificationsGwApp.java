@@ -72,8 +72,7 @@ public class NotificationsGwApp {
             return "git.properties file not available";
         }
         StringBuilder resultStringBuilder = new StringBuilder();
-        final InputStreamReader inputStreamReader = new InputStreamReader(inputStream);
-        try (BufferedReader br = new BufferedReader(inputStreamReader)) {
+        try (InputStreamReader inputStreamReader = new InputStreamReader(inputStream); BufferedReader br = new BufferedReader(inputStreamReader)) {
             String line;
             while ((line = br.readLine()) != null) {
                 resultStringBuilder.append(line).append("\n");
