@@ -67,10 +67,13 @@ public class NotificationsGwApp {
         }
     }
 
-    private String readFromInputStream(InputStream inputStream)
-            throws IOException {
+    private String readFromInputStream(InputStream inputStream) throws IOException {
+        if(inputStream == null) {
+            return "git.properties file not available";
+        }
         StringBuilder resultStringBuilder = new StringBuilder();
-        try (BufferedReader br = new BufferedReader(new InputStreamReader(inputStream))) {
+        final InputStreamReader inputStreamReader = new InputStreamReader(inputStream);
+        try (BufferedReader br = new BufferedReader(inputStreamReader)) {
             String line;
             while ((line = br.readLine()) != null) {
                 resultStringBuilder.append(line).append("\n");
