@@ -21,6 +21,8 @@
     <mockserver-client-java.version>5.5.4</mockserver-client-java.version> <!-- not the newest, but matches what is in org.testcontainers:mockserver -->
     <insights-notification-schemas-java.version>0.3</insights-notification-schemas-java.version>
     <clowder-quarkus-config-source.version>0.1.4</clowder-quarkus-config-source.version>
+    <checkstyle.version>8.44</checkstyle.version>
+    <checkstyle-plugin.version>3.1.2</checkstyle-plugin.version>
   </properties>
   <dependencyManagement>
     <dependencies>
@@ -165,6 +167,35 @@
           <debug>5008</debug>
           <suspend>false</suspend>
         </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-checkstyle-plugin</artifactId>
+        <version>${checkstyle-plugin.version}</version>
+        <dependencies>
+          <dependency>
+            <groupId>com.redhat.cloud.notifications</groupId>
+            <artifactId>checkstyle</artifactId>
+            <version>1.0</version>
+          </dependency>
+        </dependencies>
+        <configuration>
+          <configLocation>checkstyle.xml</configLocation>
+          <encoding>UTF-8</encoding>
+          <consoleOutput>true</consoleOutput>
+          <failsOnError>true</failsOnError>
+          <linkXRef>false</linkXRef>
+          <includeTestSourceDirectory>true</includeTestSourceDirectory>
+        </configuration>
+        <executions>
+          <execution>
+            <id>validate</id>
+            <phase>validate</phase>
+            <goals>
+              <goal>check</goal>
+            </goals>
+          </execution>
+        </executions>
       </plugin>
       <plugin>
         <artifactId>maven-compiler-plugin</artifactId>

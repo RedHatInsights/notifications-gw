@@ -14,6 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.redhat.cloud.notifications;
 
 import io.vertx.core.json.Json;
@@ -27,12 +28,11 @@ import java.util.Map;
  * {@link GwResourceTest#testHelloEndpoint()}
  * to receive the message on Kafka and provide it
  * back to the test.
- *
  */
 @ApplicationScoped
 public class TestReceiver {
 
-    public static Map<String,Object> theAction = null;
+    public static Map<String, Object> theAction = null;
 
     @Incoming("ingress")
     public void receive(String action) {

@@ -14,6 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.redhat.cloud.notifications;
 
 import com.redhat.cloud.notifications.auth.HeaderHelper;
@@ -22,48 +23,39 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import java.io.UnsupportedEncodingException;
+import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.Optional;
 
-
-/**
- * @author hrupp
- */
 public class IdentityTest {
 
     @Test
     void testSamlIdentity() {
-
-    String header =
-        "{\n" +
-        "  \"identity\": {\n" +
-        "    \"associate\": {\n" +
-        "      \"Role\": [\n" +
-        "        \"some-ldap-group\",\n" +
-        "        \"another-ldap-group\"\n" +
-        "      ],\n" +
-        "      \"email\": \"jschmoe@redhat.com\",\n" +
-        "      \"givenName\": \"Joseph\",\n" +
-        "      \"rhatUUID\": \"01234567-89ab-cdef-0123-456789abcdef\",\n" +
-        "      \"surname\": \"Schmoe\"\n" +
-        "    },\n" +
-        "    \"auth_type\": \"saml-auth\",\n" +
-        "    \"type\": \"Associate\"\n" +
-        "  }\n" +
-        "}\n";
-
+        String header =
+                "{\n" +
+                        "  \"identity\": {\n" +
+                        "    \"associate\": {\n" +
+                        "      \"Role\": [\n" +
+                        "        \"some-ldap-group\",\n" +
+                        "        \"another-ldap-group\"\n" +
+                        "      ],\n" +
+                        "      \"email\": \"jschmoe@redhat.com\",\n" +
+                        "      \"givenName\": \"Joseph\",\n" +
+                        "      \"rhatUUID\": \"01234567-89ab-cdef-0123-456789abcdef\",\n" +
+                        "      \"surname\": \"Schmoe\"\n" +
+                        "    },\n" +
+                        "    \"auth_type\": \"saml-auth\",\n" +
+                        "    \"type\": \"Associate\"\n" +
+                        "  }\n" +
+                        "}\n";
 
         String xRhEncoded = null;
-        try {
-            xRhEncoded = new String(Base64.getEncoder().encode(header.getBytes("UTF-8")));
-        } catch (UnsupportedEncodingException e) {
-            Assertions.fail();
-        }
+        xRhEncoded = new String(Base64.getEncoder().encode(header.getBytes(StandardCharsets.UTF_8)));
 
         Optional<XRhIdentity> id = HeaderHelper.getRhIdFromString(xRhEncoded);
         Assertions.assertTrue(id.isPresent());
         XRhIdentity xid = id.get();
-        Assertions.assertEquals("Associate",xid.identity.type);
+        Assertions.assertEquals("Associate", xid.identity.type);
         Assertions.assertEquals("jschmoe@redhat.com", xid.getSubject());
 
     }
@@ -72,15 +64,15 @@ public class IdentityTest {
     void testX509Identity() {
         String header =
                 "{\n" +
-                "  \"identity\": {\n" +
-                "    \"x509\": {\n" +
-                "      \"subject_dn\": \"/CN=some-host.example.com\",\n" +
-                "      \"issuer_dn\": \"/CN=certificate-authority.example.com\"\n" +
-                "    },\n" +
-                "    \"auth_type\": \"X509\",\n" +
-                "    \"type\": \"X509\"\n" +
-                "  }\n" +
-                "}\n";
+                        "  \"identity\": {\n" +
+                        "    \"x509\": {\n" +
+                        "      \"subject_dn\": \"/CN=some-host.example.com\",\n" +
+                        "      \"issuer_dn\": \"/CN=certificate-authority.example.com\"\n" +
+                        "    },\n" +
+                        "    \"auth_type\": \"X509\",\n" +
+                        "    \"type\": \"X509\"\n" +
+                        "  }\n" +
+                        "}\n";
 
         String xRhEncoded = null;
         try {
@@ -92,8 +84,7 @@ public class IdentityTest {
         Optional<XRhIdentity> id = HeaderHelper.getRhIdFromString(xRhEncoded);
         Assertions.assertTrue(id.isPresent());
         XRhIdentity xid = id.get();
-        Assertions.assertEquals("X509",xid.identity.type);
-        Assertions.assertEquals("/CN=some-host.example.com",xid.getSubject());
-
+        Assertions.assertEquals("X509", xid.identity.type);
+        Assertions.assertEquals("/CN=some-host.example.com", xid.getSubject());
     }
 }

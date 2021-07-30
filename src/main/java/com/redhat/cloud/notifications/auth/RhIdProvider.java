@@ -14,6 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.redhat.cloud.notifications.auth;
 
 import io.quarkus.security.identity.AuthenticationRequestContext;
@@ -25,7 +26,6 @@ import javax.enterprise.context.ApplicationScoped;
 
 /**
  * This one puts the Principal into the context.
- * @author hrupp
  */
 @ApplicationScoped
 public class RhIdProvider implements IdentityProvider<RhIdentityAuthenticationRequest> {

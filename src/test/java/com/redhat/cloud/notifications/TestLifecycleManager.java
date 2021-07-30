@@ -14,6 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.redhat.cloud.notifications;
 
 import com.redhat.cloud.notifications.avro.Iso8601Factory;
@@ -30,9 +31,6 @@ import java.util.Map;
 import static org.mockserver.model.HttpRequest.request;
 import static org.mockserver.model.HttpResponse.response;
 
-/**
- * @author hrupp
- */
 public class TestLifecycleManager implements QuarkusTestResourceLifecycleManager {
 
     private KafkaContainer kafkaContainer;
@@ -93,7 +91,7 @@ public class TestLifecycleManager implements QuarkusTestResourceLifecycleManager
         properties.put("rbac/mp-rest/url", mockServerUrl);
         mockServerClient = new MockServerClient(mockEngineServer.getContainerIpAddress(), mockEngineServer.getServerPort());
 
-        String xRhIdentity = TestHelpers.encodeIdentityInfo("test","user");
+        String xRhIdentity = TestHelpers.encodeIdentityInfo("test", "user");
         String access = TestHelpers.getFileAsString("rbac_example_full_access.json");
 
         mockServerClient

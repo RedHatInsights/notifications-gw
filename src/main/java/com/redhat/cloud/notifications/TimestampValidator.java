@@ -14,6 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.redhat.cloud.notifications;
 
 import javax.validation.ConstraintValidator;
@@ -22,10 +23,8 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Locale;
 
-/**
- * @author hrupp
- */
-public class TimestampValidator implements ConstraintValidator<ISO8601Timestamp,String> {
+public class TimestampValidator implements ConstraintValidator<ISO8601Timestamp, String> {
+
     @Override
     public void initialize(ISO8601Timestamp constraintAnnotation) {
         // TODO: Customise this generated block

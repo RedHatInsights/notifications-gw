@@ -14,8 +14,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.redhat.cloud.notifications.auth;
 
+package com.redhat.cloud.notifications.auth;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
@@ -23,15 +23,13 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  * Data model of the representation of a x-rh-identity header.
  * This class is the outer header. The real story is inside
  * the #identity property
- * @author hrupp
  */
-
 public class XRhIdentity {
 
     @JsonProperty("identity")
     public Identity identity;
 
-      public String getSubject() {
-          return identity.getSubject();
-      }
-  }
+    public String getSubject() {
+        return identity.getSubject();
+    }
+}

@@ -14,36 +14,36 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.redhat.cloud.notifications.auth;
 
 import java.security.Principal;
 
 /**
  * Simple implementation of {@link Principal}
- * @author hrupp
  */
 public class RhIdPrincipal implements Principal {
 
-  private String name;
-  private String rawRhId;
+    private String name;
+    private String rawRhId;
 
-  public RhIdPrincipal() {
-  }
+    public RhIdPrincipal() {
+    }
 
-  public RhIdPrincipal(String name) {
-    this.name = name;
-  }
+    public RhIdPrincipal(String name) {
+        this.name = name;
+    }
 
-  @Override
-  public String getName() {
-    return name;
-  }
+    @Override
+    public String getName() {
+        return name;
+    }
 
-  public void setRawRhIdHeader(String rawRhId) {
-    this.rawRhId = rawRhId;
-  }
+    public void setRawRhIdHeader(String rawRhId) {
+        this.rawRhId = rawRhId;
+    }
 
-  public String getRawRhIdHeader() {
-    return rawRhId;
-  }
+    public String getRawRhIdHeader() {
+        return rawRhId;
+    }
 }

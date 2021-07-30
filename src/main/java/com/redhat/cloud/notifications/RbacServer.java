@@ -14,6 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.redhat.cloud.notifications;
 
 import com.redhat.cloud.notifications.auth.RbacRaw;
@@ -27,20 +28,17 @@ import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 
-/**
- * @author hrupp
- */
 @Path("/api/rbac/v1")
 @RegisterRestClient(configKey = "rbac")
 @RegisterProvider(RbacRestClientRequestFilter.class)
 public interface RbacServer {
 
-  @GET
-  @Path("/access/") // trailing slash is required by api
-  @Consumes("application/json")
-  @Produces("application/json")
-  RbacRaw getRbacInfo(@QueryParam("application") String application,
-                      @HeaderParam("x-rh-identity") String rhIdentity
+    @GET
+    @Path("/access/") // trailing slash is required by api
+    @Consumes("application/json")
+    @Produces("application/json")
+    RbacRaw getRbacInfo(@QueryParam("application") String application,
+                        @HeaderParam("x-rh-identity") String rhIdentity
 
-             ) ;
+    );
 }

@@ -2,10 +2,7 @@ package com.redhat.cloud.notifications;
 
 import io.quarkus.test.common.QuarkusTestResource;
 import io.quarkus.test.junit.QuarkusTest;
-import io.restassured.response.Response;
 import io.vertx.core.json.Json;
-
-import org.apache.avro.io.JsonDecoder;
 import org.junit.jupiter.api.Test;
 
 import javax.ws.rs.core.MediaType;
@@ -35,9 +32,9 @@ public class GwResourceTest {
         ra.setApplication("my-app");
         ra.setEventType("a_type");
 
-        List<RestEvent> events = new ArrayList<RestEvent>();
+        List<RestEvent> events = new ArrayList<>();
         RestEvent event = new RestEvent();
-        Map<String, Object> payload = new HashMap<String, Object>();
+        Map<String, Object> payload = new HashMap<>();
         payload.put("key", "value");
         payload.put("uuid", random.toString());
         event.setMetadata(new RestMetadata());
@@ -45,7 +42,7 @@ public class GwResourceTest {
         events.add(event);
         ra.setEvents(events);
         ra.setTimestamp("2020-12-18T17:04:04.417921");
-        ra.setContext(new HashMap());
+        ra.setContext(new HashMap<>());
 
         String identity = TestHelpers.encodeIdentityInfo("test", "user");
 
@@ -56,18 +53,18 @@ public class GwResourceTest {
                 .when().post("/notifications/")
                 .then()
                 .statusCode(200);
-        
+
         // Now check if we got a message
         for (int i = 0; i < 10; i++) {
             Thread.sleep(1000L);
             if (TestReceiver.theAction != null) {
-                Map<String,Object> am = TestReceiver.theAction;
+                Map<String, Object> am = TestReceiver.theAction;
                 assertEquals(ra.application, am.get("application"));
                 assertEquals(ra.accountId, am.get("account_id"));
                 List<Map> eventList = (List<Map>) am.get("events");
                 assertEquals(1, eventList.size());
                 Map<String, Object> eventR = eventList.get(0);
-                Map<String, Object> payloadR = Json.decodeValue((String)eventR.get("payload"), Map.class);
+                Map<String, Object> payloadR = Json.decodeValue((String) eventR.get("payload"), Map.class);
                 assertEquals(2, payloadR.size());
                 assertEquals(random.toString(), payloadR.get("uuid"));
 
@@ -83,11 +80,11 @@ public class GwResourceTest {
         String identity = TestHelpers.encodeIdentityInfo("test", "user");
 
         given()
-            .header("x-rh-identity", identity)
-            .contentType(MediaType.APPLICATION_JSON)
-            .when().post("/notifications/")
-            .then()
-            .statusCode(400);
+                .header("x-rh-identity", identity)
+                .contentType(MediaType.APPLICATION_JSON)
+                .when().post("/notifications/")
+                .then()
+                .statusCode(400);
     }
 
     @Test
@@ -96,14 +93,14 @@ public class GwResourceTest {
         String identity = TestHelpers.encodeIdentityInfo("test", "user");
 
         RestAction ra = new RestAction();
-        ra.application="this.is_a Application";
+        ra.application = "this.is_a Application";
 
         given()
-            .body(ra)
-            .header("x-rh-identity", identity)
-            .contentType(MediaType.APPLICATION_JSON)
-            .when().post("/notifications/")
-            .then()
-            .statusCode(400);
+                .body(ra)
+                .header("x-rh-identity", identity)
+                .contentType(MediaType.APPLICATION_JSON)
+                .when().post("/notifications/")
+                .then()
+                .statusCode(400);
     }
 }

@@ -14,6 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.redhat.cloud.notifications;
 
 import org.junit.jupiter.api.Test;
@@ -31,9 +32,6 @@ import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-/**
- * @author hrupp
- */
 public class RestActionValidationTest {
 
     final ValidatorFactory factory = Validation.buildDefaultValidatorFactory();
@@ -57,7 +55,7 @@ public class RestActionValidationTest {
         a.setContext(new HashMap());
 
         Set<ConstraintViolation<RestAction>> violations = validator.validate(a);
-        assertEquals(0,violations.size(), violations.toString());
+        assertEquals(0, violations.size(), violations.toString());
     }
 
     @Test
@@ -84,44 +82,44 @@ public class RestActionValidationTest {
         a.setTimestamp("2020-12-18T17:04:04.417921");
 
         Set<ConstraintViolation<RestAction>> violations = validator.validate(a);
-        assertEquals(0,violations.size(), violations.toString());
+        assertEquals(0, violations.size(), violations.toString());
     }
 
     @Test
     void testBad1() {
-        RestAction ra =new RestAction();
-        ra.accountId="abc";
-        ra.bundle="Coal";
-        ra.application="Hulla";
-        ra.timestamp="2020-12-18T17:04:04.417921";
+        RestAction ra = new RestAction();
+        ra.accountId = "abc";
+        ra.bundle = "Coal";
+        ra.application = "Hulla";
+        ra.timestamp = "2020-12-18T17:04:04.417921";
 
         Set<ConstraintViolation<RestAction>> violations = validator.validate(ra);
-        assertEquals(6,violations.size(), violations.toString());
+        assertEquals(6, violations.size(), violations.toString());
     }
 
     @Test
     void testBad2() {
-        RestAction ra =new RestAction();
-        ra.accountId="";
-        ra.bundle="insights";
-        ra.application="policies";
-        ra.eventType="triggered";
-        ra.timestamp="2020-12-18T17:04:04.417921";
+        RestAction ra = new RestAction();
+        ra.accountId = "";
+        ra.bundle = "insights";
+        ra.application = "policies";
+        ra.eventType = "triggered";
+        ra.timestamp = "2020-12-18T17:04:04.417921";
 
         Set<ConstraintViolation<RestAction>> violations = validator.validate(ra);
-        assertEquals(3,violations.size(), violations.toString());
+        assertEquals(3, violations.size(), violations.toString());
     }
 
     @Test
     void testBad3() {
-        RestAction ra =new RestAction();
-        ra.accountId="123";
-        ra.application="policies";
-        ra.eventType="policy_triggered";
-        ra.timestamp="2020-12-18T17:04:04.417921";
+        RestAction ra = new RestAction();
+        ra.accountId = "123";
+        ra.application = "policies";
+        ra.eventType = "policy_triggered";
+        ra.timestamp = "2020-12-18T17:04:04.417921";
 
         Set<ConstraintViolation<RestAction>> violations = validator.validate(ra);
-        assertEquals(3,violations.size(), violations.toString());
+        assertEquals(3, violations.size(), violations.toString());
     }
 
 }

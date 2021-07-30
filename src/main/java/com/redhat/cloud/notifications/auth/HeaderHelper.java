@@ -14,6 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.redhat.cloud.notifications.auth;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -24,38 +25,36 @@ import javax.ws.rs.core.HttpHeaders;
 import java.util.Base64;
 import java.util.Optional;
 
-/**
- * @author hrupp
- */
 public abstract class HeaderHelper {
 
-  static ObjectMapper om = new ObjectMapper();
-  static {
-    om.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES,false);
-  }
+    static ObjectMapper om = new ObjectMapper();
 
-  public static Optional<XRhIdentity> getRhIdFromHeader(HttpHeaders httpHeaders) {
-    if (httpHeaders==null) {
-      return Optional.empty();
+    static {
+        om.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
     }
-    String headerString = httpHeaders.getHeaderString("x-rh-identity");
-    if (headerString==null) {
-      return Optional.empty();
-    }
-    return getRhIdFromString(headerString);
-  }
 
-  public static Optional<XRhIdentity> getRhIdFromString(String xRhIdHeader)  {
-    XRhIdentity rhIdentity;
-    if (xRhIdHeader==null) {
-      return Optional.empty();
+    public static Optional<XRhIdentity> getRhIdFromHeader(HttpHeaders httpHeaders) {
+        if (httpHeaders == null) {
+            return Optional.empty();
+        }
+        String headerString = httpHeaders.getHeaderString("x-rh-identity");
+        if (headerString == null) {
+            return Optional.empty();
+        }
+        return getRhIdFromString(headerString);
     }
-    try {
-      String json_string = new String(Base64.getDecoder().decode(xRhIdHeader));
-      rhIdentity = om.readValue(json_string, XRhIdentity.class);
-    } catch (JsonProcessingException jbe) {
-      return Optional.empty();
+
+    public static Optional<XRhIdentity> getRhIdFromString(String xRhIdHeader) {
+        XRhIdentity rhIdentity;
+        if (xRhIdHeader == null) {
+            return Optional.empty();
+        }
+        try {
+            String json_string = new String(Base64.getDecoder().decode(xRhIdHeader));
+            rhIdentity = om.readValue(json_string, XRhIdentity.class);
+        } catch (JsonProcessingException jbe) {
+            return Optional.empty();
+        }
+        return Optional.ofNullable(rhIdentity);
     }
-    return Optional.ofNullable(rhIdentity);
-  }
 }

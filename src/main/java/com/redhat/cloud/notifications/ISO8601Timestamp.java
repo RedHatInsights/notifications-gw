@@ -14,6 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.redhat.cloud.notifications;
 
 import javax.validation.Constraint;
@@ -21,9 +22,6 @@ import javax.validation.Payload;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 
-/**
- * @author hrupp
- */
 @Constraint(validatedBy = TimestampValidator.class)
 @Retention(RetentionPolicy.RUNTIME)
 public @interface ISO8601Timestamp {

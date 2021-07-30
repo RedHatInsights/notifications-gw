@@ -14,6 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.redhat.cloud.notifications.auth;
 
 import io.quarkus.security.identity.IdentityProviderManager;
@@ -35,7 +36,6 @@ import java.util.Set;
 /**
  * JAKARTA-375 auth mechanism. This basically just decodes he x-rh-identity header
  * and assumes that all calls have this header set.
- * @author hrupp
  */
 @ApplicationScoped
 public class RHIdAuthMechanism implements HttpAuthenticationMechanism {
@@ -61,8 +61,8 @@ public class RHIdAuthMechanism implements HttpAuthenticationMechanism {
 
         return Uni.createFrom().item(
                 QuarkusSecurityIdentity.builder()
-                    .setPrincipal(new RhIdPrincipal(subject))
-                    .build()
+                        .setPrincipal(new RhIdPrincipal(subject))
+                        .build()
         );
     }
 

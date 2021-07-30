@@ -3,7 +3,6 @@ package com.redhat.cloud.notifications;
 import com.redhat.cloud.notifications.ingress.Action;
 import com.redhat.cloud.notifications.ingress.Event;
 import com.redhat.cloud.notifications.ingress.Metadata;
-
 import org.apache.avro.io.DatumWriter;
 import org.apache.avro.io.EncoderFactory;
 import org.apache.avro.io.JsonEncoder;
@@ -33,19 +32,12 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-
-import org.jboss.logging.Logger;
-
-import io.vertx.core.json.Json;
 
 @ApplicationScoped
 @Path("/notifications")
 @Consumes(MediaType.APPLICATION_JSON)
 @Produces(MediaType.APPLICATION_JSON)
 public class GwResource {
-
-    private static final Logger LOG = Logger.getLogger(NotificationsGwApp.class);
 
     @Inject
     @Channel("egress")
@@ -62,10 +54,10 @@ public class GwResource {
     @POST
     @Operation(summary = "Forward one message to the notification system")
     @APIResponses({
-        @APIResponse(responseCode = "200", description = "Message forwarded"),
-        @APIResponse(responseCode = "403", description = "No permission"),
-        @APIResponse(responseCode = "401"),
-        @APIResponse(responseCode = "400", description = "Incoming message was not valid")
+            @APIResponse(responseCode = "200", description = "Message forwarded"),
+            @APIResponse(responseCode = "403", description = "No permission"),
+            @APIResponse(responseCode = "401"),
+            @APIResponse(responseCode = "400", description = "Incoming message was not valid")
     })
     public Response forward(@NotNull @Valid RestAction ra) {
         receivedActions.inc();
@@ -78,9 +70,9 @@ public class GwResource {
         for (RestEvent restEvent : events) {
             Metadata.Builder metadataBuilder = Metadata.newBuilder();
             Event event = new Event(metadataBuilder.build(), restEvent.getPayload());
-            eventList.add(event);    
+            eventList.add(event);
         }
-          
+
         builder.setEvents(eventList);
         builder.setEventType(ra.eventType);
         builder.setApplication(ra.application);

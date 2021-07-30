@@ -14,6 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.redhat.cloud.notifications.auth;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -31,20 +32,20 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
  * https://medium.com/@david.truong510/jackson-polymorphic-deserialization-91426e39b96a
  * for the @JsonTypeInfo and @JsonSubTypes
  */
-
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME,
-    property = "type",
-    visible = true
+        property = "type",
+        visible = true
 )
 @JsonSubTypes({
-@JsonSubTypes.Type(value = X509Identity.class, name = "X509"),
-@JsonSubTypes.Type(value = SamlIdentity.class, name = "Associate"),
-    })
+        @JsonSubTypes.Type(value = X509Identity.class, name = "X509"),
+        @JsonSubTypes.Type(value = SamlIdentity.class, name = "Associate"),
+})
 public abstract class Identity {
+
     @JsonProperty(required = true)
     public String type;
     @JsonProperty
     public String auth_info;
 
-    abstract public String getSubject();
+    public abstract String getSubject();
 }
