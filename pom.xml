@@ -196,6 +196,7 @@
             <includeOnlyProperty>git.commit.id.abbrev</includeOnlyProperty>
           </includeOnlyProperties>
           <generateGitPropertiesFile>true</generateGitPropertiesFile>
+          <dotGitDirectory>../.git</dotGitDirectory>
         </configuration>
       </plugin>
     </plugins>
