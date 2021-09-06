@@ -52,8 +52,8 @@ public class GwResource {
     private final Counter forwardedActions;
 
     public GwResource(MeterRegistry registry) {
-        this.receivedActions = Counter.builder("notifications.gw.received").register(registry);
-        this.forwardedActions = Counter.builder("notifications.gw.forwarded").register(registry);
+        receivedActions = registry.counter("notifications.gw.received");
+        forwardedActions = registry.counter("notifications.gw.forwarded");
     }
 
     @POST
