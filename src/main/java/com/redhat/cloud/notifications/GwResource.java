@@ -4,12 +4,12 @@ import com.redhat.cloud.notifications.ingress.Action;
 import com.redhat.cloud.notifications.ingress.Event;
 import com.redhat.cloud.notifications.ingress.Metadata;
 
+import io.micrometer.core.instrument.Counter;
+import io.micrometer.core.instrument.MeterRegistry;
 import org.apache.avro.io.DatumWriter;
 import org.apache.avro.io.EncoderFactory;
 import org.apache.avro.io.JsonEncoder;
 import org.apache.avro.specific.SpecificDatumWriter;
-import org.eclipse.microprofile.metrics.Counter;
-import org.eclipse.microprofile.metrics.annotation.Metric;
 import org.eclipse.microprofile.openapi.annotations.Operation;
 import org.eclipse.microprofile.openapi.annotations.responses.APIResponse;
 import org.eclipse.microprofile.openapi.annotations.responses.APIResponses;
@@ -33,11 +33,8 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 import org.jboss.logging.Logger;
-
-import io.vertx.core.json.Json;
 
 @ApplicationScoped
 @Path("/notifications")
@@ -51,13 +48,13 @@ public class GwResource {
     @Channel("egress")
     Emitter<String> emitter;
 
-    @Inject
-    @Metric(name = "notifications.gw.received")
-    Counter receivedActions;
+    private final Counter receivedActions;
+    private final Counter forwardedActions;
 
-    @Inject
-    @Metric(name = "notifications.gw.forwarded")
-    Counter forwardedActions;
+    public GwResource(MeterRegistry registry) {
+        this.receivedActions = Counter.builder("notifications.gw.received").register(registry);
+        this.forwardedActions = Counter.builder("notifications.gw.forwarded").register(registry);
+    }
 
     @POST
     @Operation(summary = "Forward one message to the notification system")
@@ -68,7 +65,7 @@ public class GwResource {
         @APIResponse(responseCode = "400", description = "Incoming message was not valid")
     })
     public Response forward(@NotNull @Valid RestAction ra) {
-        receivedActions.inc();
+        receivedActions.increment();
 
         Action.Builder builder = Action.newBuilder();
         LocalDateTime parsedTime = LocalDateTime.parse(ra.timestamp, DateTimeFormatter.ISO_LOCAL_DATE_TIME);
@@ -93,7 +90,7 @@ public class GwResource {
         try {
             String serializedAction = serializeAction(message);
             emitter.send(serializedAction);
-            forwardedActions.inc();
+            forwardedActions.increment();
         } catch (IOException e) {
             e.printStackTrace();  // TODO: Customise this generated block
             return Response.serverError().entity(e.getMessage()).build();
