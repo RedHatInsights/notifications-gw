@@ -6,10 +6,12 @@ import com.redhat.cloud.notifications.ingress.Metadata;
 
 import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.MeterRegistry;
+import io.smallrye.reactive.messaging.kafka.api.OutgoingKafkaRecordMetadata;
 import org.apache.avro.io.DatumWriter;
 import org.apache.avro.io.EncoderFactory;
 import org.apache.avro.io.JsonEncoder;
 import org.apache.avro.specific.SpecificDatumWriter;
+import org.apache.kafka.common.header.internals.RecordHeaders;
 import org.eclipse.microprofile.openapi.annotations.Operation;
 import org.eclipse.microprofile.openapi.annotations.responses.APIResponse;
 import org.eclipse.microprofile.openapi.annotations.responses.APIResponses;
@@ -28,13 +30,16 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
+import org.eclipse.microprofile.reactive.messaging.Message;
 import org.jboss.logging.Logger;
+
+import static java.nio.charset.StandardCharsets.UTF_8;
 
 @ApplicationScoped
 @Path("/notifications")
@@ -42,10 +47,13 @@ import org.jboss.logging.Logger;
 @Produces(MediaType.APPLICATION_JSON)
 public class GwResource {
 
+    public static final String EGRESS_CHANNEL = "egress";
+    public static final String MESSAGE_ID_HEADER = "rh-message-id";
+
     private static final Logger LOG = Logger.getLogger(NotificationsGwApp.class);
 
     @Inject
-    @Channel("egress")
+    @Channel(EGRESS_CHANNEL)
     Emitter<String> emitter;
 
     private final Counter receivedActions;
@@ -89,7 +97,7 @@ public class GwResource {
 
         try {
             String serializedAction = serializeAction(message);
-            emitter.send(serializedAction);
+            emitter.send(buildMessageWithId(serializedAction));
             forwardedActions.increment();
         } catch (IOException e) {
             e.printStackTrace();  // TODO: Customise this generated block
@@ -123,7 +131,14 @@ public class GwResource {
         writer.write(action, jsonEncoder);
         jsonEncoder.flush();
 
-        return baos.toString(StandardCharsets.UTF_8);
+        return baos.toString(UTF_8);
     }
 
+    private static Message buildMessageWithId(String payload) {
+        byte[] messageId = UUID.randomUUID().toString().getBytes(UTF_8);
+        OutgoingKafkaRecordMetadata metadata = OutgoingKafkaRecordMetadata.builder()
+                .withHeaders(new RecordHeaders().add(MESSAGE_ID_HEADER, messageId))
+                .build();
+        return Message.of(payload).addMetadata(metadata);
+    }
 }

@@ -19,14 +19,15 @@ package com.redhat.cloud.notifications;
 import com.redhat.cloud.notifications.avro.Iso8601Factory;
 import com.redhat.cloud.notifications.avro.JsonObjectFactory;
 import io.quarkus.test.common.QuarkusTestResourceLifecycleManager;
+import io.smallrye.reactive.messaging.connectors.InMemoryConnector;
 import org.apache.avro.LogicalTypes;
 import org.mockserver.client.MockServerClient;
-import org.testcontainers.containers.KafkaContainer;
 import org.testcontainers.containers.MockServerContainer;
 
 import java.util.HashMap;
 import java.util.Map;
 
+import static com.redhat.cloud.notifications.GwResource.EGRESS_CHANNEL;
 import static org.mockserver.model.HttpRequest.request;
 import static org.mockserver.model.HttpResponse.response;
 
@@ -35,7 +36,6 @@ import static org.mockserver.model.HttpResponse.response;
  */
 public class TestLifecycleManager implements QuarkusTestResourceLifecycleManager {
 
-    private KafkaContainer kafkaContainer;
     private MockServerContainer mockEngineServer;
     private MockServerClient mockServerClient;
 
@@ -45,8 +45,13 @@ public class TestLifecycleManager implements QuarkusTestResourceLifecycleManager
         Map<String, String> properties = new HashMap<>();
 
         registerAvroTypes();
-        setupKafka(properties);
         setupMockServer(properties);
+
+        /*
+         * We'll use an in-memory Reactive Messaging connector to send payloads.
+         * See https://smallrye.io/smallrye-reactive-messaging/smallrye-reactive-messaging/2/testing/testing.html
+         */
+        properties.putAll(InMemoryConnector.switchOutgoingChannelsToInMemory(EGRESS_CHANNEL));
 
         System.out.println("+ -- Running with properties: " + properties);
         return properties;
@@ -54,9 +59,7 @@ public class TestLifecycleManager implements QuarkusTestResourceLifecycleManager
 
     @Override
     public void stop() {
-        if (kafkaContainer != null) {
-            kafkaContainer.stop();
-        }
+        InMemoryConnector.clear();
 
         // Helper to debug mock server issues
 //           System.err.println(mockServerClient.retrieveLogMessages(request()));
@@ -75,13 +78,6 @@ public class TestLifecycleManager implements QuarkusTestResourceLifecycleManager
         for (LogicalTypes.LogicalTypeFactory ltf : logicalTypeFactories) {
             LogicalTypes.register(ltf.getTypeName(), ltf);
         }
-    }
-
-    private void setupKafka(Map<String, String> properties) {
-        kafkaContainer = new KafkaContainer();
-        kafkaContainer.start();
-        String boostrapServers = kafkaContainer.getBootstrapServers();
-        properties.put("kafka.bootstrap.servers", boostrapServers);
     }
 
     private void setupMockServer(Map<String, String> properties) {
