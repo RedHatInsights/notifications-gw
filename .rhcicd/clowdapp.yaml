@@ -54,6 +54,8 @@ objects:
           value: ${LOG_LEVEL}
         - name: QUARKUS_LOG_CLOUDWATCH_ENABLED
           value: ${CLOUDWATCH_LOGGING_ENABLED}
+        - name: QUARKUS_HTTP_PORT
+          value: "8000"
         resources:
           limits:
             cpu: ${CPU_LIMIT}
