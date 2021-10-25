@@ -48,8 +48,6 @@ objects:
         env:
         - name: CLOWDER_FILE
           value: ${CLOWDER_FILE}
-        - name: CLOWDER_ENABLED
-          value: ${CLOWDER_ENABLED}
         - name: QUARKUS_LOG_LEVEL
           value: ${LOG_LEVEL}
         - name: QUARKUS_LOG_CLOUDWATCH_ENABLED
@@ -97,9 +95,6 @@ parameters:
 - description: Image name
   name: IMAGE
   value: quay.io/cloudservices/notifications-gw
-- description: Determines Clowder deployment
-  name: CLOWDER_ENABLED
-  value: "false"
 - description: ClowdEnv Name
   name: ENV_NAME
   required: true
