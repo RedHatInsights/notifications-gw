@@ -41,6 +41,88 @@ public class GwResourceTest {
 
     @Test
     public void testHelloEndpoint() throws InterruptedException {
+        UUID random = UUID.randomUUID();
+
+        RestAction ra = new RestAction();
+        ra.setBundle("my-bundle");
+        ra.setAccountId("123");
+        ra.setApplication("my-app");
+        ra.setEventType("a_type");
+
+        List<RestEvent> events = new ArrayList<RestEvent>();
+        RestEvent event = new RestEvent();
+        Map<String, Object> payload = new HashMap<String, Object>();
+        payload.put("key", "value");
+        payload.put("uuid", random.toString());
+        event.setMetadata(new RestMetadata());
+        event.setPayload(payload);
+        events.add(event);
+        ra.setEvents(events);
+        ra.setTimestamp("2020-12-18T17:04:04.417921");
+        ra.setContext(new HashMap());
+
+        List<RestRecipient> recipients = new ArrayList<>();
+        RestRecipient recipient = new RestRecipient();
+        recipient.setOnlyAdmins(true);
+        recipient.setIgnoreUserPreferences(false);
+        recipients.add(recipient);
+        recipient = new RestRecipient();
+        recipient.setOnlyAdmins(false);
+        recipient.setIgnoreUserPreferences(true);
+        recipients.add(recipient);
+        ra.setRecipients(recipients);
+
+        String identity = TestHelpers.encodeIdentityInfo("test", "user");
+
+        given()
+                .body(ra)
+                .header("x-rh-identity", identity)
+                .contentType(MediaType.APPLICATION_JSON)
+                .when().post("/notifications/")
+                .then()
+                .statusCode(200);
+
+        // Now check if we got a message
+        InMemorySink<String> inMemorySink = inMemoryConnector.sink(EGRESS_CHANNEL);
+        await().atMost(Duration.ofSeconds(10L)).until(() -> inMemorySink.received().size() > 0);
+
+        // Message received!
+        Message<String> message = inMemorySink.received().get(0);
+        inMemorySink.clear();
+
+        // It should contain a "rh-message-id" header and its value should be a valid UUID version 4.
+        Optional<KafkaMessageMetadata> messageMetadata = message.getMetadata(KafkaMessageMetadata.class);
+        Iterator<Header> headers = messageMetadata.get().getHeaders().headers(MESSAGE_ID_HEADER).iterator();
+        String headerValue = new String(headers.next().value(), UTF_8);
+        // Is the header value a valid UUID? The following line will throw an exception otherwise.
+        UUID.fromString(headerValue);
+        // If the UUID version is 4, then its 15th character has to be "4".
+        assertEquals("4", headerValue.substring(14, 15));
+
+        Map<String,Object> am = Json.decodeValue(message.getPayload(), Map.class);
+        assertEquals(ra.application, am.get("application"));
+        assertEquals(ra.accountId, am.get("account_id"));
+        List<Map> eventList = (List<Map>) am.get("events");
+        assertEquals(1, eventList.size());
+        Map<String, Object> eventR = eventList.get(0);
+        Map<String, Object> payloadR = Json.decodeValue((String)eventR.get("payload"), Map.class);
+        assertEquals(2, payloadR.size());
+        assertEquals(random.toString(), payloadR.get("uuid"));
+
+        List<Map> recipientList = (List<Map>) am.get("recipients");
+        assertEquals(2, recipientList.size());
+        System.out.println(recipientList.get(0));
+        Map<String, Object> r0 = recipientList.get(0);
+        assertEquals(Boolean.TRUE, r0.get("only_admins"));
+        assertEquals(Boolean.FALSE, r0.get("ignore_user_preferences"));
+        Map<String, Object> r1 = recipientList.get(1);
+        assertEquals(Boolean.FALSE, r1.get("only_admins"));
+        assertEquals(Boolean.TRUE, r1.get("ignore_user_preferences"));
+
+    }
+
+    @Test
+    public void testHelloEndpointWithoutRecipient() throws InterruptedException {
 
         UUID random = UUID.randomUUID();
 
@@ -78,6 +160,7 @@ public class GwResourceTest {
 
         // Message received!
         Message<String> message = inMemorySink.received().get(0);
+        inMemorySink.clear();
 
         // It should contain a "rh-message-id" header and its value should be a valid UUID version 4.
         Optional<KafkaMessageMetadata> messageMetadata = message.getMetadata(KafkaMessageMetadata.class);

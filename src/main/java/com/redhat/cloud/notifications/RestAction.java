@@ -61,6 +61,7 @@ public class RestAction {
 
     public Map<String, Object> context;
 
+    public List<RestRecipient> recipients;
 
     public String getBundle() {
         return bundle;
@@ -116,5 +117,13 @@ public class RestAction {
 
     public void setContext(Map<String, Object> context) {
         this.context = context;
+    }
+
+    public List<RestRecipient> getRecipients() {
+        return recipients;
+    }
+
+    public void setRecipients(List<RestRecipient> recipients) {
+        this.recipients = recipients;
     }
 }
