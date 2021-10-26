@@ -111,7 +111,6 @@ public class GwResourceTest {
 
         List<Map> recipientList = (List<Map>) am.get("recipients");
         assertEquals(2, recipientList.size());
-        System.out.println(recipientList.get(0));
         Map<String, Object> r0 = recipientList.get(0);
         assertEquals(Boolean.TRUE, r0.get("only_admins"));
         assertEquals(Boolean.FALSE, r0.get("ignore_user_preferences"));
