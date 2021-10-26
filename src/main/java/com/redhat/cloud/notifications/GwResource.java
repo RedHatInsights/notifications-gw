@@ -79,15 +79,15 @@ public class GwResource {
         Action.Builder builder = Action.newBuilder();
         LocalDateTime parsedTime = LocalDateTime.parse(ra.timestamp, DateTimeFormatter.ISO_LOCAL_DATE_TIME);
         builder.setTimestamp(parsedTime);
-        List<Event> eventList = new ArrayList<>(1);
         List<RestEvent> events = ra.getEvents();
+        List<Event> eventList = new ArrayList<>(events.size());
         for (RestEvent restEvent : events) {
             Metadata.Builder metadataBuilder = Metadata.newBuilder();
             Event event = new Event(metadataBuilder.build(), restEvent.getPayload());
             eventList.add(event);
         }
 
-        List<Recipient> recipientList = new ArrayList<>(1);
+        List<Recipient> recipientList = new ArrayList<>();
         List<RestRecipient> recipients = ra.getRecipients();
         if (recipients != null) {
             for (RestRecipient restRecipient : recipients) {

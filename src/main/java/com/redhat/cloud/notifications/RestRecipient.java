@@ -1,8 +1,13 @@
 package com.redhat.cloud.notifications;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 public class RestRecipient {
 
+    @JsonProperty("ignore_user_preferences")
     private boolean ignoreUserPreferences;
+
+    @JsonProperty("only_admins")
     private boolean onlyAdmins;
 
     public boolean isIgnoreUserPreferences() {
