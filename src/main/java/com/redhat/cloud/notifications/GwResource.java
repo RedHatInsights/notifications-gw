@@ -6,7 +6,9 @@ import com.redhat.cloud.notifications.ingress.Metadata;
 
 import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.MeterRegistry;
+import io.quarkus.cache.CacheResult;
 import io.smallrye.reactive.messaging.kafka.api.OutgoingKafkaRecordMetadata;
+import io.vertx.core.json.JsonObject;
 import org.apache.avro.io.DatumWriter;
 import org.apache.avro.io.EncoderFactory;
 import org.apache.avro.io.JsonEncoder;
@@ -20,6 +22,7 @@ import org.eclipse.microprofile.reactive.messaging.Emitter;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
+import javax.persistence.EntityManager;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 import javax.ws.rs.Consumes;
@@ -34,6 +37,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 import org.eclipse.microprofile.reactive.messaging.Message;
@@ -56,6 +60,9 @@ public class GwResource {
     @Channel(EGRESS_CHANNEL)
     Emitter<String> emitter;
 
+    @Inject
+    EntityManager entityManager;
+
     private final Counter receivedActions;
     private final Counter forwardedActions;
 
@@ -75,6 +82,13 @@ public class GwResource {
     public Response forward(@NotNull @Valid RestAction ra) {
         receivedActions.increment();
 
+        String outcome = checkValidBAE(ra.bundle, ra.application, ra.eventType);
+        if (!outcome.equals("OK")) {
+            return Response.status(400, outcome)
+                            .entity(new JsonObject(Map.of("error",outcome)))
+            .build();
+        }
+
         Action.Builder builder = Action.newBuilder();
         LocalDateTime parsedTime = LocalDateTime.parse(ra.timestamp, DateTimeFormatter.ISO_LOCAL_DATE_TIME);
         builder.setTimestamp(parsedTime);
@@ -83,9 +97,9 @@ public class GwResource {
         for (RestEvent restEvent : events) {
             Metadata.Builder metadataBuilder = Metadata.newBuilder();
             Event event = new Event(metadataBuilder.build(), restEvent.getPayload());
-            eventList.add(event);    
+            eventList.add(event);
         }
-          
+
         builder.setEvents(eventList);
         builder.setEventType(ra.eventType);
         builder.setApplication(ra.application);
@@ -107,6 +121,59 @@ public class GwResource {
         return Response.ok().build();
 
     }
+
+    private String checkValidBAE(String bundle, String application, String eventType) {
+
+        boolean found = checkBundleName(bundle);
+        if (!found) {
+            return "Bundle not found";
+        }
+
+        found = checkApplicationForBundle(bundle, application);
+        if (!found) {
+            return "Application not found";
+        }
+
+        found = checkEventTypeForApplicationAndBundle(bundle, application, eventType);
+        if (!found) {
+            return "EventType not found";
+        }
+
+        return "OK";
+    }
+
+    @CacheResult(cacheName = "eventType")
+    boolean checkEventTypeForApplicationAndBundle(String bundle, String application, String eventType) {
+        List resultList = entityManager.createQuery("Select et.name from EventType et where et.name = :et and " +
+                        " et.application.name = :app and et.application.bundle.name = :bundle")
+                .setParameter("et", eventType)
+                .setParameter("app", application)
+                .setParameter("bundle", bundle)
+                .getResultList();
+
+        return resultList != null && resultList.size() == 1;
+
+    }
+
+    @CacheResult(cacheName = "app")
+    boolean checkApplicationForBundle(String bundle, String application) {
+        List resultList = entityManager.createQuery("Select a.name from Application a where a.name = :app and a.bundle.name = :bundle")
+                .setParameter("app", application)
+                .setParameter("bundle", bundle)
+                .getResultList();
+
+        return resultList != null && resultList.size() == 1;
+    }
+
+    @CacheResult(cacheName = "bundle")
+    boolean checkBundleName(String bundleName) {
+        List resultList = entityManager.createQuery("Select b.name From Bundle b WHERE b.name = :bundle")
+                .setParameter("bundle", bundleName)
+                .getResultList();
+
+        return resultList != null && resultList.size() == 1;
+    }
+
     // @GET
     // @Path("/sample")
     // public Response getSample() {
