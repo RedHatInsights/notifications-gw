@@ -4,6 +4,7 @@ import com.redhat.cloud.notifications.ingress.Action;
 import com.redhat.cloud.notifications.ingress.Event;
 import com.redhat.cloud.notifications.ingress.Metadata;
 
+import com.redhat.cloud.notifications.ingress.Recipient;
 import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.smallrye.reactive.messaging.kafka.api.OutgoingKafkaRecordMetadata;
@@ -78,15 +79,29 @@ public class GwResource {
         Action.Builder builder = Action.newBuilder();
         LocalDateTime parsedTime = LocalDateTime.parse(ra.timestamp, DateTimeFormatter.ISO_LOCAL_DATE_TIME);
         builder.setTimestamp(parsedTime);
-        List<Event> eventList = new ArrayList<>(1);
         List<RestEvent> events = ra.getEvents();
+        List<Event> eventList = new ArrayList<>(events.size());
         for (RestEvent restEvent : events) {
             Metadata.Builder metadataBuilder = Metadata.newBuilder();
             Event event = new Event(metadataBuilder.build(), restEvent.getPayload());
-            eventList.add(event);    
+            eventList.add(event);
         }
-          
+
+        List<Recipient> recipientList = new ArrayList<>();
+        List<RestRecipient> recipients = ra.getRecipients();
+        if (recipients != null) {
+            for (RestRecipient restRecipient : recipients) {
+                Recipient.Builder recipientBuilder = Recipient.newBuilder();
+                Recipient recipient = recipientBuilder
+                        .setIgnoreUserPreferences(restRecipient.isIgnoreUserPreferences())
+                        .setOnlyAdmins(restRecipient.isOnlyAdmins())
+                        .build();
+                recipientList.add(recipient);
+            }
+        }
+
         builder.setEvents(eventList);
+        builder.setRecipients(recipientList);
         builder.setEventType(ra.eventType);
         builder.setApplication(ra.application);
         builder.setBundle(ra.bundle);
