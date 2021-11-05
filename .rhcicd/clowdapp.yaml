@@ -1,106 +1,109 @@
 ---
-apiVersion: v1
+apiVersion: template.openshift.io/v1
 kind: Template
 metadata:
   name: notifications-gw
 objects:
-- apiVersion: v1
-  kind: Secret # For ephemeral/local environment
-  metadata:
-    name: notifications-gw-secrets
-    labels:
-      app: notifications-gw
 - apiVersion: cloud.redhat.com/v1alpha1
   kind: ClowdApp
   metadata:
     name: notifications-gw
     labels:
-      app: notifications
-      clowdapp: notifications-gw
+      app: notifications-gw
   spec:
     envName: ${ENV_NAME}
+    kafkaTopics:
+    - topicName: platform.notifications.ingress
+      partitions: 3
+      replicas: 3
+    testing:
+      iqePlugin: notifications
     deployments:
     - name: notifications-gw
       minReplicas: ${{MIN_REPLICAS}}
       web: true
       podSpec:
         image: ${IMAGE}:${IMAGE_TAG}
-        livenessProbe:
-          failureThreshold: 3
-          httpGet:
-            path: /health/live
-            port: 8000
-            scheme: HTTP
-          initialDelaySeconds: 40
-          periodSeconds: 10
-          successThreshold: 1
-          timeoutSeconds: 1
+        resources:
+          requests:
+            cpu: ${CPU_REQUEST}
+            memory: ${MEMORY_REQUEST}
+          limits:
+            cpu: ${CPU_LIMIT}
+            memory: ${MEMORY_LIMIT}
+        volumes:
+        - name: rds-client-ca
+          emptyDir: {}
+        volumeMounts:
+        - name: rds-client-ca
+          mountPath: /tmp
         readinessProbe:
-          failureThreshold: 3
           httpGet:
             path: /health/ready
             port: 8000
             scheme: HTTP
           initialDelaySeconds: 40
           periodSeconds: 10
-          successThreshold: 1
           timeoutSeconds: 1
+          successThreshold: 1
+          failureThreshold: 3
+        livenessProbe:
+          httpGet:
+            path: /health/live
+            port: 8000
+            scheme: HTTP
+          initialDelaySeconds: 40
+          periodSeconds: 10
+          timeoutSeconds: 1
+          successThreshold: 1
+          failureThreshold: 3
         env:
-        - name: CLOWDER_FILE
-          value: ${CLOWDER_FILE}
-        - name: QUARKUS_LOG_LEVEL
-          value: ${LOG_LEVEL}
-        - name: QUARKUS_LOG_CLOUDWATCH_ENABLED
-          value: ${CLOUDWATCH_LOGGING_ENABLED}
+        - name: ENV_NAME
+          value: ${ENV_NAME}
         - name: QUARKUS_HTTP_PORT
           value: "8000"
-        resources:
-          limits:
-            cpu: ${CPU_LIMIT}
-            memory: ${MEMORY_LIMIT}
-          requests:
-            cpu: ${CPU_REQUEST}
-            memory: ${MEMORY_REQUEST}
-        volumes:
-        - emptyDir: {}
-          name: tmpdir
-        volumeMounts:
-        - mountPath: /tmp
-          name: tmpdir
-    kafkaTopics:
-    - replicas: 3
-      partitions: 64
-      topicName: platform.notifications.ingress
-
+        - name: QUARKUS_LOG_CATEGORY__COM_REDHAT_CLOUD_NOTIFICATIONS__LEVEL
+          value: ${NOTIFICATIONS_LOG_LEVEL}
+        - name: QUARKUS_LOG_CLOUDWATCH_ENABLED
+          value: ${CLOUDWATCH_ENABLED}
+        - name: QUARKUS_LOG_CLOUDWATCH_LOG_STREAM_NAME
+          value: ${HOSTNAME}
+        - name: QUARKUS_LOG_SENTRY
+          value: ${SENTRY_ENABLED}
+        - name: QUARKUS_LOG_SENTRY_DSN
+          value: https://04a2375b90274bf6a4bcb1d81f8d0e16@o271843.ingest.sentry.io/5826611?environment=${ENV_NAME}
+        - name: QUARKUS_LOG_SENTRY_ENVIRONMENT
+          value: ${ENV_NAME}
 parameters:
-- name: LOG_LEVEL
-  value: INFO
-- description: Cpu limit of service
-  name: CPU_LIMIT
+- name: CLOUDWATCH_ENABLED
+  description: Enable Cloudwatch (or not)
+  value: "false"
+- name: CPU_LIMIT
+  description: CPU limit on ephemeral
   value: 500m
-- description: memory limit of service
-  name: MEMORY_LIMIT
-  value: 500Mi
 - name: CPU_REQUEST
-  description: The cpu request
+  description: CPU request on ephemeral
   value: 500m
+- name: ENV_NAME
+  description: ClowdEnvironment name (stage, prod, ephemeral)
+  required: true
+- name: IMAGE
+  description: Image URL
+  value: quay.io/cloudservices/notifications-gw
+- name: IMAGE_TAG
+  description: Image tag
+  value: latest
+- name: MEMORY_LIMIT
+  description: Memory limit on ephemeral
+  value: 500Mi
 - name: MEMORY_REQUEST
-  description: The memory request
+  description: Memory request on ephemeral
   value: 250Mi
 - name: MIN_REPLICAS
-  value: '1'
-- description: Image tag
-  name: IMAGE_TAG
-  required: true
-- description: Image name
-  name: IMAGE
-  value: quay.io/cloudservices/notifications-gw
-- description: ClowdEnv Name
-  name: ENV_NAME
-  required: true
-- name: CLOWDER_FILE
-  value: /cdapp/cdappconfig.json
-  description: default path for cdappconfig file
-- name: CLOUDWATCH_LOGGING_ENABLED
-  description: Enable Cloudwatch (or not)
+  value: "1"
+- name: NOTIFICATIONS_LOG_LEVEL
+  description: Log level for com.redhat.cloud.notifications
+  value: INFO
+- name: SENTRY_ENABLED
+  description: Enable Sentry (or not)
   value: "false"
