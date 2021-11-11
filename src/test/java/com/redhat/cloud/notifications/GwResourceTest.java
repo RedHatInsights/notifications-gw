@@ -40,7 +40,7 @@ public class GwResourceTest {
     InMemoryConnector inMemoryConnector;
 
     @Test
-    public void testHelloEndpoint() {
+    public void testNotificationsEndpoint() {
         UUID random = UUID.randomUUID();
 
         RestAction ra = new RestAction();
@@ -121,7 +121,7 @@ public class GwResourceTest {
     }
 
     @Test
-    public void testHelloEndpointWithoutRecipient() throws InterruptedException {
+    public void testNotificationsEndpointWithoutRecipient() throws InterruptedException {
 
         UUID random = UUID.randomUUID();
 
