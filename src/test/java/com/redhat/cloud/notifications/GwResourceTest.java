@@ -121,7 +121,7 @@ public class GwResourceTest {
     }
 
     @Test
-    public void testNotificationsEndpointWithoutRecipient() throws InterruptedException {
+    public void testNotificationsEndpointWithoutRecipient() {
 
         UUID random = UUID.randomUUID();
 
