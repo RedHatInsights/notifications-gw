@@ -40,7 +40,7 @@ public class GwResourceTest {
     InMemoryConnector inMemoryConnector;
 
     @Test
-    public void testHelloEndpoint() throws InterruptedException {
+    public void testHelloEndpoint() {
         UUID random = UUID.randomUUID();
 
         RestAction ra = new RestAction();
@@ -49,9 +49,9 @@ public class GwResourceTest {
         ra.setApplication("my-app");
         ra.setEventType("a_type");
 
-        List<RestEvent> events = new ArrayList<RestEvent>();
+        List<RestEvent> events = new ArrayList<>();
         RestEvent event = new RestEvent();
-        Map<String, Object> payload = new HashMap<String, Object>();
+        Map<String, Object> payload = new HashMap<>();
         payload.put("key", "value");
         payload.put("uuid", random.toString());
         event.setMetadata(new RestMetadata());
@@ -59,7 +59,7 @@ public class GwResourceTest {
         events.add(event);
         ra.setEvents(events);
         ra.setTimestamp("2020-12-18T17:04:04.417921");
-        ra.setContext(new HashMap());
+        ra.setContext(new HashMap<>());
 
         List<RestRecipient> recipients = new ArrayList<>();
         RestRecipient recipient = new RestRecipient();
