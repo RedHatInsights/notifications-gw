@@ -38,7 +38,6 @@ import java.util.List;
 import java.util.UUID;
 
 import org.eclipse.microprofile.reactive.messaging.Message;
-import org.jboss.logging.Logger;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 
@@ -50,8 +49,6 @@ public class GwResource {
 
     public static final String EGRESS_CHANNEL = "egress";
     public static final String MESSAGE_ID_HEADER = "rh-message-id";
-
-    private static final Logger LOG = Logger.getLogger(NotificationsGwApp.class);
 
     @Inject
     @Channel(EGRESS_CHANNEL)
@@ -122,22 +119,6 @@ public class GwResource {
         return Response.ok().build();
 
     }
-    // @GET
-    // @Path("/sample")
-    // public Response getSample() {
-    //     RestAction a = new RestAction();
-    //     a.setAccountId("123");
-    //     a.setBundle("my-bundle");
-    //     a.setApplication("my-app");
-    //     a.setEventType("a type");
-    //     Map<String, Object> payload = new HashMap<>();
-    //     payload.put("key1","value1");
-    //     payload.put("key2","value2");
-    //     a.setPayload(payload);
-    //     DateTimeFormatter formatter = DateTimeFormatter.ISO_LOCAL_DATE_TIME;
-    //     a.setTimestamp(LocalDateTime.now().format(formatter));
-    //     return Response.ok().entity(a).build();
-    // }
 
     public static String serializeAction(Action action) throws IOException {
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
@@ -149,7 +130,7 @@ public class GwResource {
         return baos.toString(UTF_8);
     }
 
-    private static Message buildMessageWithId(String payload) {
+    private static Message<String> buildMessageWithId(String payload) {
         byte[] messageId = UUID.randomUUID().toString().getBytes(UTF_8);
         OutgoingKafkaRecordMetadata metadata = OutgoingKafkaRecordMetadata.builder()
                 .withHeaders(new RecordHeaders().add(MESSAGE_ID_HEADER, messageId))
