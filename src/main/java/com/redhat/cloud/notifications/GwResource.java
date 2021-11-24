@@ -38,6 +38,7 @@ import java.util.List;
 import java.util.UUID;
 
 import org.eclipse.microprofile.reactive.messaging.Message;
+import org.eclipse.microprofile.rest.client.inject.RestClient;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 
@@ -54,6 +55,9 @@ public class GwResource {
     @Channel(EGRESS_CHANNEL)
     Emitter<String> emitter;
 
+    @RestClient
+    RestValidationClient restValidationClient;
+
     private final Counter receivedActions;
     private final Counter forwardedActions;
 
@@ -65,10 +69,10 @@ public class GwResource {
     @POST
     @Operation(summary = "Forward one message to the notification system")
     @APIResponses({
-        @APIResponse(responseCode = "200", description = "Message forwarded"),
-        @APIResponse(responseCode = "403", description = "No permission"),
-        @APIResponse(responseCode = "401"),
-        @APIResponse(responseCode = "400", description = "Incoming message was not valid")
+            @APIResponse(responseCode = "200", description = "Message forwarded"),
+            @APIResponse(responseCode = "403", description = "No permission"),
+            @APIResponse(responseCode = "401"),
+            @APIResponse(responseCode = "400", description = "Incoming message was not valid")
     })
     public Response forward(@NotNull @Valid RestAction ra) {
         receivedActions.increment();
@@ -107,17 +111,20 @@ public class GwResource {
 
         Action message = builder.build();
 
+        final boolean validApplicationBundleEventType = isBundleApplicationEventTypeTripleValid(message.getBundle(), message.getApplication(), message.getEventType());
+        if (!validApplicationBundleEventType) {
+            return Response.status(404).build();
+        }
+
         try {
             String serializedAction = serializeAction(message);
             emitter.send(buildMessageWithId(serializedAction));
             forwardedActions.increment();
         } catch (IOException e) {
-            e.printStackTrace();  // TODO: Customise this generated block
+            e.printStackTrace();
             return Response.serverError().entity(e.getMessage()).build();
         }
-
         return Response.ok().build();
-
     }
 
     public static String serializeAction(Action action) throws IOException {
@@ -136,5 +143,9 @@ public class GwResource {
                 .withHeaders(new RecordHeaders().add(MESSAGE_ID_HEADER, messageId))
                 .build();
         return Message.of(payload).addMetadata(metadata);
+    }
+
+    boolean isBundleApplicationEventTypeTripleValid(String bundle, String application, String eventType) {
+        return restValidationClient.isBundleApplicationEventTypeTripleValid(bundle, application, eventType).getStatus() == 200;
     }
 }

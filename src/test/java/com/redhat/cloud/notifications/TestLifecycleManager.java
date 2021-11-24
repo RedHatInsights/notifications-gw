@@ -23,7 +23,9 @@ import io.smallrye.reactive.messaging.connectors.InMemoryConnector;
 import org.apache.avro.LogicalTypes;
 import org.mockserver.client.MockServerClient;
 import org.testcontainers.containers.MockServerContainer;
+import org.testcontainers.utility.DockerImageName;
 
+import java.lang.reflect.Field;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -31,13 +33,11 @@ import static com.redhat.cloud.notifications.GwResource.EGRESS_CHANNEL;
 import static org.mockserver.model.HttpRequest.request;
 import static org.mockserver.model.HttpResponse.response;
 
-/**
- * @author hrupp
- */
 public class TestLifecycleManager implements QuarkusTestResourceLifecycleManager {
 
     private MockServerContainer mockEngineServer;
     private MockServerClient mockServerClient;
+    MockServerClientConfig configurator;
 
     @Override
     public Map<String, String> start() {
@@ -61,10 +61,12 @@ public class TestLifecycleManager implements QuarkusTestResourceLifecycleManager
     public void stop() {
         InMemoryConnector.clear();
 
+        mockServerClient.stop();
+        mockEngineServer.stop();
+
         // Helper to debug mock server issues
 //           System.err.println(mockServerClient.retrieveLogMessages(request()));
 //           System.err.println(mockServerClient.retrieveRecordedRequests(request()));
-
     }
 
     /*
@@ -87,10 +89,23 @@ public class TestLifecycleManager implements QuarkusTestResourceLifecycleManager
         mockEngineServer.start();
         String mockServerUrl = "http://" + mockEngineServer.getContainerIpAddress() + ":" + mockEngineServer.getServerPort();
         properties.put("rbac/mp-rest/url", mockServerUrl);
+        properties.put("notifications-backend/mp-rest/url", mockServerUrl);
+
         mockServerClient = new MockServerClient(mockEngineServer.getContainerIpAddress(), mockEngineServer.getServerPort());
+        configurator = new MockServerClientConfig(mockEngineServer.getContainerIpAddress(), mockEngineServer.getServerPort());
 
         String xRhIdentity = TestHelpers.encodeIdentityInfo("test","user");
         String access = TestHelpers.getFileAsString("rbac_example_full_access.json");
+
+        mockServerClient
+                .when(request()
+                        .withPath("/internal/validation/baet")
+                )
+                .respond(response()
+                        .withStatusCode(200)
+                        .withHeader("Content-Type", "application/json")
+                        .withBody("")
+                );
 
         mockServerClient
             .when(request()
