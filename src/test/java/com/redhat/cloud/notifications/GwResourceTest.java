@@ -127,8 +127,6 @@ public class GwResourceTest {
 
         String identity = TestHelpers.encodeIdentityInfo("test", "user");
 
-//        mockServerConfig.addMock();
-
         given()
                 .body(ra)
                 .header("x-rh-identity", identity)
