@@ -37,7 +37,6 @@ public class TestLifecycleManager implements QuarkusTestResourceLifecycleManager
 
     private MockServerContainer mockEngineServer;
     private MockServerClient mockServerClient;
-    MockServerClientConfig configurator;
 
     @Override
     public Map<String, String> start() {
@@ -92,7 +91,6 @@ public class TestLifecycleManager implements QuarkusTestResourceLifecycleManager
         properties.put("notifications-backend/mp-rest/url", mockServerUrl);
 
         mockServerClient = new MockServerClient(mockEngineServer.getContainerIpAddress(), mockEngineServer.getServerPort());
-        configurator = new MockServerClientConfig(mockEngineServer.getContainerIpAddress(), mockEngineServer.getServerPort());
 
         String xRhIdentity = TestHelpers.encodeIdentityInfo("test","user");
         String access = TestHelpers.getFileAsString("rbac_example_full_access.json");

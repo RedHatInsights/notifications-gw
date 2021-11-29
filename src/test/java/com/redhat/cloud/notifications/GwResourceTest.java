@@ -2,22 +2,17 @@ package com.redhat.cloud.notifications;
 
 import io.quarkus.test.common.QuarkusTestResource;
 import io.quarkus.test.junit.QuarkusTest;
-import io.restassured.response.ValidatableResponse;
 import io.smallrye.reactive.messaging.connectors.InMemoryConnector;
 import io.smallrye.reactive.messaging.connectors.InMemorySink;
 import io.smallrye.reactive.messaging.kafka.api.KafkaMessageMetadata;
 import io.vertx.core.json.Json;
-
 import org.apache.kafka.common.header.Header;
 import org.eclipse.microprofile.reactive.messaging.Message;
-import org.hamcrest.core.IsEqual;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import javax.enterprise.inject.Any;
 import javax.inject.Inject;
 import javax.ws.rs.core.MediaType;
-
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -41,56 +36,6 @@ public class GwResourceTest {
     @Inject
     @Any
     InMemoryConnector inMemoryConnector;
-
-    @MockServerConfig
-    MockServerClientConfig mockServerConfig;
-
-    @Test
-    @Disabled
-    void shouldReturn404WhenApplicationBundleAndEventTypeAreInvalid() {
-        UUID random = UUID.randomUUID();
-
-        RestAction ra = new RestAction();
-        ra.setBundle("my-bundle");
-        ra.setAccountId("123");
-        ra.setApplication("my-app");
-        ra.setEventType("a_type");
-
-        List<RestEvent> events = new ArrayList<>();
-        RestEvent event = new RestEvent();
-        Map<String, Object> payload = new HashMap<>();
-        payload.put("key", "value");
-        payload.put("uuid", random.toString());
-        event.setMetadata(new RestMetadata());
-        event.setPayload(payload);
-        events.add(event);
-        ra.setEvents(events);
-        ra.setTimestamp("2020-12-18T17:04:04.417921");
-        ra.setContext(new HashMap<>());
-
-        List<RestRecipient> recipients = new ArrayList<>();
-        RestRecipient recipient = new RestRecipient();
-        recipient.setOnlyAdmins(true);
-        recipient.setIgnoreUserPreferences(false);
-        recipients.add(recipient);
-        recipient = new RestRecipient();
-        recipient.setOnlyAdmins(false);
-        recipient.setIgnoreUserPreferences(true);
-        recipients.add(recipient);
-        ra.setRecipients(recipients);
-
-        String identity = TestHelpers.encodeIdentityInfo("test", "user");
-
-//        mockServerConfig.addMock2();
-
-        given()
-                .body(ra)
-                .header("x-rh-identity", identity)
-                .contentType(MediaType.APPLICATION_JSON)
-                .when().post("/notifications/")
-                .then()
-                .statusCode(404);
-    }
 
     @Test
     public void testNotificationsEndpoint() {
