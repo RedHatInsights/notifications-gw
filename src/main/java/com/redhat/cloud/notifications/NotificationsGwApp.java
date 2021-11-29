@@ -21,17 +21,22 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.jboss.logging.Logger;
 
+import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.event.Observes;
 
 /**
  * @author hrupp
  */
+@ApplicationScoped
 public class NotificationsGwApp {
+
+    private static final String NOTIFICATIONS_URL_KEY = "notifications-backend/mp-rest/url";
 
     public static final String FILTER_REGEX = ".*(/health(/\\w+)?|/metrics) HTTP/[0-9].[0-9]\" 200.*\\n?";
     private static final Pattern pattern = Pattern.compile(FILTER_REGEX);
@@ -39,12 +44,21 @@ public class NotificationsGwApp {
     @ConfigProperty(name = "quarkus.http.access-log.category")
     private String loggerName;
 
+    @ConfigProperty(name = "clowder.endpoints.notifications-backend-service")
+    Optional<String> notificationsBackendClowderEndpoint;
+
     private static final Logger LOG = Logger.getLogger(NotificationsGwApp.class);
 
     void init(@Observes StartupEvent ev) {
         initAccessLogFilter();
 
         LOG.info(readGitProperties());
+
+        if (notificationsBackendClowderEndpoint.isPresent()) {
+            String notificationsUrl = "http://" + notificationsBackendClowderEndpoint.get();
+            LOG.infof("Overriding the notifications-backend URL with the config value from Clowder: %s", notificationsUrl);
+            System.setProperty(NOTIFICATIONS_URL_KEY, notificationsUrl);
+        }
     }
 
     private void initAccessLogFilter() {
