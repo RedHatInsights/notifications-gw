@@ -22,10 +22,9 @@ import io.quarkus.test.common.QuarkusTestResourceLifecycleManager;
 import io.smallrye.reactive.messaging.connectors.InMemoryConnector;
 import org.apache.avro.LogicalTypes;
 import org.mockserver.client.MockServerClient;
+import org.mockserver.model.Parameter;
 import org.testcontainers.containers.MockServerContainer;
-import org.testcontainers.utility.DockerImageName;
 
-import java.lang.reflect.Field;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -92,29 +91,43 @@ public class TestLifecycleManager implements QuarkusTestResourceLifecycleManager
 
         mockServerClient = new MockServerClient(mockEngineServer.getContainerIpAddress(), mockEngineServer.getServerPort());
 
-        String xRhIdentity = TestHelpers.encodeIdentityInfo("test","user");
+        String xRhIdentity = TestHelpers.encodeIdentityInfo("test", "user");
         String access = TestHelpers.getFileAsString("rbac_example_full_access.json");
 
         mockServerClient
                 .when(request()
                         .withPath("/internal/validation/baet")
+                        .withQueryStringParameter(new Parameter("bundle", "my-bundle"))
+                        .withQueryStringParameter(new Parameter("application", "my-app"))
+                        .withQueryStringParameter(new Parameter("eventtype", "a_type"))
                 )
                 .respond(response()
                         .withStatusCode(200)
                         .withHeader("Content-Type", "application/json")
-                        .withBody("")
                 );
 
         mockServerClient
-            .when(request()
-                    .withPath("/api/rbac/v1/access/")
-                    .withHeader("x-rh-identity", xRhIdentity)
-            )
-            .respond(response()
-                    .withStatusCode(200)
-                    .withHeader("Content-Type", "application/json")
-                    .withBody(access)
-            );
+                .when(request()
+                        .withPath("/internal/validation/baet")
+                        .withQueryStringParameter(new Parameter("bundle", "my-invalid-bundle"))
+                        .withQueryStringParameter(new Parameter("application", "my-invalid-app"))
+                        .withQueryStringParameter(new Parameter("eventtype", "a_invalid-type"))
+                )
+                .respond(response()
+                        .withStatusCode(404)
+                        .withHeader("Content-Type", "application/json")
+                );
+
+        mockServerClient
+                .when(request()
+                        .withPath("/api/rbac/v1/access/")
+                        .withHeader("x-rh-identity", xRhIdentity)
+                )
+                .respond(response()
+                        .withStatusCode(200)
+                        .withHeader("Content-Type", "application/json")
+                        .withBody(access)
+                );
     }
 
 }

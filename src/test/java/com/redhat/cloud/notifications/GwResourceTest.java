@@ -38,6 +38,50 @@ public class GwResourceTest {
     InMemoryConnector inMemoryConnector;
 
     @Test
+    void shouldReturn404WhenApplicationBundleAndEventTypeAreInvalid() {
+        UUID random = UUID.randomUUID();
+
+        RestAction ra = new RestAction();
+        ra.setBundle("my-invalid-bundle");
+        ra.setAccountId("123");
+        ra.setApplication("my-invalid-app");
+        ra.setEventType("a_invalid-type");
+
+        List<RestEvent> events = new ArrayList<>();
+        RestEvent event = new RestEvent();
+        Map<String, Object> payload = new HashMap<>();
+        payload.put("key", "value");
+        payload.put("uuid", random.toString());
+        event.setMetadata(new RestMetadata());
+        event.setPayload(payload);
+        events.add(event);
+        ra.setEvents(events);
+        ra.setTimestamp("2020-12-18T17:04:04.417921");
+        ra.setContext(new HashMap<>());
+
+        List<RestRecipient> recipients = new ArrayList<>();
+        RestRecipient recipient = new RestRecipient();
+        recipient.setOnlyAdmins(true);
+        recipient.setIgnoreUserPreferences(false);
+        recipients.add(recipient);
+        recipient = new RestRecipient();
+        recipient.setOnlyAdmins(false);
+        recipient.setIgnoreUserPreferences(true);
+        recipients.add(recipient);
+        ra.setRecipients(recipients);
+
+        String identity = TestHelpers.encodeIdentityInfo("test", "user");
+
+        given()
+                .body(ra)
+                .header("x-rh-identity", identity)
+                .contentType(MediaType.APPLICATION_JSON)
+                .when().post("/notifications/")
+                .then()
+                .statusCode(404);
+    }
+
+    @Test
     public void testNotificationsEndpoint() {
         UUID random = UUID.randomUUID();
 
