@@ -19,7 +19,6 @@ import org.eclipse.microprofile.reactive.messaging.Channel;
 import org.eclipse.microprofile.reactive.messaging.Emitter;
 import org.eclipse.microprofile.reactive.messaging.Message;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
-import org.jboss.resteasy.client.exception.ResteasyWebApplicationException;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
@@ -29,6 +28,7 @@ import javax.ws.rs.Consumes;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
+import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.io.ByteArrayOutputStream;
@@ -147,7 +147,7 @@ public class GwResource {
     boolean isBundleApplicationEventTypeTripleValid(String bundle, String application, String eventType) {
         try {
             return restValidationClient.isBundleApplicationEventTypeTripleValid(bundle, application, eventType).getStatus() == 200;
-        } catch(ResteasyWebApplicationException e) {
+        } catch(WebApplicationException e) {
             return false;
         }
     }
