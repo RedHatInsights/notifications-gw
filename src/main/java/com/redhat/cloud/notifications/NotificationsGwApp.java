@@ -17,13 +17,15 @@
 package com.redhat.cloud.notifications;
 
 import io.quarkus.runtime.StartupEvent;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import org.eclipse.microprofile.config.ConfigProvider;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.jboss.logging.Logger;
 
@@ -44,9 +46,6 @@ public class NotificationsGwApp {
     @ConfigProperty(name = "quarkus.http.access-log.category")
     private String loggerName;
 
-    @ConfigProperty(name = "clowder.endpoints.notifications-backend-service")
-    Optional<String> notificationsBackendClowderEndpoint;
-
     private static final Logger LOG = Logger.getLogger(NotificationsGwApp.class);
 
     void init(@Observes StartupEvent ev) {
@@ -54,11 +53,7 @@ public class NotificationsGwApp {
 
         LOG.info(readGitProperties());
 
-        if (notificationsBackendClowderEndpoint.isPresent()) {
-            String notificationsUrl = "http://" + notificationsBackendClowderEndpoint.get();
-            LOG.infof("Overriding the notifications-backend URL with the config value from Clowder: %s", notificationsUrl);
-            System.setProperty(NOTIFICATIONS_URL_KEY, notificationsUrl);
-        }
+        LOG.infof("notifications-backend/mp-rest/url" + "=%s", ConfigProvider.getConfig().getValue("notifications-backend/mp-rest/url", String.class));
     }
 
     private void initAccessLogFilter() {
@@ -82,7 +77,7 @@ public class NotificationsGwApp {
     }
 
     private String readFromInputStream(InputStream inputStream) throws IOException {
-        if(inputStream == null) {
+        if (inputStream == null) {
             return "git.properties file not available";
         }
         StringBuilder resultStringBuilder = new StringBuilder();
