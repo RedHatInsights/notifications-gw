@@ -17,7 +17,6 @@ public interface RestValidationClient {
     @GET
     @Path("/baet")
     @Produces(MediaType.APPLICATION_JSON)
-    @Consumes(MediaType.APPLICATION_JSON)
-    public Response isBundleApplicationEventTypeTripleValid(@QueryParam("bundle") String bundle, @QueryParam("application") String application, @QueryParam("eventType") String eventType);
+    Response isBundleApplicationEventTypeTripleValid(@QueryParam("bundle") String bundle, @QueryParam("application") String application, @QueryParam("eventType") String eventType);
 
 }
