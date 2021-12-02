@@ -19,6 +19,7 @@ import org.eclipse.microprofile.reactive.messaging.Channel;
 import org.eclipse.microprofile.reactive.messaging.Emitter;
 import org.eclipse.microprofile.reactive.messaging.Message;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
+import org.jboss.logging.Logger;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
@@ -46,6 +47,8 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 @Consumes(MediaType.APPLICATION_JSON)
 @Produces(MediaType.APPLICATION_JSON)
 public class GwResource {
+
+    private static final Logger LOG = Logger.getLogger(NotificationsGwApp.class);
 
     public static final String EGRESS_CHANNEL = "egress";
     public static final String MESSAGE_ID_HEADER = "rh-message-id";
@@ -115,14 +118,17 @@ public class GwResource {
             return Response.status(404).build();
         }
 
+        String serializedAction;
         try {
-            String serializedAction = serializeAction(message);
-            emitter.send(buildMessageWithId(serializedAction));
-            forwardedActions.increment();
+            serializedAction = serializeAction(message);
         } catch (IOException e) {
+            LOG.warn("Unable to serialize message.", e);
             e.printStackTrace();
             return Response.serverError().entity(e.getMessage()).build();
         }
+        emitter.send(buildMessageWithId(serializedAction));
+        forwardedActions.increment();
+
         return Response.ok().build();
     }
 
