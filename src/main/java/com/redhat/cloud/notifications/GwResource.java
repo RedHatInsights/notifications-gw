@@ -1,6 +1,7 @@
 package com.redhat.cloud.notifications;
 
 import com.redhat.cloud.notifications.ingress.Action;
+import com.redhat.cloud.notifications.ingress.Encoder;
 import com.redhat.cloud.notifications.ingress.Event;
 import com.redhat.cloud.notifications.ingress.Metadata;
 
@@ -8,10 +9,6 @@ import com.redhat.cloud.notifications.ingress.Recipient;
 import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.smallrye.reactive.messaging.kafka.api.OutgoingKafkaRecordMetadata;
-import org.apache.avro.io.DatumWriter;
-import org.apache.avro.io.EncoderFactory;
-import org.apache.avro.io.JsonEncoder;
-import org.apache.avro.specific.SpecificDatumWriter;
 import org.apache.kafka.common.header.internals.RecordHeaders;
 import org.eclipse.microprofile.openapi.annotations.Operation;
 import org.eclipse.microprofile.openapi.annotations.responses.APIResponse;
@@ -29,8 +26,6 @@ import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -107,28 +102,14 @@ public class GwResource {
 
         Action message = builder.build();
 
-        try {
-            String serializedAction = serializeAction(message);
-            emitter.send(buildMessageWithId(serializedAction));
-            forwardedActions.increment();
-        } catch (IOException e) {
-            e.printStackTrace();  // TODO: Customise this generated block
-            return Response.serverError().entity(e.getMessage()).build();
-        }
+        String serializedAction = new Encoder().encode(message);
+        emitter.send(buildMessageWithId(serializedAction));
+        forwardedActions.increment();
 
         return Response.ok().build();
 
     }
 
-    public static String serializeAction(Action action) throws IOException {
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        JsonEncoder jsonEncoder = EncoderFactory.get().jsonEncoder(Action.getClassSchema(), baos);
-        DatumWriter<Action> writer = new SpecificDatumWriter<>(Action.class);
-        writer.write(action, jsonEncoder);
-        jsonEncoder.flush();
-
-        return baos.toString(UTF_8);
-    }
 
     private static Message<String> buildMessageWithId(String payload) {
         byte[] messageId = UUID.randomUUID().toString().getBytes(UTF_8);
