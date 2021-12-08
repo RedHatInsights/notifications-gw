@@ -87,8 +87,7 @@ public class TestLifecycleManager implements QuarkusTestResourceLifecycleManager
         mockEngineServer.start();
         String mockServerUrl = "http://" + mockEngineServer.getContainerIpAddress() + ":" + mockEngineServer.getServerPort();
 
-        properties.put("rbac/mp-rest/url", mockServerUrl);
-        properties.put("notifications-backend/mp-rest/url", mockServerUrl);
+        properties.put("quarkus.rest-client.notifications-backend.url", mockServerUrl);
         properties.put("quarkus.rest-client.rbac.url", mockServerUrl);
         mockServerClient = new MockServerClient(mockEngineServer.getContainerIpAddress(), mockEngineServer.getServerPort());
 

@@ -38,7 +38,7 @@ import javax.enterprise.event.Observes;
 @ApplicationScoped
 public class NotificationsGwApp {
 
-    private static final String NOTIFICATIONS_URL_KEY = "notifications-backend/mp-rest/url";
+    private static final String NOTIFICATIONS_URL_KEY = "quarkus.rest-client.rbac.url";
 
     public static final String FILTER_REGEX = ".*(/health(/\\w+)?|/metrics) HTTP/[0-9].[0-9]\" 200.*\\n?";
     private static final Pattern pattern = Pattern.compile(FILTER_REGEX);
@@ -53,7 +53,7 @@ public class NotificationsGwApp {
 
         LOG.info(readGitProperties());
 
-        LOG.infof("notifications-backend/mp-rest/url" + "=%s", ConfigProvider.getConfig().getValue("notifications-backend/mp-rest/url", String.class));
+        LOG.infof("notifications-backend/mp-rest/url" + "=%s", ConfigProvider.getConfig().getValue(NOTIFICATIONS_URL_KEY, String.class));
     }
 
     private void initAccessLogFilter() {
