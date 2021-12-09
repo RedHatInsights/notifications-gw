@@ -17,21 +17,28 @@
 package com.redhat.cloud.notifications;
 
 import io.quarkus.runtime.StartupEvent;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import org.eclipse.microprofile.config.ConfigProvider;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.jboss.logging.Logger;
 
+import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.event.Observes;
 
 /**
  * @author hrupp
  */
+@ApplicationScoped
 public class NotificationsGwApp {
+
+    private static final String NOTIFICATIONS_URL_KEY = "quarkus.rest-client.notifications-backend.url";
 
     public static final String FILTER_REGEX = ".*(/health(/\\w+)?|/metrics) HTTP/[0-9].[0-9]\" 200.*\\n?";
     private static final Pattern pattern = Pattern.compile(FILTER_REGEX);
@@ -45,6 +52,8 @@ public class NotificationsGwApp {
         initAccessLogFilter();
 
         LOG.info(readGitProperties());
+
+        LOG.infof("quarkus.rest-client.notifications-backend.url" + "=%s", ConfigProvider.getConfig().getValue(NOTIFICATIONS_URL_KEY, String.class));
     }
 
     private void initAccessLogFilter() {
@@ -68,7 +77,7 @@ public class NotificationsGwApp {
     }
 
     private String readFromInputStream(InputStream inputStream) throws IOException {
-        if(inputStream == null) {
+        if (inputStream == null) {
             return "git.properties file not available";
         }
         StringBuilder resultStringBuilder = new StringBuilder();

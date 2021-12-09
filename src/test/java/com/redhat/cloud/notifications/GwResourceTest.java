@@ -6,7 +6,6 @@ import io.smallrye.reactive.messaging.connectors.InMemoryConnector;
 import io.smallrye.reactive.messaging.connectors.InMemorySink;
 import io.smallrye.reactive.messaging.kafka.api.KafkaMessageMetadata;
 import io.vertx.core.json.Json;
-
 import org.apache.kafka.common.header.Header;
 import org.eclipse.microprofile.reactive.messaging.Message;
 import org.junit.jupiter.api.Test;
@@ -14,7 +13,6 @@ import org.junit.jupiter.api.Test;
 import javax.enterprise.inject.Any;
 import javax.inject.Inject;
 import javax.ws.rs.core.MediaType;
-
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -38,6 +36,50 @@ public class GwResourceTest {
     @Inject
     @Any
     InMemoryConnector inMemoryConnector;
+
+    @Test
+    void shouldReturn404WhenApplicationBundleAndEventTypeAreInvalid() {
+        UUID random = UUID.randomUUID();
+
+        RestAction ra = new RestAction();
+        ra.setBundle("my-invalid-bundle");
+        ra.setAccountId("123");
+        ra.setApplication("my-invalid-app");
+        ra.setEventType("a_invalid-type");
+
+        List<RestEvent> events = new ArrayList<>();
+        RestEvent event = new RestEvent();
+        Map<String, Object> payload = new HashMap<>();
+        payload.put("key", "value");
+        payload.put("uuid", random.toString());
+        event.setMetadata(new RestMetadata());
+        event.setPayload(payload);
+        events.add(event);
+        ra.setEvents(events);
+        ra.setTimestamp("2020-12-18T17:04:04.417921");
+        ra.setContext(new HashMap<>());
+
+        List<RestRecipient> recipients = new ArrayList<>();
+        RestRecipient recipient = new RestRecipient();
+        recipient.setOnlyAdmins(true);
+        recipient.setIgnoreUserPreferences(false);
+        recipients.add(recipient);
+        recipient = new RestRecipient();
+        recipient.setOnlyAdmins(false);
+        recipient.setIgnoreUserPreferences(true);
+        recipients.add(recipient);
+        ra.setRecipients(recipients);
+
+        String identity = TestHelpers.encodeIdentityInfo("test", "user");
+
+        given()
+                .body(ra)
+                .header("x-rh-identity", identity)
+                .contentType(MediaType.APPLICATION_JSON)
+                .when().post("/notifications/")
+                .then()
+                .statusCode(404);
+    }
 
     @Test
     public void testNotificationsEndpoint() {
@@ -99,30 +141,30 @@ public class GwResourceTest {
         // If the UUID version is 4, then its 15th character has to be "4".
         assertEquals("4", headerValue.substring(14, 15));
 
-        Map<String,Object> am = Json.decodeValue(message.getPayload(), Map.class);
+        Map<String, Object> am = Json.decodeValue(message.getPayload(), Map.class);
         assertEquals(ra.application, am.get("application"));
         assertEquals(ra.accountId, am.get("account_id"));
-        List<Map> eventList = (List<Map>) am.get("events");
+        List<Map<String, Object>> eventList = (List<Map<String, Object>>) am.get("events");
         assertEquals(1, eventList.size());
+
         Map<String, Object> eventR = eventList.get(0);
-        Map<String, Object> payloadR = Json.decodeValue((String)eventR.get("payload"), Map.class);
+        Map<String, Object> payloadR = Json.decodeValue((String) eventR.get("payload"), Map.class);
         assertEquals(2, payloadR.size());
         assertEquals(random.toString(), payloadR.get("uuid"));
 
-        List<Map> recipientList = (List<Map>) am.get("recipients");
+        List<Map<String, Object>> recipientList = (List<Map<String, Object>>) am.get("recipients");
         assertEquals(2, recipientList.size());
         Map<String, Object> r0 = recipientList.get(0);
         assertEquals(Boolean.TRUE, r0.get("only_admins"));
         assertEquals(Boolean.FALSE, r0.get("ignore_user_preferences"));
+
         Map<String, Object> r1 = recipientList.get(1);
         assertEquals(Boolean.FALSE, r1.get("only_admins"));
         assertEquals(Boolean.TRUE, r1.get("ignore_user_preferences"));
-
     }
 
     @Test
     public void testNotificationsEndpointWithoutRecipient() {
-
         UUID random = UUID.randomUUID();
 
         RestAction ra = new RestAction();
@@ -131,9 +173,9 @@ public class GwResourceTest {
         ra.setApplication("my-app");
         ra.setEventType("a_type");
 
-        List<RestEvent> events = new ArrayList<RestEvent>();
+        List<RestEvent> events = new ArrayList<>();
         RestEvent event = new RestEvent();
-        Map<String, Object> payload = new HashMap<String, Object>();
+        Map<String, Object> payload = new HashMap<>();
         payload.put("key", "value");
         payload.put("uuid", random.toString());
         event.setMetadata(new RestMetadata());
@@ -141,7 +183,7 @@ public class GwResourceTest {
         events.add(event);
         ra.setEvents(events);
         ra.setTimestamp("2020-12-18T17:04:04.417921");
-        ra.setContext(new HashMap());
+        ra.setContext(new HashMap<>());
 
         String identity = TestHelpers.encodeIdentityInfo("test", "user");
 
@@ -170,13 +212,13 @@ public class GwResourceTest {
         // If the UUID version is 4, then its 15th character has to be "4".
         assertEquals("4", headerValue.substring(14, 15));
 
-        Map<String,Object> am = Json.decodeValue(message.getPayload(), Map.class);
+        Map<String, Object> am = Json.decodeValue(message.getPayload(), Map.class);
         assertEquals(ra.application, am.get("application"));
         assertEquals(ra.accountId, am.get("account_id"));
-        List<Map> eventList = (List<Map>) am.get("events");
+        List<Map<String, Object>> eventList = (List<Map<String, Object>>) am.get("events");
         assertEquals(1, eventList.size());
         Map<String, Object> eventR = eventList.get(0);
-        Map<String, Object> payloadR = Json.decodeValue((String)eventR.get("payload"), Map.class);
+        Map<String, Object> payloadR = Json.decodeValue((String) eventR.get("payload"), Map.class);
         assertEquals(2, payloadR.size());
         assertEquals(random.toString(), payloadR.get("uuid"));
     }
@@ -187,11 +229,11 @@ public class GwResourceTest {
         String identity = TestHelpers.encodeIdentityInfo("test", "user");
 
         given()
-            .header("x-rh-identity", identity)
-            .contentType(MediaType.APPLICATION_JSON)
-            .when().post("/notifications/")
-            .then()
-            .statusCode(400);
+                .header("x-rh-identity", identity)
+                .contentType(MediaType.APPLICATION_JSON)
+                .when().post("/notifications/")
+                .then()
+                .statusCode(400);
     }
 
     @Test
@@ -200,14 +242,14 @@ public class GwResourceTest {
         String identity = TestHelpers.encodeIdentityInfo("test", "user");
 
         RestAction ra = new RestAction();
-        ra.application="this.is_a Application";
+        ra.application = "this.is_a Application";
 
         given()
-            .body(ra)
-            .header("x-rh-identity", identity)
-            .contentType(MediaType.APPLICATION_JSON)
-            .when().post("/notifications/")
-            .then()
-            .statusCode(400);
+                .body(ra)
+                .header("x-rh-identity", identity)
+                .contentType(MediaType.APPLICATION_JSON)
+                .when().post("/notifications/")
+                .then()
+                .statusCode(400);
     }
 }
