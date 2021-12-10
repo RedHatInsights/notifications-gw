@@ -12,6 +12,8 @@ objects:
       app: notifications-gw
   spec:
     envName: ${ENV_NAME}
+    dependencies:
+    - notifications-backend
     kafkaTopics:
     - topicName: platform.notifications.ingress
       partitions: 3
