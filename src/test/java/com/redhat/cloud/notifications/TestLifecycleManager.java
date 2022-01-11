@@ -19,7 +19,7 @@ package com.redhat.cloud.notifications;
 import com.redhat.cloud.notifications.avro.Iso8601Factory;
 import com.redhat.cloud.notifications.avro.JsonObjectFactory;
 import io.quarkus.test.common.QuarkusTestResourceLifecycleManager;
-import io.smallrye.reactive.messaging.connectors.InMemoryConnector;
+import io.smallrye.reactive.messaging.providers.connectors.InMemoryConnector;
 import org.apache.avro.LogicalTypes;
 import org.mockserver.client.MockServerClient;
 import org.mockserver.model.Parameter;
