@@ -42,6 +42,6 @@ public class NonApplicationRootPathTest {
                 .when().get("/openapi.json")
                 .then()
                 .statusCode(200)
-                .contentType("application/yaml;charset=UTF-8");
+                .contentType(JSON);
     }
 }

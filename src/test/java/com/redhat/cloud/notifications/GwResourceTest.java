@@ -2,9 +2,9 @@ package com.redhat.cloud.notifications;
 
 import io.quarkus.test.common.QuarkusTestResource;
 import io.quarkus.test.junit.QuarkusTest;
-import io.smallrye.reactive.messaging.connectors.InMemoryConnector;
-import io.smallrye.reactive.messaging.connectors.InMemorySink;
 import io.smallrye.reactive.messaging.kafka.api.KafkaMessageMetadata;
+import io.smallrye.reactive.messaging.providers.connectors.InMemoryConnector;
+import io.smallrye.reactive.messaging.providers.connectors.InMemorySink;
 import io.vertx.core.json.Json;
 import org.apache.kafka.common.header.Header;
 import org.eclipse.microprofile.reactive.messaging.Message;
