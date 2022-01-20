@@ -67,6 +67,7 @@ public class GwResourceTest {
         recipient = new RestRecipient();
         recipient.setOnlyAdmins(false);
         recipient.setIgnoreUserPreferences(true);
+        recipient.setUsers(List.of("user3", "user4"));
         recipients.add(recipient);
         ra.setRecipients(recipients);
 
@@ -112,6 +113,7 @@ public class GwResourceTest {
         recipient.setOnlyAdmins(false);
         recipient.setIgnoreUserPreferences(true);
         recipients.add(recipient);
+        recipient.setUsers(List.of("user3", "user4"));
         ra.setRecipients(recipients);
 
         String identity = TestHelpers.encodeIdentityInfo("test", "user");
@@ -157,10 +159,12 @@ public class GwResourceTest {
         Map<String, Object> r0 = recipientList.get(0);
         assertEquals(Boolean.TRUE, r0.get("only_admins"));
         assertEquals(Boolean.FALSE, r0.get("ignore_user_preferences"));
+        assertEquals(List.of(), r0.get("users"));
 
         Map<String, Object> r1 = recipientList.get(1);
         assertEquals(Boolean.FALSE, r1.get("only_admins"));
         assertEquals(Boolean.TRUE, r1.get("ignore_user_preferences"));
+        assertEquals(List.of("user3", "user4"), r1.get("users"));
     }
 
     @Test

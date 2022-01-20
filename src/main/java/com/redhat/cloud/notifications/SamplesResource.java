@@ -43,6 +43,10 @@ public class SamplesResource {
         DateTimeFormatter formatter = DateTimeFormatter.ISO_LOCAL_DATE_TIME.withLocale(Locale.US);
         a.setTimestamp(LocalDateTime.now().format(formatter));
         a.setContext(new HashMap<String, Object>());
+        List<RestRecipient> recipients = new ArrayList<RestRecipient>();
+        RestRecipient recipient = new RestRecipient();
+        recipient.setUsers(List.of("user1", "user2"));
+        recipients.add(recipient);
         return Response.ok().entity(a).build();
     }
 

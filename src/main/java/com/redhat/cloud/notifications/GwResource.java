@@ -93,6 +93,7 @@ public class GwResource {
                 Recipient recipient = recipientBuilder
                         .setIgnoreUserPreferences(restRecipient.isIgnoreUserPreferences())
                         .setOnlyAdmins(restRecipient.isOnlyAdmins())
+                        .setUsers(restRecipient.getUsers() != null ? restRecipient.getUsers() : List.of())
                         .build();
                 recipientList.add(recipient);
             }
