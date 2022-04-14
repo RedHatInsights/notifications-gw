@@ -150,7 +150,7 @@ public class GwResourceTest {
         assertEquals(1, eventList.size());
 
         Map<String, Object> eventR = eventList.get(0);
-        Map<String, Object> payloadR = Json.decodeValue((String) eventR.get("payload"), Map.class);
+        Map<String, Object> payloadR = (Map<String, Object>) eventR.get("payload");
         assertEquals(2, payloadR.size());
         assertEquals(random.toString(), payloadR.get("uuid"));
 
@@ -222,7 +222,7 @@ public class GwResourceTest {
         List<Map<String, Object>> eventList = (List<Map<String, Object>>) am.get("events");
         assertEquals(1, eventList.size());
         Map<String, Object> eventR = eventList.get(0);
-        Map<String, Object> payloadR = Json.decodeValue((String) eventR.get("payload"), Map.class);
+        Map<String, Object> payloadR = (Map<String, Object>) eventR.get("payload");
         assertEquals(2, payloadR.size());
         assertEquals(random.toString(), payloadR.get("uuid"));
     }
