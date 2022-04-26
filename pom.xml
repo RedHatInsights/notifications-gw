@@ -18,7 +18,7 @@
     <surefire-plugin.version>2.22.2</surefire-plugin.version>
     <testcontainers.version>1.17.1</testcontainers.version>
     <mockserver-client-java.version>5.5.4</mockserver-client-java.version> <!-- not the newest, but matches what is in org.testcontainers:mockserver -->
-    <insights-notification-schemas-java.version>0.6</insights-notification-schemas-java.version>
+    <insights-notification-schemas-java.version>0.7</insights-notification-schemas-java.version>
     <clowder-quarkus-config-source.version>1.0.0</clowder-quarkus-config-source.version>
   </properties>
   <dependencyManagement>
