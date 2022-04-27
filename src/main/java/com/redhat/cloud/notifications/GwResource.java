@@ -1,9 +1,11 @@
 package com.redhat.cloud.notifications;
 
 import com.redhat.cloud.notifications.ingress.Action;
-import com.redhat.cloud.notifications.ingress.Encoder;
+import com.redhat.cloud.notifications.ingress.Context;
 import com.redhat.cloud.notifications.ingress.Event;
 import com.redhat.cloud.notifications.ingress.Metadata;
+import com.redhat.cloud.notifications.ingress.Parser;
+import com.redhat.cloud.notifications.ingress.Payload;
 import com.redhat.cloud.notifications.ingress.Recipient;
 import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.MeterRegistry;
@@ -74,14 +76,19 @@ public class GwResource {
     public Response forward(@NotNull @Valid RestAction ra) {
         receivedActions.increment();
 
-        Action.Builder builder = Action.newBuilder();
+        Action.ActionBuilder builder = new Action.ActionBuilder();
         LocalDateTime parsedTime = LocalDateTime.parse(ra.timestamp, DateTimeFormatter.ISO_LOCAL_DATE_TIME);
-        builder.setTimestamp(parsedTime);
+        builder.withTimestamp(parsedTime);
         List<RestEvent> events = ra.getEvents();
         List<Event> eventList = new ArrayList<>(events.size());
         for (RestEvent restEvent : events) {
-            Metadata.Builder metadataBuilder = Metadata.newBuilder();
-            Event event = new Event(metadataBuilder.build(), restEvent.getPayload());
+            Payload.PayloadBuilder payloadBuilder = new Payload.PayloadBuilder();
+            restEvent.getPayload().forEach(payloadBuilder::withAdditionalProperty);
+
+            Event event = new Event.EventBuilder()
+                    .withMetadata(new Metadata.MetadataBuilder().build())
+                    .withPayload(payloadBuilder.build())
+                    .build();
             eventList.add(event);
         }
 
@@ -89,23 +96,25 @@ public class GwResource {
         List<RestRecipient> recipients = ra.getRecipients();
         if (recipients != null) {
             for (RestRecipient restRecipient : recipients) {
-                Recipient.Builder recipientBuilder = Recipient.newBuilder();
-                Recipient recipient = recipientBuilder
-                        .setIgnoreUserPreferences(restRecipient.isIgnoreUserPreferences())
-                        .setOnlyAdmins(restRecipient.isOnlyAdmins())
-                        .setUsers(restRecipient.getUsers() != null ? restRecipient.getUsers() : List.of())
+                Recipient recipient = new Recipient.RecipientBuilder()
+                        .withIgnoreUserPreferences(restRecipient.isIgnoreUserPreferences())
+                        .withOnlyAdmins(restRecipient.isOnlyAdmins())
+                        .withUsers(restRecipient.getUsers() != null ? restRecipient.getUsers() : List.of())
                         .build();
                 recipientList.add(recipient);
             }
         }
 
-        builder.setEvents(eventList);
-        builder.setRecipients(recipientList);
-        builder.setEventType(ra.eventType);
-        builder.setApplication(ra.application);
-        builder.setBundle(ra.bundle);
-        builder.setAccountId(ra.accountId);
-        builder.setContext(ra.getContext());
+        Context.ContextBuilder contextBuilder = new Context.ContextBuilder();
+        ra.getContext().forEach(contextBuilder::withAdditionalProperty);
+
+        builder.withEvents(eventList);
+        builder.withRecipients(recipientList);
+        builder.withEventType(ra.eventType);
+        builder.withApplication(ra.application);
+        builder.withBundle(ra.bundle);
+        builder.withAccountId(ra.accountId);
+        builder.withContext(contextBuilder.build());
 
         Action message = builder.build();
 
@@ -114,7 +123,7 @@ public class GwResource {
             return Response.status(404).build();
         }
 
-        String serializedAction = new Encoder().encode(message);
+        String serializedAction = Parser.encode(message);
         emitter.send(buildMessageWithId(serializedAction));
         forwardedActions.increment();
 
