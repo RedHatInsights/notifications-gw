@@ -18,21 +18,18 @@ package com.redhat.cloud.notifications;
 
 import io.quarkus.test.common.QuarkusTestResourceLifecycleManager;
 import io.smallrye.reactive.messaging.providers.connectors.InMemoryConnector;
-import org.mockserver.client.MockServerClient;
 import org.mockserver.model.Parameter;
-import org.testcontainers.containers.MockServerContainer;
 
 import java.util.HashMap;
 import java.util.Map;
 
 import static com.redhat.cloud.notifications.GwResource.EGRESS_CHANNEL;
+import static com.redhat.cloud.notifications.MockServerLifecycleManager.getClient;
+import static com.redhat.cloud.notifications.MockServerLifecycleManager.getMockServerUrl;
 import static org.mockserver.model.HttpRequest.request;
 import static org.mockserver.model.HttpResponse.response;
 
 public class TestLifecycleManager implements QuarkusTestResourceLifecycleManager {
-
-    private MockServerContainer mockEngineServer;
-    private MockServerClient mockServerClient;
 
     @Override
     public Map<String, String> start() {
@@ -55,8 +52,7 @@ public class TestLifecycleManager implements QuarkusTestResourceLifecycleManager
     public void stop() {
         InMemoryConnector.clear();
 
-        mockServerClient.stop();
-        mockEngineServer.stop();
+        MockServerLifecycleManager.stop();
 
         // Helper to debug mock server issues
 //           System.err.println(mockServerClient.retrieveLogMessages(request()));
@@ -64,20 +60,17 @@ public class TestLifecycleManager implements QuarkusTestResourceLifecycleManager
     }
 
     private void setupMockServer(Map<String, String> properties) {
-        mockEngineServer = new MockServerContainer();
 
         // set up mock engine
-        mockEngineServer.start();
-        String mockServerUrl = "http://" + mockEngineServer.getContainerIpAddress() + ":" + mockEngineServer.getServerPort();
+        MockServerLifecycleManager.start();
 
-        properties.put("quarkus.rest-client.notifications-backend.url", mockServerUrl);
-        properties.put("quarkus.rest-client.rbac.url", mockServerUrl);
-        mockServerClient = new MockServerClient(mockEngineServer.getContainerIpAddress(), mockEngineServer.getServerPort());
+        properties.put("quarkus.rest-client.notifications-backend.url", getMockServerUrl());
+        properties.put("quarkus.rest-client.rbac.url", getMockServerUrl());
 
         String xRhIdentity = TestHelpers.encodeIdentityInfo("test", "user");
         String access = TestHelpers.getFileAsString("rbac_example_full_access.json");
 
-        mockServerClient
+        getClient()
                 .when(request()
                         .withPath("/internal/validation/baet")
                         .withQueryStringParameter(new Parameter("bundle", "my-bundle"))
@@ -89,7 +82,7 @@ public class TestLifecycleManager implements QuarkusTestResourceLifecycleManager
                         .withHeader("Content-Type", "application/json")
                 );
 
-        mockServerClient
+        getClient()
                 .when(request()
                         .withPath("/internal/validation/baet")
                         .withQueryStringParameter(new Parameter("bundle", "my-invalid-bundle"))
@@ -101,7 +94,7 @@ public class TestLifecycleManager implements QuarkusTestResourceLifecycleManager
                         .withHeader("Content-Type", "application/json")
                 );
 
-        mockServerClient
+        getClient()
                 .when(request()
                         .withPath("/api/rbac/v1/access/")
                         .withHeader("x-rh-identity", xRhIdentity)
