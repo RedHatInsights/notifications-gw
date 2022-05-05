@@ -19,17 +19,21 @@ package com.redhat.cloud.notifications;
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;
+import javax.validation.constraints.Positive;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 /**
  * Based on the Avro 'Action'
  * @author hrupp
  */
 public class RestAction {
+
+    public UUID id;
 
     @NotNull
     @NotEmpty
@@ -50,11 +54,15 @@ public class RestAction {
     @ISO8601Timestamp
     public String timestamp;
 
-    @javax.validation.constraints.Positive
+    @Positive
     @NotNull
     @NotEmpty
     @JsonProperty("account_id")
     public String accountId;
+
+    @Positive
+    @JsonProperty("org_id")
+    public String orgId;
 
     @NotNull
     public List<RestEvent> events;
@@ -62,6 +70,14 @@ public class RestAction {
     public Map<String, Object> context;
 
     public List<RestRecipient> recipients;
+
+    public UUID getId() {
+        return id;
+    }
+
+    public void setId(UUID id) {
+        this.id = id;
+    }
 
     public String getBundle() {
         return bundle;
@@ -101,6 +117,14 @@ public class RestAction {
 
     public void setAccountId(String accountId) {
         this.accountId = accountId;
+    }
+
+    public String getOrgId() {
+        return orgId;
+    }
+
+    public void setOrgId(String orgId) {
+        this.orgId = orgId;
     }
 
     public List<RestEvent> getEvents() {

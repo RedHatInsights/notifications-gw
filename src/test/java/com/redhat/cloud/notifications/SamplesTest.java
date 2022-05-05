@@ -28,6 +28,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 /**
  * @author hrupp
@@ -73,6 +74,7 @@ public class SamplesTest {
     @Test
     void testGood2() {
         RestAction ra =new RestAction();
+        ra.setId(UUID.fromString("9151f21f-dead-beef-92f3-f4af67cdf544"));
         ra.setBundle("my-bundle");
         ra.setAccountId("123");
         ra.setApplication("my-app");
@@ -124,6 +126,24 @@ public class SamplesTest {
     @Test
     void testBad2() {
         RestAction ra =new RestAction();
+        ra.accountId="123";
+        ra.application="policies";
+        ra.eventType="policy triggered";
+        ra.timestamp="2020-12-18T17:04:04.417921";
+
+        given()
+                .body(ra)
+                .contentType(ContentType.JSON)
+                .when()
+                .post("/sample/verify")
+                .then()
+                .statusCode(400);
+    }
+
+    @Test
+    void testBadOrgId() {
+        RestAction ra =new RestAction();
+        ra.setOrgId("li la lu");
         ra.accountId="123";
         ra.application="policies";
         ra.eventType="policy triggered";

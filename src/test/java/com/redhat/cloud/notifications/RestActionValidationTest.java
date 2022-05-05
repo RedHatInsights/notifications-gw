@@ -28,6 +28,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -42,6 +43,7 @@ public class RestActionValidationTest {
     @Test
     void testGood1() {
         RestAction a = new RestAction();
+        a.setId(UUID.fromString("9151f21f-dead-beef-baad-f4af67cdf544"));
         a.setBundle("my-bundle");
         a.setAccountId("123");
         a.setApplication("my-app");
@@ -65,6 +67,7 @@ public class RestActionValidationTest {
         RestAction a = new RestAction();
         a.setBundle("my-bundle");
         a.setAccountId("123");
+        a.setOrgId("234567");
         a.setApplication("my-app");
         a.setEventType("a_type");
         List<RestEvent> events = new ArrayList<RestEvent>();
