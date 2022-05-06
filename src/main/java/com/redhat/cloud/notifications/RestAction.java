@@ -33,6 +33,7 @@ import java.util.UUID;
  */
 public class RestAction {
 
+    // Allowed, but not enforced yet.
     public UUID id;
 
     @NotNull
@@ -54,12 +55,14 @@ public class RestAction {
     @ISO8601Timestamp
     public String timestamp;
 
+    // This field can only contain a positive number. We use the String type to allow leading zeros in the value.
     @Positive
     @NotNull
     @NotEmpty
     @JsonProperty("account_id")
     public String accountId;
 
+    // This field can only contain a positive number. We use the String type to allow leading zeros in the value.
     @Positive
     @JsonProperty("org_id")
     public String orgId;
