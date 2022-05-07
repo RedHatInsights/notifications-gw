@@ -115,6 +115,8 @@ public class GwResource {
         builder.withBundle(ra.bundle);
         builder.withAccountId(ra.accountId);
         builder.withContext(contextBuilder.build());
+        builder.withOrgId(ra.orgId);
+        builder.withId(ra.id);
 
         Action message = builder.build();
 

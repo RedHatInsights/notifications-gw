@@ -87,8 +87,10 @@ public class GwResourceTest {
         UUID random = UUID.randomUUID();
 
         RestAction ra = new RestAction();
+        ra.setId(UUID.fromString("9151f21f-dead-beef-92f3-f4af67cdf544"));
         ra.setBundle("my-bundle");
         ra.setAccountId("123");
+        ra.setOrgId("2345678");
         ra.setApplication("my-app");
         ra.setEventType("a_type");
 
@@ -146,6 +148,8 @@ public class GwResourceTest {
         Map<String, Object> am = Json.decodeValue(message.getPayload(), Map.class);
         assertEquals(ra.application, am.get("application"));
         assertEquals(ra.accountId, am.get("account_id"));
+        assertEquals(ra.orgId, am.get("org_id"));
+        assertEquals(ra.id.toString(), am.get("id"));
         List<Map<String, Object>> eventList = (List<Map<String, Object>>) am.get("events");
         assertEquals(1, eventList.size());
 
