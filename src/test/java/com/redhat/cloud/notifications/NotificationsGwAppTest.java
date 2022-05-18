@@ -4,7 +4,8 @@ import java.util.regex.Pattern;
 import org.junit.jupiter.api.Test;
 
 import static com.redhat.cloud.notifications.NotificationsGwApp.FILTER_REGEX;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class NotificationsGwAppTest {
 
