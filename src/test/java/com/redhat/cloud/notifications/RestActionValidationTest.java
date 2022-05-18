@@ -30,11 +30,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
-/**
- * @author hrupp
- */
 public class RestActionValidationTest {
 
     final ValidatorFactory factory = Validation.buildDefaultValidatorFactory();
