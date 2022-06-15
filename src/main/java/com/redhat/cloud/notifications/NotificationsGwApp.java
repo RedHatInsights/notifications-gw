@@ -16,6 +16,7 @@
  */
 package com.redhat.cloud.notifications;
 
+import io.quarkus.logging.Log;
 import io.quarkus.runtime.StartupEvent;
 
 import java.io.BufferedReader;
@@ -27,7 +28,6 @@ import java.util.regex.Pattern;
 
 import org.eclipse.microprofile.config.ConfigProvider;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
-import org.jboss.logging.Logger;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.event.Observes;
@@ -46,14 +46,12 @@ public class NotificationsGwApp {
     @ConfigProperty(name = "quarkus.http.access-log.category")
     private String loggerName;
 
-    private static final Logger LOG = Logger.getLogger(NotificationsGwApp.class);
-
     void init(@Observes StartupEvent ev) {
         initAccessLogFilter();
 
-        LOG.info(readGitProperties());
+        Log.info(readGitProperties());
 
-        LOG.infof("quarkus.rest-client.notifications-backend.url" + "=%s", ConfigProvider.getConfig().getValue(NOTIFICATIONS_URL_KEY, String.class));
+        Log.infof("quarkus.rest-client.notifications-backend.url" + "=%s", ConfigProvider.getConfig().getValue(NOTIFICATIONS_URL_KEY, String.class));
     }
 
     private void initAccessLogFilter() {
@@ -71,7 +69,7 @@ public class NotificationsGwApp {
         try {
             return readFromInputStream(inputStream);
         } catch (IOException e) {
-            LOG.log(Logger.Level.ERROR, "Could not read git.properties.", e);
+            Log.error("Could not read git.properties.", e);
             return "Version information could not be retrieved";
         }
     }

@@ -16,6 +16,7 @@
  */
 package com.redhat.cloud.notifications.auth;
 
+import io.quarkus.logging.Log;
 import io.quarkus.security.identity.IdentityProviderManager;
 import io.quarkus.security.identity.SecurityIdentity;
 import io.quarkus.security.identity.request.AuthenticationRequest;
@@ -25,7 +26,6 @@ import io.quarkus.vertx.http.runtime.security.HttpAuthenticationMechanism;
 import io.quarkus.vertx.http.runtime.security.HttpCredentialTransport;
 import io.smallrye.mutiny.Uni;
 import io.vertx.ext.web.RoutingContext;
-import org.jboss.logging.Logger;
 
 import javax.enterprise.context.ApplicationScoped;
 import java.util.Collections;
@@ -41,7 +41,6 @@ import java.util.Set;
 public class RHIdAuthMechanism implements HttpAuthenticationMechanism {
 
     public static final String IDENTITY_HEADER = "x-rh-identity";
-    private static final Logger LOG = Logger.getLogger(RHIdAuthMechanism.class);
 
     @Override
     public Uni<SecurityIdentity> authenticate(RoutingContext context, IdentityProviderManager identityProviderManager) {
@@ -55,9 +54,7 @@ public class RHIdAuthMechanism implements HttpAuthenticationMechanism {
             subject = xid.getSubject();
         }
 
-        if (LOG.isDebugEnabled()) {
-            LOG.debug("Using subject " + subject);
-        }
+        Log.debugf("Using subject %s", subject);
 
         return Uni.createFrom().item(
                 QuarkusSecurityIdentity.builder()
