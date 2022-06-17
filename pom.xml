@@ -19,7 +19,7 @@
     <testcontainers.version>1.17.2</testcontainers.version>
     <mockserver-netty-no-dependencies.version>5.13.2</mockserver-netty-no-dependencies.version>
     <insights-notification-schemas-java.version>0.13</insights-notification-schemas-java.version>
-    <clowder-quarkus-config-source.version>1.0.0</clowder-quarkus-config-source.version>
+    <clowder-quarkus-config-source.version>1.0.2</clowder-quarkus-config-source.version>
   </properties>
   <dependencyManagement>
     <dependencies>
