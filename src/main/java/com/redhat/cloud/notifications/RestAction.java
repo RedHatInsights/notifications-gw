@@ -57,13 +57,13 @@ public class RestAction {
 
     // This field can only contain a positive number. We use the String type to allow leading zeros in the value.
     @Positive
-    @NotNull
-    @NotEmpty
     @JsonProperty("account_id")
     public String accountId;
 
     // This field can only contain a positive number. We use the String type to allow leading zeros in the value.
     @Positive
+    @NotNull
+    @NotEmpty
     @JsonProperty("org_id")
     public String orgId;
 

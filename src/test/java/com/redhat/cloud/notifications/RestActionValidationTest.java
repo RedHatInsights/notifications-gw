@@ -42,7 +42,7 @@ public class RestActionValidationTest {
         RestAction a = new RestAction();
         a.setId(UUID.fromString("9151f21f-dead-beef-baad-f4af67cdf544"));
         a.setBundle("my-bundle");
-        a.setAccountId("123");
+        a.setOrgId("123");
         a.setApplication("my-app");
         a.setEventType("a_type");
         List<RestEvent> events = new ArrayList<RestEvent>();
@@ -64,7 +64,7 @@ public class RestActionValidationTest {
         RestAction a = new RestAction();
         a.setBundle("my-bundle");
         a.setAccountId("123");
-        a.setOrgId("234567");
+        a.setOrgId("456");
         a.setApplication("my-app");
         a.setEventType("a_type");
         List<RestEvent> events = new ArrayList<RestEvent>();
@@ -90,7 +90,7 @@ public class RestActionValidationTest {
     @Test
     void testBad1() {
         RestAction ra =new RestAction();
-        ra.accountId="abc";
+        ra.orgId="abc";
         ra.bundle="Coal";
         ra.application="Hulla";
         ra.timestamp="2020-12-18T17:04:04.417921";
@@ -102,7 +102,7 @@ public class RestActionValidationTest {
     @Test
     void testBad2() {
         RestAction ra =new RestAction();
-        ra.accountId="";
+        ra.orgId="";
         ra.bundle="insights";
         ra.application="policies";
         ra.eventType="triggered";
@@ -115,7 +115,7 @@ public class RestActionValidationTest {
     @Test
     void testBad3() {
         RestAction ra =new RestAction();
-        ra.accountId="123";
+        ra.orgId="123";
         ra.application="policies";
         ra.eventType="policy_triggered";
         ra.timestamp="2020-12-18T17:04:04.417921";
