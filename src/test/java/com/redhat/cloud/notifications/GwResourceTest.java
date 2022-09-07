@@ -43,7 +43,7 @@ public class GwResourceTest {
 
         RestAction ra = new RestAction();
         ra.setBundle("my-invalid-bundle");
-        ra.setAccountId("123");
+        ra.setOrgId("123");
         ra.setApplication("my-invalid-app");
         ra.setEventType("a_invalid-type");
 
@@ -89,8 +89,7 @@ public class GwResourceTest {
         RestAction ra = new RestAction();
         ra.setId(UUID.fromString("9151f21f-dead-beef-92f3-f4af67cdf544"));
         ra.setBundle("my-bundle");
-        ra.setAccountId("123");
-        ra.setOrgId("2345678");
+        ra.setOrgId("123");
         ra.setApplication("my-app");
         ra.setEventType("a_type");
 
@@ -177,7 +176,7 @@ public class GwResourceTest {
 
         RestAction ra = new RestAction();
         ra.setBundle("my-bundle");
-        ra.setAccountId("123");
+        ra.setOrgId("123");
         ra.setApplication("my-app");
         ra.setEventType("a_type");
 
