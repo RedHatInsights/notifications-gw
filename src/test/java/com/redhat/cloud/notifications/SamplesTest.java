@@ -49,7 +49,7 @@ public class SamplesTest {
     void testGood1() {
         RestAction ra =new RestAction();
         ra.setBundle("my-bundle");
-        ra.setAccountId("123");
+        ra.setOrgId("123");
         ra.setApplication("my-app");
         ra.setEventType("a_type");
         List<RestEvent> events = new ArrayList<RestEvent>();
@@ -76,7 +76,7 @@ public class SamplesTest {
         RestAction ra =new RestAction();
         ra.setId(UUID.fromString("9151f21f-dead-beef-92f3-f4af67cdf544"));
         ra.setBundle("my-bundle");
-        ra.setAccountId("123");
+        ra.setOrgId("123");
         ra.setApplication("my-app");
         ra.setEventType("a_type");
         List<RestEvent> events = new ArrayList<RestEvent>();
