@@ -7,7 +7,7 @@ objects:
 - apiVersion: batch/v1
   kind: Job
   metadata:
-    name: notifications-do-nothing-job-${IMAGE_TAG}-${JOBID}
+    name: notifications-do-nothing-job-${IMAGE_TAG}
     annotations:
       ignore-check.kube-linter.io/unset-cpu-requirements : "Not required for this job that does nothing"  
       ignore-check.kube-linter.io/unset-memory-requirements : "Not required for this job that does nothing"    
@@ -16,7 +16,7 @@ objects:
       spec:
         containers:
         - name: notifications-gw-do-nothing
-          image: quay.io/app-sre/ubi8-ubi-minimal:8.6-902
+          image: registry.redhat.io/ubi8-minimal:8.6-902.1661794353
           command: ["/bin/sh"]
           args: ["-c", "exit 0"]
         restartPolicy: Never
@@ -24,6 +24,4 @@ parameters:
 - name: IMAGE_TAG
   value: ''
   required: true
-- name: JOBID
-  generate: expression
-  from: "[0-9a-f]{7}"
+
