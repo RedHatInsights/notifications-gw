@@ -31,7 +31,7 @@ public class SamplesResource {
         RestAction a = new RestAction();
         a.setId(UUID.fromString("1234fedb-1234-5678-9abc-f4af67cdf544"));
         a.setBundle("my-bundle");
-        a.setAccountId("123");
+        a.setOrgId("123");
         a.setOrgId("234567");
         a.setApplication("my-app");
         a.setEventType("a_type");

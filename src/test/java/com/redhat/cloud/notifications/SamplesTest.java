@@ -108,7 +108,7 @@ public class SamplesTest {
     @Test
     void testBad() {
         RestAction ra =new RestAction();
-        ra.accountId="123";
+        ra.orgId="123";
         ra.application="policies";
         ra.bundle="insights";
         ra.eventType="policy triggered";
@@ -126,7 +126,7 @@ public class SamplesTest {
     @Test
     void testBad2() {
         RestAction ra =new RestAction();
-        ra.accountId="123";
+        ra.orgId="123";
         ra.application="policies";
         ra.eventType="policy triggered";
         ra.timestamp="2020-12-18T17:04:04.417921";
@@ -144,7 +144,6 @@ public class SamplesTest {
     void testBadOrgId() {
         RestAction ra =new RestAction();
         ra.setOrgId("li la lu");
-        ra.accountId="123";
         ra.application="policies";
         ra.eventType="policy triggered";
         ra.timestamp="2020-12-18T17:04:04.417921";
