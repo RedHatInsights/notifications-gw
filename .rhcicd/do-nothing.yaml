@@ -5,24 +5,21 @@ metadata:
   name: notifications-do-nothing-gw
 objects:
 - apiVersion: cloud.redhat.com/v1alpha1
-  kind: ClowdApp
+  kind: ClowdJobInvocation
   metadata:
-    name: notifications-gw-do-nothing-${IMAGE_TAG}
+    name: notifications-do-nothing-${IMAGE_TAG}
     annotations:
       ignore-check.kube-linter.io/unset-cpu-requirements : "Not required for this job that does nothing"  
       ignore-check.kube-linter.io/unset-memory-requirements : "Not required for this job that does nothing"  
   spec:
     envName: ${ENV_NAME}
     jobs:
-    - name: job
+    - name: gw
       restartPolicy: Never
-      schedule: "0 0 * * *"
       podSpec:
-        image: registry.redhat.io/ubi8-minimal:8.6-902.1661794353
-        command: 
-          - /bin/sh
-          - -c 
-          - exit 0
+        image: quay.io/app-sre/ubi8-ubi-minimal:8.6-902
+        command: ["/bin/sh"]
+        args: ["-c", "exit 0"]
 parameters:
 - name: ENV_NAME
   description: ClowdEnvironment name (ephemeral, stage, prod)
