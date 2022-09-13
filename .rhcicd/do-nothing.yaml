@@ -15,14 +15,7 @@ objects:
     envName: ${ENV_NAME}
     appName: notifications-gw
     jobs:
-      - name: gw
-        restartPolicy: Never
-        podSpec:
-          image: quay.io/app-sre/ubi8-ubi-minimal:8.6-902
-          command: 
-            - /bin/sh
-            - -c 
-            - exit 0
+      - do-nothing-gw
 parameters:
 - name: ENV_NAME
   description: ClowdEnvironment name (ephemeral, stage, prod)
