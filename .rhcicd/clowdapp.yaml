@@ -59,15 +59,6 @@ objects:
           timeoutSeconds: 1
           successThreshold: 1
           failureThreshold: 3
-    jobs:
-    - name: do-nothing-gw
-      restartPolicy: Never
-      podSpec:
-        image: quay.io/app-sre/ubi8-ubi-minimal:8.6-902
-        command: 
-          - /bin/sh
-          - -c 
-          - exit 0
         env:
         - name: ENV_NAME
           value: ${ENV_NAME}
