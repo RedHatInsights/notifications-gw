@@ -23,11 +23,11 @@ import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
+import javax.ws.rs.BadRequestException;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
-import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.time.LocalDateTime;
@@ -37,6 +37,7 @@ import java.util.List;
 import java.util.UUID;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
+import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
 
 @ApplicationScoped
 @Path("/notifications")
@@ -72,6 +73,13 @@ public class GwResource {
     })
     public Response forward(@NotNull @Valid RestAction ra) {
         receivedActions.increment();
+
+        try {
+            restValidationClient.validate(ra.getBundle(), ra.getApplication(), ra.getEventType());
+        } catch (BadRequestException e) {
+            // The following line is required to forward the HTTP 400 error message.
+            return Response.status(BAD_REQUEST).entity(e.getMessage()).build();
+        }
 
         Action.ActionBuilder builder = new Action.ActionBuilder();
         LocalDateTime parsedTime = LocalDateTime.parse(ra.timestamp, DateTimeFormatter.ISO_LOCAL_DATE_TIME);
@@ -115,20 +123,13 @@ public class GwResource {
         builder.withOrgId(ra.orgId);
         builder.withId(ra.id);
 
-        Action message = builder.build();
-
-        final boolean validApplicationBundleEventType = isBundleApplicationEventTypeTripleValid(message.getBundle(), message.getApplication(), message.getEventType());
-        if (!validApplicationBundleEventType) {
-            return Response.status(404).build();
-        }
-
-        String serializedAction = Parser.encode(message);
+        Action action = builder.build();
+        String serializedAction = Parser.encode(action);
         emitter.send(buildMessageWithId(serializedAction));
         forwardedActions.increment();
 
         return Response.ok().build();
     }
-
 
     private static Message<String> buildMessageWithId(String payload) {
         byte[] messageId = UUID.randomUUID().toString().getBytes(UTF_8);
@@ -136,13 +137,5 @@ public class GwResource {
                 .withHeaders(new RecordHeaders().add(MESSAGE_ID_HEADER, messageId))
                 .build();
         return Message.of(payload).addMetadata(metadata);
-    }
-
-    boolean isBundleApplicationEventTypeTripleValid(String bundle, String application, String eventType) {
-        try {
-            return restValidationClient.isBundleApplicationEventTypeTripleValid(bundle, application, eventType).getStatus() == 200;
-        } catch(WebApplicationException e) {
-            return false;
-        }
     }
 }

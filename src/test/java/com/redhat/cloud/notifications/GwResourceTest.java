@@ -2,16 +2,19 @@ package com.redhat.cloud.notifications;
 
 import io.quarkus.test.common.QuarkusTestResource;
 import io.quarkus.test.junit.QuarkusTest;
+import io.quarkus.test.junit.mockito.InjectMock;
 import io.smallrye.reactive.messaging.kafka.api.KafkaMessageMetadata;
 import io.smallrye.reactive.messaging.providers.connectors.InMemoryConnector;
 import io.smallrye.reactive.messaging.providers.connectors.InMemorySink;
 import io.vertx.core.json.Json;
 import org.apache.kafka.common.header.Header;
 import org.eclipse.microprofile.reactive.messaging.Message;
+import org.eclipse.microprofile.rest.client.inject.RestClient;
 import org.junit.jupiter.api.Test;
 
 import javax.enterprise.inject.Any;
 import javax.inject.Inject;
+import javax.ws.rs.BadRequestException;
 import javax.ws.rs.core.MediaType;
 import java.time.Duration;
 import java.util.ArrayList;
@@ -25,9 +28,12 @@ import java.util.UUID;
 import static com.redhat.cloud.notifications.GwResource.EGRESS_CHANNEL;
 import static com.redhat.cloud.notifications.GwResource.MESSAGE_ID_HEADER;
 import static io.restassured.RestAssured.given;
+import static io.restassured.http.ContentType.JSON;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.awaitility.Awaitility.await;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.when;
 
 @QuarkusTest
 @QuarkusTestResource(TestLifecycleManager.class)
@@ -37,9 +43,14 @@ public class GwResourceTest {
     @Any
     InMemoryConnector inMemoryConnector;
 
+    @InjectMock
+    @RestClient
+    RestValidationClient restValidationClient;
+
     @Test
-    void shouldReturn404WhenApplicationBundleAndEventTypeAreInvalid() {
-        UUID random = UUID.randomUUID();
+    void shouldReturn400WhenApplicationBundleAndEventTypeAreInvalid() {
+        BadRequestException e = new BadRequestException("Something went wrong :(");
+        when(restValidationClient.validate(anyString(), anyString(), anyString())).thenThrow(e);
 
         RestAction ra = new RestAction();
         ra.setBundle("my-invalid-bundle");
@@ -48,38 +59,22 @@ public class GwResourceTest {
         ra.setEventType("a_invalid-type");
 
         List<RestEvent> events = new ArrayList<>();
-        RestEvent event = new RestEvent();
-        Map<String, Object> payload = new HashMap<>();
-        payload.put("key", "value");
-        payload.put("uuid", random.toString());
-        event.setMetadata(new RestMetadata());
-        event.setPayload(payload);
-        events.add(event);
         ra.setEvents(events);
         ra.setTimestamp("2020-12-18T17:04:04.417921");
-        ra.setContext(new HashMap<>());
-
-        List<RestRecipient> recipients = new ArrayList<>();
-        RestRecipient recipient = new RestRecipient();
-        recipient.setOnlyAdmins(true);
-        recipient.setIgnoreUserPreferences(false);
-        recipients.add(recipient);
-        recipient = new RestRecipient();
-        recipient.setOnlyAdmins(false);
-        recipient.setIgnoreUserPreferences(true);
-        recipient.setUsers(List.of("user3", "user4"));
-        recipients.add(recipient);
-        ra.setRecipients(recipients);
 
         String identity = TestHelpers.encodeIdentityInfo("test", "user");
 
-        given()
+        String responseBody = given()
                 .body(ra)
                 .header("x-rh-identity", identity)
-                .contentType(MediaType.APPLICATION_JSON)
+                .contentType(JSON)
                 .when().post("/notifications/")
                 .then()
-                .statusCode(404);
+                .statusCode(400)
+                .contentType(JSON)
+                .extract().asString();
+
+        assertEquals(e.getMessage(), responseBody);
     }
 
     @Test
