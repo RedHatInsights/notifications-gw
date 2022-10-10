@@ -24,6 +24,7 @@ objects:
       webServices:
         public:
           enabled: true
+          apiPath: notifications-gw
       podSpec:
         image: ${IMAGE}:${IMAGE_TAG}
         resources:
