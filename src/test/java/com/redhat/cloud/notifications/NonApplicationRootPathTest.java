@@ -33,7 +33,7 @@ public class NonApplicationRootPathTest {
                 .when().get("/metrics")
                 .then()
                 .statusCode(200)
-                .contentType(TEXT);
+                .contentType("application/openmetrics-text; version=1.0.0; charset=utf-8");
     }
 
     @Test
