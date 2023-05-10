@@ -16,7 +16,7 @@
  */
 package com.redhat.cloud.notifications.auth;
 
-import javax.ws.rs.core.SecurityContext;
+import jakarta.ws.rs.core.SecurityContext;
 import java.security.Principal;
 
 /**
