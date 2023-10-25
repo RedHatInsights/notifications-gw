@@ -63,6 +63,8 @@ objects:
         env:
         - name: ENV_NAME
           value: ${ENV_NAME}
+        - name: NOTIFICATIONS_KAFKA_CALLBACK_TIMEOUT_SECONDS
+          value: ${NOTIFICATIONS_KAFKA_CALLBACK_TIMEOUT_SECONDS}
         - name: QUARKUS_HTTP_PORT
           value: "8000"
         - name: QUARKUS_LOG_CATEGORY__COM_REDHAT_CLOUD_NOTIFICATIONS__LEVEL
@@ -104,6 +106,9 @@ parameters:
   value: 250Mi
 - name: MIN_REPLICAS
   value: "1"
+- name: NOTIFICATIONS_KAFKA_CALLBACK_TIMEOUT_SECONDS
+  description: Delay in seconds before the app stops waiting for the Kafka ack/nack callback result and returns an HTTP error to the caller
+  value: "60"
 - name: NOTIFICATIONS_LOG_LEVEL
   description: Log level for com.redhat.cloud.notifications
   value: INFO
