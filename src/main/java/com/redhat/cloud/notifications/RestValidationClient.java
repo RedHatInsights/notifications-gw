@@ -1,5 +1,6 @@
 package com.redhat.cloud.notifications;
 
+import io.quarkus.cache.CacheResult;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.Path;
@@ -21,6 +22,7 @@ public interface RestValidationClient {
     @Path("/baet")
     @Retry(maxRetries = 5)
     @Produces(TEXT_PLAIN)
+    @CacheResult(cacheName = "baet-validation")
     Response validate(@RestQuery String bundle, @RestQuery String application, @RestQuery String eventType);
 
 }
