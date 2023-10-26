@@ -5,6 +5,8 @@ set -exv
 # Clowder config
 export APP_NAME="notifications"
 export COMPONENT_NAME="notifications-gw"
+# The ClowdApp template from stage will be used in ephemeral, meaning that breaking template changes don't have to be deployed in production to fix the ephemeral deployment
+export REF_ENV="insights-stage"
 export IMAGE="quay.io/cloudservices/notifications-gw"
 
 # Bonfire init
