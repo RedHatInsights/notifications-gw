@@ -9,8 +9,10 @@ import com.redhat.cloud.notifications.ingress.Payload;
 import com.redhat.cloud.notifications.ingress.Recipient;
 import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.MeterRegistry;
+import io.quarkus.logging.Log;
 import io.smallrye.reactive.messaging.kafka.api.OutgoingKafkaRecordMetadata;
 import org.apache.kafka.common.header.internals.RecordHeaders;
+import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.eclipse.microprofile.openapi.annotations.Operation;
 import org.eclipse.microprofile.openapi.annotations.responses.APIResponse;
 import org.eclipse.microprofile.openapi.annotations.responses.APIResponses;
@@ -35,9 +37,12 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static jakarta.ws.rs.core.Response.Status.BAD_REQUEST;
+import static jakarta.ws.rs.core.Response.Status.SERVICE_UNAVAILABLE;
 
 @ApplicationScoped
 @Path("/notifications")
@@ -47,6 +52,9 @@ public class GwResource {
 
     public static final String EGRESS_CHANNEL = "egress";
     public static final String MESSAGE_ID_HEADER = "rh-message-id";
+
+    @ConfigProperty(name = "notifications.kafka-callback-timeout-seconds", defaultValue = "60")
+    long callbackTimeout;
 
     @Inject
     @Channel(EGRESS_CHANNEL)
@@ -69,7 +77,8 @@ public class GwResource {
             @APIResponse(responseCode = "200", description = "Message forwarded"),
             @APIResponse(responseCode = "403", description = "No permission"),
             @APIResponse(responseCode = "401"),
-            @APIResponse(responseCode = "400", description = "Incoming message was not valid")
+            @APIResponse(responseCode = "400", description = "Incoming message was not valid"),
+            @APIResponse(responseCode = "503", description = "Message delivery to Kafka failed")
     })
     public Response forward(@NotNull @Valid RestAction ra) {
         receivedActions.increment();
@@ -125,17 +134,40 @@ public class GwResource {
 
         Action action = builder.build();
         String serializedAction = Parser.encode(action);
-        emitter.send(buildMessageWithId(serializedAction));
-        forwardedActions.increment();
 
-        return Response.ok().build();
+        CompletableFuture<Void> callback = new CompletableFuture<>();
+        Message<String> message = buildMessageWithId(serializedAction, callback);
+
+        try {
+            emitter.send(message);
+            /*
+             * The following line waits until the callback is complete or the timeout delay is expired.
+             * If the Kafka server responded with an ack, no exception will be thrown and the execution of the try block will continue.
+             * If the Kafka server responded with a nack, an ExecutionException will be thrown, resulting in an HTTP 503 status returned to the caller.
+             * If the timeout delay is expired, a TimeoutException will be thrown, resulting in an HTTP 503 status returned to the caller.
+             */
+            callback.get(callbackTimeout, TimeUnit.SECONDS);
+            forwardedActions.increment();
+            return Response.ok().build();
+        } catch (Throwable t) {
+            Log.error("Message delivery to Kafka failed", t);
+            return Response.status(SERVICE_UNAVAILABLE).build();
+        }
     }
 
-    private static Message<String> buildMessageWithId(String payload) {
+    private static Message<String> buildMessageWithId(String payload, CompletableFuture<Void> callback) {
         byte[] messageId = UUID.randomUUID().toString().getBytes(UTF_8);
-        OutgoingKafkaRecordMetadata metadata = OutgoingKafkaRecordMetadata.builder()
+        OutgoingKafkaRecordMetadata<String> metadata = OutgoingKafkaRecordMetadata.<String>builder()
                 .withHeaders(new RecordHeaders().add(MESSAGE_ID_HEADER, messageId))
                 .build();
-        return Message.of(payload).addMetadata(metadata);
+        return Message.of(payload)
+                .addMetadata(metadata)
+                .withAck(() -> {
+                    callback.complete(null);
+                    return CompletableFuture.completedFuture(null);
+                }).withNack(reason -> {
+                    callback.completeExceptionally(reason);
+                    return CompletableFuture.completedFuture(null);
+                });
     }
 }
