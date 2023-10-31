@@ -49,6 +49,7 @@ public class SamplesResource {
         List<RestRecipient> recipients = new ArrayList<RestRecipient>();
         RestRecipient recipient = new RestRecipient();
         recipient.setUsers(List.of("user1", "user2"));
+        recipient.setEmails(List.of("user1@domain.com", "user2@domain.com"));
         recipients.add(recipient);
         return Response.ok().entity(a).build();
     }

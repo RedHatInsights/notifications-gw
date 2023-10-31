@@ -114,6 +114,7 @@ public class GwResource {
                         .withIgnoreUserPreferences(restRecipient.isIgnoreUserPreferences())
                         .withOnlyAdmins(restRecipient.isOnlyAdmins())
                         .withUsers(restRecipient.getUsers() != null ? restRecipient.getUsers() : List.of())
+                        .withEmails(restRecipient.getEmails() != null ? restRecipient.getEmails() : List.of())
                         .build();
                 recipientList.add(recipient);
             }
