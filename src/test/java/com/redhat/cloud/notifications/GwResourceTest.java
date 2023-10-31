@@ -1,23 +1,27 @@
 package com.redhat.cloud.notifications;
 
+import io.quarkus.test.InjectMock;
 import io.quarkus.test.common.QuarkusTestResource;
 import io.quarkus.test.junit.QuarkusTest;
-import io.quarkus.test.junit.mockito.InjectMock;
 import io.smallrye.reactive.messaging.kafka.api.KafkaMessageMetadata;
 import io.smallrye.reactive.messaging.memory.InMemoryConnector;
 import io.smallrye.reactive.messaging.memory.InMemorySink;
 import io.vertx.core.json.Json;
+import jakarta.annotation.PostConstruct;
 import org.apache.kafka.common.header.Header;
 import org.eclipse.microprofile.reactive.messaging.Message;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import jakarta.enterprise.inject.Any;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.BadRequestException;
 import jakarta.ws.rs.core.MediaType;
+
 import java.time.Duration;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -32,6 +36,7 @@ import static io.restassured.http.ContentType.JSON;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.awaitility.Awaitility.await;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 
@@ -46,6 +51,18 @@ public class GwResourceTest {
     @InjectMock
     @RestClient
     RestValidationClient restValidationClient;
+
+    InMemorySink<String> inMemorySink;
+
+    @PostConstruct
+    void postConstruct() {
+        inMemorySink = inMemoryConnector.sink(EGRESS_CHANNEL);
+    }
+
+    @BeforeEach
+    void beforeEach() {
+        inMemorySink.clear();
+    }
 
     @Test
     void shouldReturn400WhenApplicationBundleAndEventTypeAreInvalid() {
@@ -110,6 +127,7 @@ public class GwResourceTest {
         recipient.setIgnoreUserPreferences(true);
         recipients.add(recipient);
         recipient.setUsers(List.of("user3", "user4"));
+        recipient.setEmails(List.of("user3@domain.com", "user4@domain.com"));
         ra.setRecipients(recipients);
 
         String identity = TestHelpers.encodeIdentityInfo("test", "user");
@@ -123,12 +141,10 @@ public class GwResourceTest {
                 .statusCode(200);
 
         // Now check if we got a message
-        InMemorySink<String> inMemorySink = inMemoryConnector.sink(EGRESS_CHANNEL);
         await().atMost(Duration.ofSeconds(10L)).until(() -> inMemorySink.received().size() > 0);
 
         // Message received!
         Message<String> message = inMemorySink.received().get(0);
-        inMemorySink.clear();
 
         // It should contain a "rh-message-id" header and its value should be a valid UUID version 4.
         Optional<KafkaMessageMetadata> messageMetadata = message.getMetadata(KafkaMessageMetadata.class);
@@ -158,11 +174,13 @@ public class GwResourceTest {
         assertEquals(Boolean.TRUE, r0.get("only_admins"));
         assertEquals(Boolean.FALSE, r0.get("ignore_user_preferences"));
         assertEquals(List.of(), r0.get("users"));
+        assertEquals(List.of(), r0.get("emails"));
 
         Map<String, Object> r1 = recipientList.get(1);
         assertEquals(Boolean.FALSE, r1.get("only_admins"));
         assertEquals(Boolean.TRUE, r1.get("ignore_user_preferences"));
         assertEquals(List.of("user3", "user4"), r1.get("users"));
+        assertEquals(List.of("user3@domain.com", "user4@domain.com"), r1.get("emails"));
     }
 
     @Test
@@ -198,12 +216,10 @@ public class GwResourceTest {
                 .statusCode(200);
 
         // Now check if we got a message
-        InMemorySink<String> inMemorySink = inMemoryConnector.sink(EGRESS_CHANNEL);
         await().atMost(Duration.ofSeconds(10L)).until(() -> inMemorySink.received().size() > 0);
 
         // Message received!
         Message<String> message = inMemorySink.received().get(0);
-        inMemorySink.clear();
 
         // It should contain a "rh-message-id" header and its value should be a valid UUID version 4.
         Optional<KafkaMessageMetadata> messageMetadata = message.getMetadata(KafkaMessageMetadata.class);
@@ -253,5 +269,49 @@ public class GwResourceTest {
                 .when().post("/notifications/")
                 .then()
                 .statusCode(400);
+    }
+
+    @Test
+    void testInvalidEmail() {
+
+        String identity = TestHelpers.encodeIdentityInfo("test", "user");
+
+        RestEvent event = new RestEvent();
+        event.setMetadata(new RestMetadata());
+        event.setPayload(Map.of("key", "value"));
+
+        RestAction action = new RestAction();
+        action.setBundle("my-bundle");
+        action.setApplication("my-app");
+        action.setEventType("my-event-type");
+        action.setOrgId("123");
+        action.setTimestamp("2023-10-31T08:52:14.987723");
+        action.setContext(Collections.emptyMap());
+        action.setEvents(List.of(event));
+
+        // The payload is valid.
+        given()
+                .body(action)
+                .header("x-rh-identity", identity)
+                .contentType(MediaType.APPLICATION_JSON)
+                .when().post("/notifications/")
+                .then()
+                .statusCode(200);
+
+        RestRecipient recipient = new RestRecipient();
+        recipient.setEmails(List.of("invalid-email"));
+        action.setRecipients(List.of(recipient));
+
+        // Then after adding an invalid email recipient, the payload should no longer be valid.
+        String responseBody = given()
+                .body(action)
+                .header("x-rh-identity", identity)
+                .contentType(MediaType.APPLICATION_JSON)
+                .when().post("/notifications/")
+                .then()
+                .statusCode(400)
+                .extract().asString();
+
+        assertTrue(responseBody.contains("recipients[0].emails[0]"));
     }
 }

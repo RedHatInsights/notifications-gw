@@ -16,6 +16,7 @@
  */
 package com.redhat.cloud.notifications;
 
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
@@ -72,6 +73,7 @@ public class RestAction {
 
     public Map<String, Object> context;
 
+    @Valid
     public List<RestRecipient> recipients;
 
     public UUID getId() {
