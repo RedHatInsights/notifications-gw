@@ -11,6 +11,7 @@ import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.quarkus.logging.Log;
 import io.smallrye.reactive.messaging.kafka.api.OutgoingKafkaRecordMetadata;
+import io.vertx.core.json.JsonObject;
 import org.apache.kafka.common.header.internals.RecordHeaders;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.eclipse.microprofile.openapi.annotations.Operation;
@@ -149,10 +150,12 @@ public class GwResource {
              */
             callback.get(callbackTimeout, TimeUnit.SECONDS);
             forwardedActions.increment();
-            return Response.ok().build();
+            String responseEntity = buildResponseEntity(true, null);
+            return Response.ok(responseEntity).build();
         } catch (Throwable t) {
             Log.error("Message delivery to Kafka failed", t);
-            return Response.status(SERVICE_UNAVAILABLE).build();
+            String responseEntity = buildResponseEntity(false, "Message delivery to Kafka failed, please try again later");
+            return Response.status(SERVICE_UNAVAILABLE).entity(responseEntity).build();
         }
     }
 
@@ -170,5 +173,14 @@ public class GwResource {
                     callback.completeExceptionally(reason);
                     return CompletableFuture.completedFuture(null);
                 });
+    }
+
+    private static String buildResponseEntity(boolean success, String details) {
+        JsonObject response = new JsonObject();
+        response.put("result", success ? "success" : "error");
+        if (details != null) {
+            response.put("details", details);
+        }
+        return response.encode();
     }
 }

@@ -7,6 +7,7 @@ import io.smallrye.reactive.messaging.kafka.api.KafkaMessageMetadata;
 import io.smallrye.reactive.messaging.memory.InMemoryConnector;
 import io.smallrye.reactive.messaging.memory.InMemorySink;
 import io.vertx.core.json.Json;
+import io.vertx.core.json.JsonObject;
 import jakarta.annotation.PostConstruct;
 import org.apache.kafka.common.header.Header;
 import org.eclipse.microprofile.reactive.messaging.Message;
@@ -132,13 +133,16 @@ public class GwResourceTest {
 
         String identity = TestHelpers.encodeIdentityInfo("test", "user");
 
-        given()
+        String responseBody = given()
                 .body(ra)
                 .header("x-rh-identity", identity)
                 .contentType(MediaType.APPLICATION_JSON)
                 .when().post("/notifications/")
                 .then()
-                .statusCode(200);
+                .statusCode(200)
+                .extract().asString();
+
+        assertEquals("success", new JsonObject(responseBody).getString("result"));
 
         // Now check if we got a message
         await().atMost(Duration.ofSeconds(10L)).until(() -> inMemorySink.received().size() > 0);
