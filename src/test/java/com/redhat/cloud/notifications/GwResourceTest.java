@@ -9,16 +9,19 @@ import io.smallrye.reactive.messaging.memory.InMemorySink;
 import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonObject;
 import jakarta.annotation.PostConstruct;
+import jakarta.enterprise.inject.Any;
+import jakarta.inject.Inject;
+import jakarta.ws.rs.ProcessingException;
+import jakarta.ws.rs.WebApplicationException;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.Response;
+import org.apache.http.HttpStatus;
 import org.apache.kafka.common.header.Header;
 import org.eclipse.microprofile.reactive.messaging.Message;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-
-import jakarta.enterprise.inject.Any;
-import jakarta.inject.Inject;
-import jakarta.ws.rs.BadRequestException;
-import jakarta.ws.rs.core.MediaType;
+import org.mockito.Mockito;
 
 import java.time.Duration;
 import java.util.ArrayList;
@@ -39,7 +42,6 @@ import static org.awaitility.Awaitility.await;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.when;
 
 @QuarkusTest
 @QuarkusTestResource(TestLifecycleManager.class)
@@ -65,24 +67,39 @@ public class GwResourceTest {
         inMemorySink.clear();
     }
 
+    /**
+     * Tests that the gateway returns a bad request with the error message that
+     * the notifications backend gave us.
+     */
     @Test
-    void shouldReturn400WhenApplicationBundleAndEventTypeAreInvalid() {
-        BadRequestException e = new BadRequestException("Something went wrong :(");
-        when(restValidationClient.validate(anyString(), anyString(), anyString())).thenThrow(e);
+    void shouldReturnBadRequestWhenApplicationBundleAndEventTypeAreInvalid() {
+        // Simulate that we received a bad response from the notifications
+        // backend.
+        final WebApplicationException wae = Mockito.mock(WebApplicationException.class);
+        final Response mockedResponse = Mockito.mock(Response.class);
 
-        RestAction ra = new RestAction();
+        // Prepare the mock calls to satisfy the error handlers.
+        final String errorMessage = "Error message returned from the backend";
+
+        Mockito.when(mockedResponse.readEntity(String.class)).thenReturn(errorMessage);
+        Mockito.when(wae.getResponse()).thenReturn(mockedResponse);
+        Mockito.when(this.restValidationClient.validate(anyString(), anyString(), anyString())).thenThrow(wae);
+
+        // Prepare the test payload to be sent to the gateway's endpoint.
+        final RestAction ra = new RestAction();
         ra.setBundle("my-invalid-bundle");
         ra.setOrgId("123");
         ra.setApplication("my-invalid-app");
         ra.setEventType("a_invalid-type");
 
-        List<RestEvent> events = new ArrayList<>();
+        final List<RestEvent> events = new ArrayList<>();
         ra.setEvents(events);
         ra.setTimestamp("2020-12-18T17:04:04.417921");
 
-        String identity = TestHelpers.encodeIdentityInfo("test", "user");
+        final String identity = TestHelpers.encodeIdentityInfo("test", "user");
 
-        String responseBody = given()
+        // Call the endpoint under test.
+        final String responseBody = given()
                 .body(ra)
                 .header("x-rh-identity", identity)
                 .contentType(JSON)
@@ -92,7 +109,47 @@ public class GwResourceTest {
                 .contentType(JSON)
                 .extract().asString();
 
-        assertEquals(e.getMessage(), responseBody);
+        final String expectedResponse = String.format("{\"result\":\"error\",\"details\":\"%s\"}", errorMessage);
+        assertEquals(expectedResponse, responseBody);
+    }
+
+    /**
+     * Tests that the gateway returns a service unavailable error when the
+     * notifications backend is unreachable.
+     */
+    @Test
+    public void shouldReturnServiceUnavailableWhenBackendUnreachable() {
+        // Simulate that we received a bad response from the notifications
+        // backend.
+        final ProcessingException pe = Mockito.mock(ProcessingException.class);
+
+        // Prepare the mock call to satisfy the error handler.
+        Mockito.when(this.restValidationClient.validate(anyString(), anyString(), anyString())).thenThrow(pe);
+
+        // Prepare the test payload to be sent to the gateway's endpoint.
+        final RestAction ra = new RestAction();
+        ra.setBundle("my-invalid-bundle");
+        ra.setOrgId("123");
+        ra.setApplication("my-invalid-app");
+        ra.setEventType("a_invalid-type");
+
+        final List<RestEvent> events = new ArrayList<>();
+        ra.setEvents(events);
+        ra.setTimestamp("2020-12-18T17:04:04.417921");
+
+        final String identity = TestHelpers.encodeIdentityInfo("test", "user");
+
+        // Call the endpoint under test.
+        final String responseBody = given()
+            .body(ra)
+            .header("x-rh-identity", identity)
+            .contentType(JSON)
+            .when().post("/notifications/")
+            .then()
+            .statusCode(HttpStatus.SC_SERVICE_UNAVAILABLE)
+            .extract().asString();
+
+        assertEquals("{\"result\":\"error\",\"details\":\"unable to validate the bundle, application and event type trio due to notifications backend being unreachable\"}", responseBody);
     }
 
     @Test
