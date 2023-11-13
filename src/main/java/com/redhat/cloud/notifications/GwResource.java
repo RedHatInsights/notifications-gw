@@ -44,7 +44,7 @@ import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 
-import static jakarta.ws.rs.core.Response.Status.BAD_REQUEST;
+import static jakarta.ws.rs.core.Response.Status.Family;
 import static jakarta.ws.rs.core.Response.Status.SERVICE_UNAVAILABLE;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
@@ -94,16 +94,24 @@ public class GwResource {
             final Response response = e.getResponse();
             final String incomingErrorMessage = response.readEntity(String.class);
 
-            Log.debugf(
-                "Unable to validate the provided rest action due to notifications-backend responding with an unexpected error. Received status code: %s, received error message: %s, received REST action in the gateway: %s",
-                response.getStatus(),
-                incomingErrorMessage,
-                ra
-            );
+            // Determine which status code we will return to the gateway caller
+            // and log the error appropriately.
+            final String logMessage = "Unable to validate the provided rest action due to notifications-backend responding with an unexpected error. Received status code: %s, received error message: %s, received REST action in the gateway: %s";
+            final int returningStatusCodeFromGW;
+            if (response.getStatus() == HttpStatus.SC_BAD_REQUEST) {
+                returningStatusCodeFromGW = HttpStatus.SC_BAD_REQUEST;
+                Log.debugf(logMessage, response.getStatus(), incomingErrorMessage, ra);
+            } else if (Family.familyOf(response.getStatus()) == Family.CLIENT_ERROR) {
+                returningStatusCodeFromGW = HttpStatus.SC_BAD_REQUEST;
+                Log.warnf(logMessage, response.getStatus(), incomingErrorMessage, ra);
+            } else {
+                returningStatusCodeFromGW = HttpStatus.SC_SERVICE_UNAVAILABLE;
+                Log.errorf(logMessage, response.getStatus(), incomingErrorMessage, ra);
+            }
 
             // Notify the caller about the error.
             return Response
-                .status(BAD_REQUEST)
+                .status(returningStatusCodeFromGW)
                 .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON)
                 .entity(buildResponseEntity(false, incomingErrorMessage))
                 .build();

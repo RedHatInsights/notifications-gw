@@ -82,6 +82,7 @@ public class GwResourceTest {
         final String errorMessage = "Error message returned from the backend";
 
         Mockito.when(mockedResponse.readEntity(String.class)).thenReturn(errorMessage);
+        Mockito.when(mockedResponse.getStatus()).thenReturn(HttpStatus.SC_BAD_REQUEST);
         Mockito.when(wae.getResponse()).thenReturn(mockedResponse);
         Mockito.when(this.restValidationClient.validate(anyString(), anyString(), anyString())).thenThrow(wae);
 
@@ -115,41 +116,63 @@ public class GwResourceTest {
 
     /**
      * Tests that the gateway returns a service unavailable error when the
-     * notifications backend is unreachable.
+     * notifications backend returns errors that are not of the bad request
+     * family of errors.
      */
     @Test
-    public void shouldReturnServiceUnavailableWhenBackendUnreachable() {
-        // Simulate that we received a bad response from the notifications
-        // backend.
-        final ProcessingException pe = Mockito.mock(ProcessingException.class);
+    public void shouldReturnServiceUnavailableForNonBadRequest() {
+        final List<Integer> testStatusCodes = List.of(
+            HttpStatus.SC_INTERNAL_SERVER_ERROR,
+            HttpStatus.SC_NOT_IMPLEMENTED,
+            HttpStatus.SC_BAD_GATEWAY,
+            HttpStatus.SC_SERVICE_UNAVAILABLE,
+            HttpStatus.SC_GATEWAY_TIMEOUT,
+            HttpStatus.SC_HTTP_VERSION_NOT_SUPPORTED,
+            HttpStatus.SC_INSUFFICIENT_STORAGE
+        );
 
-        // Prepare the mock call to satisfy the error handler.
-        Mockito.when(this.restValidationClient.validate(anyString(), anyString(), anyString())).thenThrow(pe);
+        for (final int testStatusCode : testStatusCodes) {
+            // Simulate that we received a bad response from the notifications
+            // backend.
+            final WebApplicationException wae = Mockito.mock(WebApplicationException.class);
+            final Response mockedResponse = Mockito.mock(Response.class);
 
-        // Prepare the test payload to be sent to the gateway's endpoint.
-        final RestAction ra = new RestAction();
-        ra.setBundle("my-invalid-bundle");
-        ra.setOrgId("123");
-        ra.setApplication("my-invalid-app");
-        ra.setEventType("a_invalid-type");
+            // Prepare the mock calls to satisfy the error handlers.
+            final String errorMessage = "Error message returned from the backend";
 
-        final List<RestEvent> events = new ArrayList<>();
-        ra.setEvents(events);
-        ra.setTimestamp("2020-12-18T17:04:04.417921");
+            Mockito.when(mockedResponse.readEntity(String.class)).thenReturn(errorMessage);
+            Mockito.when(mockedResponse.getStatus()).thenReturn(testStatusCode);
+            Mockito.when(wae.getResponse()).thenReturn(mockedResponse);
+            Mockito.when(this.restValidationClient.validate(anyString(), anyString(), anyString())).thenThrow(wae);
 
-        final String identity = TestHelpers.encodeIdentityInfo("test", "user");
+            // Prepare the test payload to be sent to the gateway's endpoint.
+            final RestAction ra = new RestAction();
+            ra.setBundle("my-invalid-bundle");
+            ra.setOrgId("123");
+            ra.setApplication("my-invalid-app");
+            ra.setEventType("a_invalid-type");
 
-        // Call the endpoint under test.
-        final String responseBody = given()
-            .body(ra)
-            .header("x-rh-identity", identity)
-            .contentType(JSON)
-            .when().post("/notifications/")
-            .then()
-            .statusCode(HttpStatus.SC_SERVICE_UNAVAILABLE)
-            .extract().asString();
+            final List<RestEvent> events = new ArrayList<>();
+            ra.setEvents(events);
+            ra.setTimestamp("2020-12-18T17:04:04.417921");
 
-        assertEquals("{\"result\":\"error\",\"details\":\"unable to validate the bundle, application and event type trio due to notifications backend being unreachable\"}", responseBody);
+            final String identity = TestHelpers.encodeIdentityInfo("test", "user");
+
+            // Call the endpoint under test.
+            final String responseBody = given()
+                .body(ra)
+                .header("x-rh-identity", identity)
+                .contentType(JSON)
+                .when().post("/notifications/")
+                .then()
+                .statusCode(HttpStatus.SC_SERVICE_UNAVAILABLE)
+                .extract().asString();
+
+            final String expectedResponse = String.format("{\"result\":\"error\",\"details\":\"%s\"}", errorMessage);
+            assertEquals(expectedResponse, responseBody);
+
+            Mockito.reset(wae, mockedResponse, this.restValidationClient);
+        }
     }
 
     @Test
