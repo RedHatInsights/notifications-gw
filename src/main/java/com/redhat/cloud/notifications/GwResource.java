@@ -87,19 +87,12 @@ public class GwResource {
     public Response forward(@NotNull @Valid RestAction ra) {
         receivedActions.increment();
 
-        try {
-            final Response response = this.restValidationClient.validate(ra.getBundle(), ra.getApplication(), ra.getEventType());
-
-            // Close the response to avoid memory leaks.
-            if (response != null) {
-                response.close();
-            }
+        try (Response response = this.restValidationClient.validate(ra.getBundle(), ra.getApplication(), ra.getEventType())) {
+            // The try catch block is intentionally empty.
         } catch (final WebApplicationException e) {
             // Build a nice error message for the caller.
             final Response response = e.getResponse();
             final String incomingErrorMessage = response.readEntity(String.class);
-            // Close the response to avoid memory leaks.
-            response.close();
 
             Log.debugf(
                 "Unable to validate the provided rest action due to notifications-backend responding with an unexpected error. Received status code: %s, received error message: %s, received REST action in the gateway: %s",
