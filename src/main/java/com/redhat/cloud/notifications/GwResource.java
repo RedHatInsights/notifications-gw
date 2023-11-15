@@ -25,7 +25,6 @@ import jakarta.ws.rs.WebApplicationException;
 import jakarta.ws.rs.core.HttpHeaders;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
-import org.apache.http.HttpStatus;
 import org.apache.kafka.common.header.internals.RecordHeaders;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.eclipse.microprofile.openapi.annotations.Operation;
@@ -44,6 +43,8 @@ import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 
+import static jakarta.ws.rs.core.Response.Status;
+import static jakarta.ws.rs.core.Response.Status.BAD_REQUEST;
 import static jakarta.ws.rs.core.Response.Status.Family;
 import static jakarta.ws.rs.core.Response.Status.SERVICE_UNAVAILABLE;
 import static java.nio.charset.StandardCharsets.UTF_8;
@@ -88,7 +89,7 @@ public class GwResource {
         receivedActions.increment();
 
         try (Response response = this.restValidationClient.validate(ra.getBundle(), ra.getApplication(), ra.getEventType())) {
-            // The try catch block is intentionally empty.
+            // This try block is intentionally empty.
         } catch (final WebApplicationException e) {
             // Build a nice error message for the caller.
             final Response response = e.getResponse();
@@ -97,15 +98,15 @@ public class GwResource {
             // Determine which status code we will return to the gateway caller
             // and log the error appropriately.
             final String logMessage = "Unable to validate the provided rest action due to notifications-backend responding with an unexpected error. Received status code: %s, received error message: %s, received REST action in the gateway: %s";
-            final int returningStatusCodeFromGW;
-            if (response.getStatus() == HttpStatus.SC_BAD_REQUEST) {
-                returningStatusCodeFromGW = HttpStatus.SC_BAD_REQUEST;
+            final Status returningStatusCodeFromGW;
+            if (response.getStatus() == BAD_REQUEST.getStatusCode()) {
+                returningStatusCodeFromGW = BAD_REQUEST;
                 Log.debugf(logMessage, response.getStatus(), incomingErrorMessage, ra);
             } else if (Family.familyOf(response.getStatus()) == Family.CLIENT_ERROR) {
-                returningStatusCodeFromGW = HttpStatus.SC_BAD_REQUEST;
+                returningStatusCodeFromGW = BAD_REQUEST;
                 Log.warnf(logMessage, response.getStatus(), incomingErrorMessage, ra);
             } else {
-                returningStatusCodeFromGW = HttpStatus.SC_SERVICE_UNAVAILABLE;
+                returningStatusCodeFromGW = SERVICE_UNAVAILABLE;
                 Log.errorf(logMessage, response.getStatus(), incomingErrorMessage, ra);
             }
 
@@ -120,7 +121,7 @@ public class GwResource {
 
             // Raised when the notifications-backend is unreachable.
             return Response
-                .status(HttpStatus.SC_SERVICE_UNAVAILABLE)
+                .status(SERVICE_UNAVAILABLE)
                 .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON)
                 .entity(buildResponseEntity(false, "unable to validate the bundle, application and event type trio due to notifications backend being unreachable"))
                 .build();
