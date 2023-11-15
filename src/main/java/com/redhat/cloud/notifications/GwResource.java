@@ -45,7 +45,6 @@ import java.util.concurrent.TimeUnit;
 
 import static jakarta.ws.rs.core.Response.Status;
 import static jakarta.ws.rs.core.Response.Status.BAD_REQUEST;
-import static jakarta.ws.rs.core.Response.Status.Family;
 import static jakarta.ws.rs.core.Response.Status.SERVICE_UNAVAILABLE;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
@@ -97,16 +96,16 @@ public class GwResource {
 
             // Determine which status code we will return to the gateway caller
             // and log the error appropriately.
-            final String logMessage = "Unable to validate the provided rest action due to notifications-backend responding with an unexpected error. Received status code: %s, received error message: %s, received REST action in the gateway: %s";
+            final String logMessage = "Unable to validate the provided rest action due to notifications-backend responding with an error. Received status code: %s, received error message: %s, received REST action in the gateway: %s";
             final Status returningStatusCodeFromGW;
+            final String returningErrorMessageFromGW;
             if (response.getStatus() == BAD_REQUEST.getStatusCode()) {
                 returningStatusCodeFromGW = BAD_REQUEST;
+                returningErrorMessageFromGW = incomingErrorMessage;
                 Log.debugf(logMessage, response.getStatus(), incomingErrorMessage, ra);
-            } else if (Family.familyOf(response.getStatus()) == Family.CLIENT_ERROR) {
-                returningStatusCodeFromGW = BAD_REQUEST;
-                Log.warnf(logMessage, response.getStatus(), incomingErrorMessage, ra);
             } else {
                 returningStatusCodeFromGW = SERVICE_UNAVAILABLE;
+                returningErrorMessageFromGW = "Unable to validate the message, please try again later";
                 Log.errorf(logMessage, response.getStatus(), incomingErrorMessage, ra);
             }
 
@@ -114,16 +113,16 @@ public class GwResource {
             return Response
                 .status(returningStatusCodeFromGW)
                 .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON)
-                .entity(buildResponseEntity(false, incomingErrorMessage))
+                .entity(buildResponseEntity(false, returningErrorMessageFromGW))
                 .build();
         } catch (final ProcessingException e) {
-            Log.errorf("Unable to reach notifications-backend to validate the following payload: %s", ra, e);
+            Log.errorf(e, "Unable to reach notifications-backend to validate the following payload: %s", ra);
 
             // Raised when the notifications-backend is unreachable.
             return Response
                 .status(SERVICE_UNAVAILABLE)
                 .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON)
-                .entity(buildResponseEntity(false, "unable to validate the bundle, application and event type trio due to notifications backend being unreachable"))
+                .entity(buildResponseEntity(false, "Unable to validate the message, please try again later"))
                 .build();
         }
 

@@ -138,7 +138,7 @@ public class GwResourceTest {
             final Response mockedResponse = Mockito.mock(Response.class);
 
             // Prepare the mock calls to satisfy the error handlers.
-            final String errorMessage = "Error message returned from the backend";
+            final String errorMessage = "Unable to validate the message, please try again later";
 
             Mockito.when(mockedResponse.readEntity(String.class)).thenReturn(errorMessage);
             Mockito.when(mockedResponse.getStatus()).thenReturn(testStatusCode);
