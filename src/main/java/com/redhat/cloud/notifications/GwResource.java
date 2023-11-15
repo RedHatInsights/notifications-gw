@@ -12,6 +12,19 @@ import io.micrometer.core.instrument.MeterRegistry;
 import io.quarkus.logging.Log;
 import io.smallrye.reactive.messaging.kafka.api.OutgoingKafkaRecordMetadata;
 import io.vertx.core.json.JsonObject;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
+import jakarta.ws.rs.Consumes;
+import jakarta.ws.rs.POST;
+import jakarta.ws.rs.Path;
+import jakarta.ws.rs.ProcessingException;
+import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.WebApplicationException;
+import jakarta.ws.rs.core.HttpHeaders;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.Response;
 import org.apache.kafka.common.header.internals.RecordHeaders;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.eclipse.microprofile.openapi.annotations.Operation;
@@ -22,17 +35,6 @@ import org.eclipse.microprofile.reactive.messaging.Emitter;
 import org.eclipse.microprofile.reactive.messaging.Message;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
 
-import jakarta.enterprise.context.ApplicationScoped;
-import jakarta.inject.Inject;
-import jakarta.validation.Valid;
-import jakarta.validation.constraints.NotNull;
-import jakarta.ws.rs.BadRequestException;
-import jakarta.ws.rs.Consumes;
-import jakarta.ws.rs.POST;
-import jakarta.ws.rs.Path;
-import jakarta.ws.rs.Produces;
-import jakarta.ws.rs.core.MediaType;
-import jakarta.ws.rs.core.Response;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -41,9 +43,10 @@ import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 
-import static java.nio.charset.StandardCharsets.UTF_8;
+import static jakarta.ws.rs.core.Response.Status;
 import static jakarta.ws.rs.core.Response.Status.BAD_REQUEST;
 import static jakarta.ws.rs.core.Response.Status.SERVICE_UNAVAILABLE;
+import static java.nio.charset.StandardCharsets.UTF_8;
 
 @ApplicationScoped
 @Path("/notifications")
@@ -84,11 +87,43 @@ public class GwResource {
     public Response forward(@NotNull @Valid RestAction ra) {
         receivedActions.increment();
 
-        try {
-            restValidationClient.validate(ra.getBundle(), ra.getApplication(), ra.getEventType());
-        } catch (BadRequestException e) {
-            // The following line is required to forward the HTTP 400 error message.
-            return Response.status(BAD_REQUEST).entity(e.getMessage()).build();
+        try (Response response = this.restValidationClient.validate(ra.getBundle(), ra.getApplication(), ra.getEventType())) {
+            // This try block is intentionally empty.
+        } catch (final WebApplicationException e) {
+            // Build a nice error message for the caller.
+            final Response response = e.getResponse();
+            final String incomingErrorMessage = response.readEntity(String.class);
+
+            // Determine which status code we will return to the gateway caller
+            // and log the error appropriately.
+            final String logMessage = "Unable to validate the provided rest action due to notifications-backend responding with an error. Received status code: %s, received error message: %s, received REST action in the gateway: %s";
+            final Status returningStatusCodeFromGW;
+            final String returningErrorMessageFromGW;
+            if (response.getStatus() == BAD_REQUEST.getStatusCode()) {
+                returningStatusCodeFromGW = BAD_REQUEST;
+                returningErrorMessageFromGW = incomingErrorMessage;
+                Log.debugf(logMessage, response.getStatus(), incomingErrorMessage, ra);
+            } else {
+                returningStatusCodeFromGW = SERVICE_UNAVAILABLE;
+                returningErrorMessageFromGW = "Unable to validate the message, please try again later";
+                Log.errorf(logMessage, response.getStatus(), incomingErrorMessage, ra);
+            }
+
+            // Notify the caller about the error.
+            return Response
+                .status(returningStatusCodeFromGW)
+                .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON)
+                .entity(buildResponseEntity(false, returningErrorMessageFromGW))
+                .build();
+        } catch (final ProcessingException e) {
+            Log.errorf(e, "Unable to reach notifications-backend to validate the following payload: %s", ra);
+
+            // Raised when the notifications-backend is unreachable.
+            return Response
+                .status(SERVICE_UNAVAILABLE)
+                .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON)
+                .entity(buildResponseEntity(false, "Unable to validate the message, please try again later"))
+                .build();
         }
 
         Action.ActionBuilder builder = new Action.ActionBuilder();

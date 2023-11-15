@@ -16,6 +16,7 @@
  */
 package com.redhat.cloud.notifications;
 
+import io.vertx.core.json.JsonObject;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
@@ -154,5 +155,23 @@ public class RestAction {
 
     public void setRecipients(List<RestRecipient> recipients) {
         this.recipients = recipients;
+    }
+
+    @Override
+    public String toString() {
+        final JsonObject json = new JsonObject();
+
+        json.put("id", this.id);
+        json.put("bundle", this.bundle);
+        json.put("application", this.application);
+        json.put("eventType", this.eventType);
+        json.put("timestamp", this.timestamp);
+        json.put("accountId", this.accountId);
+        json.put("orgId", this.orgId);
+        json.put("events", this.events);
+        json.put("context", this.context);
+        json.put("recipients", this.recipients);
+
+        return json.encode();
     }
 }
