@@ -79,10 +79,10 @@ objects:
           value: ${SENTRY_DSN}${ENV_NAME}
         - name: QUARKUS_LOG_SENTRY_ENVIRONMENT
           value: ${ENV_NAME}
-        - name: NOTIFICATIONS_ALLOWED_ORG_ID_LIST
-          value: ${NOTIFICATIONS_ALLOWED_ORG_ID_LIST}
-        - name: NOTIFICATIONS_RESTRICT_ACCESS_BY_ORG_ID
-          value: ${NOTIFICATIONS_RESTRICT_ACCESS_BY_ORG_ID}
+        - name: NOTIFICATIONS_ALLOWED_ORGID_LIST
+          value: ${NOTIFICATIONS_ALLOWED_ORGID_LIST}
+        - name: NOTIFICATIONS_RESTRICT_ACCESS_BY_ORGID
+          value: ${NOTIFICATIONS_RESTRICT_ACCESS_BY_ORGID}
 parameters:
 - name: CLOUDWATCH_ENABLED
   description: Enable Cloudwatch (or not)
@@ -121,9 +121,9 @@ parameters:
 - name: SENTRY_ENABLED
   description: Enable Sentry (or not)
   value: "false"
-- name: NOTIFICATIONS_ALLOWED_ORG_ID_LIST
+- name: NOTIFICATIONS_ALLOWED_ORGID_LIST
   description: Specify allowed org_id list
   value: "none"
-- name: NOTIFICATIONS_RESTRICT_ACCESS_BY_ORG_ID
+- name: NOTIFICATIONS_RESTRICT_ACCESS_BY_ORGID
   description: Enable access restriction according org ids
   value: "true"
