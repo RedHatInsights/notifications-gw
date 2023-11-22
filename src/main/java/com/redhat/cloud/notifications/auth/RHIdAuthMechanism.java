@@ -54,7 +54,7 @@ public class RHIdAuthMechanism implements HttpAuthenticationMechanism {
             subject = xid.getSubject();
         }
 
-        Log.debugf("Using subject %s", subject);
+        Log.infof("Using subject %s", subject);
 
         return Uni.createFrom().item(
                 QuarkusSecurityIdentity.builder()

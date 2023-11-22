@@ -43,8 +43,11 @@ import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 
+import static com.redhat.cloud.notifications.NotificationsGwApp.ALLOWED_ORG_ID_LIST;
+import static com.redhat.cloud.notifications.NotificationsGwApp.RESTRICT_ACCESS_BY_ORG_ID;
 import static jakarta.ws.rs.core.Response.Status;
 import static jakarta.ws.rs.core.Response.Status.BAD_REQUEST;
+import static jakarta.ws.rs.core.Response.Status.FORBIDDEN;
 import static jakarta.ws.rs.core.Response.Status.SERVICE_UNAVAILABLE;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
@@ -59,6 +62,12 @@ public class GwResource {
 
     @ConfigProperty(name = "notifications.kafka-callback-timeout-seconds", defaultValue = "60")
     long callbackTimeout;
+
+    @ConfigProperty(name = RESTRICT_ACCESS_BY_ORG_ID, defaultValue = "true")
+    boolean restrictAccessByOrgId;
+
+    @ConfigProperty(name = ALLOWED_ORG_ID_LIST, defaultValue = "none")
+    List<String> allowedOrgIdList;
 
     @Inject
     @Channel(EGRESS_CHANNEL)
@@ -78,15 +87,25 @@ public class GwResource {
     @POST
     @Operation(summary = "Forward one message to the notification system")
     @APIResponses({
-            @APIResponse(responseCode = "200", description = "Message forwarded"),
-            @APIResponse(responseCode = "403", description = "No permission"),
-            @APIResponse(responseCode = "401"),
-            @APIResponse(responseCode = "400", description = "Incoming message was not valid"),
-            @APIResponse(responseCode = "503", description = "Message delivery to Kafka failed")
+        @APIResponse(responseCode = "200", description = "Message forwarded"),
+        @APIResponse(responseCode = "403", description = "No permission"),
+        @APIResponse(responseCode = "401"),
+        @APIResponse(responseCode = "400", description = "Incoming message was not valid"),
+        @APIResponse(responseCode = "503", description = "Message delivery to Kafka failed")
     })
     public Response forward(@NotNull @Valid RestAction ra) {
         receivedActions.increment();
 
+        if (restrictAccessByOrgId
+            && !allowedOrgIdList.contains(ra.getOrgId())) {
+            final String errorMessage = String.format("OrgId %s is forbidden", ra.getOrgId());
+            Log.errorf(errorMessage);
+            return Response
+                .status(FORBIDDEN)
+                .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON)
+                .entity(buildResponseEntity(false, errorMessage))
+                .build();
+        }
         try (Response response = this.restValidationClient.validate(ra.getBundle(), ra.getApplication(), ra.getEventType())) {
             // This try block is intentionally empty.
         } catch (final WebApplicationException e) {
