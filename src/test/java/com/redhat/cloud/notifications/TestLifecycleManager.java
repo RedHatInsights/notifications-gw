@@ -85,6 +85,18 @@ public class TestLifecycleManager implements QuarkusTestResourceLifecycleManager
         getClient()
                 .when(request()
                         .withPath("/internal/validation/baet")
+                        .withQueryStringParameter(new Parameter("bundle", "my-allowed-bundle"))
+                        .withQueryStringParameter(new Parameter("application", "my-allowed-app"))
+                        .withQueryStringParameter(new Parameter("eventtype", "my-allowed-event-type"))
+                )
+                .respond(response()
+                        .withStatusCode(200)
+                        .withHeader("Content-Type", "application/json")
+                );
+
+        getClient()
+                .when(request()
+                        .withPath("/internal/validation/baet")
                         .withQueryStringParameter(new Parameter("bundle", "my-invalid-bundle"))
                         .withQueryStringParameter(new Parameter("application", "my-invalid-app"))
                         .withQueryStringParameter(new Parameter("eventtype", "a_invalid-type"))

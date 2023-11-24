@@ -44,6 +44,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 
 import static com.redhat.cloud.notifications.NotificationsGwApp.ALLOWED_ORG_ID_LIST;
+import static com.redhat.cloud.notifications.NotificationsGwApp.ALLOWED_EVENT_TYPES_LIST;
 import static com.redhat.cloud.notifications.NotificationsGwApp.RESTRICT_ACCESS_BY_ORG_ID;
 import static jakarta.ws.rs.core.Response.Status;
 import static jakarta.ws.rs.core.Response.Status.BAD_REQUEST;
@@ -68,6 +69,9 @@ public class GwResource {
 
     @ConfigProperty(name = ALLOWED_ORG_ID_LIST, defaultValue = "none")
     List<String> allowedOrgIdList;
+
+    @ConfigProperty(name = ALLOWED_EVENT_TYPES_LIST, defaultValue = "none")
+    List<String> allowedEventTypeList;
 
     @Inject
     @Channel(EGRESS_CHANNEL)
@@ -97,8 +101,12 @@ public class GwResource {
         receivedActions.increment();
 
         if (restrictAccessByOrgId
-            && !allowedOrgIdList.contains(ra.getOrgId())) {
-            final String errorMessage = String.format("OrgId %s is forbidden", ra.getOrgId());
+            && !(allowedOrgIdList.contains(ra.getOrgId()) || isInAllowedEventTypeList(ra))) {
+            final String errorMessage = String.format(
+                    "OrgId %s and event-type %s combination is forbidden",
+                    ra.getOrgId(),
+                    String.format("%s:%s:%s", ra.getBundle(), ra.getApplication(), ra.getEventType())
+            );
             Log.errorf(errorMessage);
             return Response
                 .status(FORBIDDEN)
@@ -236,5 +244,10 @@ public class GwResource {
             response.put("details", details);
         }
         return response.encode();
+    }
+
+    private boolean isInAllowedEventTypeList(RestAction ra) {
+        String target = String.format("%s:%s:%s", ra.getBundle(), ra.getApplication(), ra.getEventType());
+        return allowedEventTypeList.contains(target);
     }
 }

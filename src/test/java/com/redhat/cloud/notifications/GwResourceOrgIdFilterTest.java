@@ -49,20 +49,56 @@ public class GwResourceOrgIdFilterTest {
         @Override
         public Map<String, String> getConfigOverrides() {
             return Map.of("notifications.restrict.access.by.orgid", "true",
-                "notifications.allowed.orgid.list", "123456,654321");
+                "notifications.allowed.orgid.list", "123456,654321",
+                "notifications.allowed.event.type.list", "my-allowed-bundle:my-allowed-app:my-allowed-event-type,otherbundle:otherapp:otherevent");
         }
     }
 
     @Test
     public void testOrgIdFilter() {
+        final String allowedOrgId = "123456";
+        final String notAllowedOrgId = "555555";
+        final String[] allowedBaet = new String[]{"my-allowed-bundle", "my-allowed-app", "my-allowed-event-type"};
+        final String[] notAllowedBaet = new String[]{"my-bundle", "my-app", "a_type"};
+
+        // Allowed org_id, not allowed event-type
+        assertRequest(
+                buildRestAction(allowedOrgId, notAllowedBaet[0], notAllowedBaet[1], notAllowedBaet[2]),
+                200,
+                "success"
+        );
+
+        // not allowed org_id, not allowed event-type
+        assertRequest(
+                buildRestAction(notAllowedOrgId, notAllowedBaet[0], notAllowedBaet[1], notAllowedBaet[2]),
+                403,
+                "error"
+        );
+
+        // Allowed org_id, allowed event_type
+        assertRequest(
+                buildRestAction(allowedOrgId, allowedBaet[0], allowedBaet[1], allowedBaet[2]),
+                200,
+                "success"
+        );
+
+        // not allowed org_id, allowed event_type
+        assertRequest(
+                buildRestAction(notAllowedOrgId, allowedBaet[0], allowedBaet[1], allowedBaet[2]),
+                200,
+                "success"
+        );
+    }
+
+    private RestAction buildRestAction(String orgId, String bundle, String app, String eventType) {
         UUID random = UUID.randomUUID();
 
         RestAction ra = new RestAction();
         ra.setId(UUID.fromString("9151f21f-dead-beef-92f3-f4af67cdf544"));
-        ra.setBundle("my-bundle");
-        ra.setOrgId("123456");
-        ra.setApplication("my-app");
-        ra.setEventType("a_type");
+        ra.setBundle(bundle);
+        ra.setOrgId(orgId);
+        ra.setApplication(app);
+        ra.setEventType(eventType);
 
         List<RestEvent> events = new ArrayList<>();
         RestEvent event = new RestEvent();
@@ -89,6 +125,10 @@ public class GwResourceOrgIdFilterTest {
         recipient.setEmails(List.of("user3@domain.com", "user4@domain.com"));
         ra.setRecipients(recipients);
 
+        return ra;
+    }
+
+    private void assertRequest(RestAction ra, int expectedStatusCode, String expectedResult) {
         String identity = TestHelpers.encodeIdentityInfo("test", "user");
 
         String responseBody = given()
@@ -97,22 +137,10 @@ public class GwResourceOrgIdFilterTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .when().post("/notifications/")
                 .then()
-                .statusCode(200)
+                .statusCode(expectedStatusCode)
                 .extract().asString();
 
-        assertEquals("success", new JsonObject(responseBody).getString("result"));
-
-        ra.setOrgId("555555");
-        responseBody = given()
-            .body(ra)
-            .header("x-rh-identity", identity)
-            .contentType(MediaType.APPLICATION_JSON)
-            .when().post("/notifications/")
-            .then()
-            .statusCode(403)
-            .extract().asString();
-
-        assertEquals("error", new JsonObject(responseBody).getString("result"));
+        assertEquals(expectedResult, new JsonObject(responseBody).getString("result"));
     }
 
 }

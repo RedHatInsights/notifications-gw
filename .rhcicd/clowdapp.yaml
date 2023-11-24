@@ -83,6 +83,8 @@ objects:
           value: ${NOTIFICATIONS_ALLOWED_ORGID_LIST}
         - name: NOTIFICATIONS_RESTRICT_ACCESS_BY_ORGID
           value: ${NOTIFICATIONS_RESTRICT_ACCESS_BY_ORGID}
+        - name: NOTIFICATIONS_ALLOWED_EVENT_TYPES_LIST
+          value: ${NOTIFICATIONS_ALLOWED_EVENT_TYPES_LIST}
 parameters:
 - name: CLOUDWATCH_ENABLED
   description: Enable Cloudwatch (or not)
@@ -127,3 +129,6 @@ parameters:
 - name: NOTIFICATIONS_RESTRICT_ACCESS_BY_ORGID
   description: Enable access restriction according org ids
   value: "true"
+- name: NOTIFICATIONS_ALLOWED_EVENT_TYPES_LIST
+  description: Additional allowed event types list with the format bundle:app:event_type for each element In case the the event doesn't come from an allowed org_id
+  value: "none"
