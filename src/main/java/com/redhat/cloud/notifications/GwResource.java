@@ -96,8 +96,7 @@ public class GwResource {
     public Response forward(@NotNull @Valid RestAction ra) {
         receivedActions.increment();
 
-        if (restrictAccessByOrgId
-            && !allowedOrgIdList.contains(ra.getOrgId())) {
+        if (checkIfOCMEventAndIfOrgIdIsGranted(ra)) {
             final String errorMessage = String.format("OrgId %s is forbidden", ra.getOrgId());
             Log.errorf(errorMessage);
             return Response
@@ -236,5 +235,10 @@ public class GwResource {
             response.put("details", details);
         }
         return response.encode();
+    }
+
+    private boolean checkIfOCMEventAndIfOrgIdIsGranted(RestAction ra) {
+        return ra.bundle.equals("openshift") && ra.application.equals("cluster-manager") &&
+            restrictAccessByOrgId && !allowedOrgIdList.contains(ra.getOrgId());
     }
 }
