@@ -60,7 +60,7 @@ public class GwResourceOrgIdFilterTest {
         RestAction ra = new RestAction();
         ra.setId(UUID.fromString("9151f21f-dead-beef-92f3-f4af67cdf544"));
         ra.setBundle("my-bundle");
-        ra.setOrgId("123456");
+        ra.setOrgId("555555");
         ra.setApplication("my-app");
         ra.setEventType("a_type");
 
@@ -102,7 +102,8 @@ public class GwResourceOrgIdFilterTest {
 
         assertEquals("success", new JsonObject(responseBody).getString("result"));
 
-        ra.setOrgId("555555");
+        ra.setBundle("openshift");
+        ra.setApplication("cluster-manager");
         responseBody = given()
             .body(ra)
             .header("x-rh-identity", identity)
@@ -113,6 +114,18 @@ public class GwResourceOrgIdFilterTest {
             .extract().asString();
 
         assertEquals("error", new JsonObject(responseBody).getString("result"));
+
+        ra.setOrgId("123456");
+        responseBody = given()
+            .body(ra)
+            .header("x-rh-identity", identity)
+            .contentType(MediaType.APPLICATION_JSON)
+            .when().post("/notifications/")
+            .then()
+            .statusCode(200)
+            .extract().asString();
+
+        assertEquals("success", new JsonObject(responseBody).getString("result"));
     }
 
 }
