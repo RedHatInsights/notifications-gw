@@ -25,19 +25,26 @@ import java.security.Principal;
 public class RhIdPrincipal implements Principal {
 
   private String name;
+
+    private String type;
   private String rawRhId;
 
   public RhIdPrincipal() {
   }
 
-  public RhIdPrincipal(String name) {
+  public RhIdPrincipal(String name, String type) {
     this.name = name;
+    this.type = type;
   }
 
   @Override
   public String getName() {
     return name;
   }
+
+  public String getType() {
+        return type;
+    }
 
   public void setRawRhIdHeader(String rawRhId) {
     this.rawRhId = rawRhId;

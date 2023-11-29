@@ -47,18 +47,20 @@ public class RHIdAuthMechanism implements HttpAuthenticationMechanism {
         String xRhIdentityHeaderValue = context.request().getHeader(IDENTITY_HEADER);
 
         String subject = "-unset-";
+        String type = "-unset-";
 
         Optional<XRhIdentity> oxid = HeaderHelper.getRhIdFromString(xRhIdentityHeaderValue);
         if (oxid.isPresent()) {
             XRhIdentity xid = oxid.get();
             subject = xid.getSubject();
+            type = xid.getType();
         }
 
-        Log.debugf("Using subject %s", subject);
+        Log.debugf("Using subject %s, from type %s", subject, type);
 
         return Uni.createFrom().item(
                 QuarkusSecurityIdentity.builder()
-                    .setPrincipal(new RhIdPrincipal(subject))
+                    .setPrincipal(new RhIdPrincipal(subject, type))
                     .build()
         );
     }

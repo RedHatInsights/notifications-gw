@@ -1,5 +1,6 @@
 package com.redhat.cloud.notifications;
 
+import com.redhat.cloud.notifications.auth.RhIdPrincipal;
 import com.redhat.cloud.notifications.ingress.Action;
 import com.redhat.cloud.notifications.ingress.Context;
 import com.redhat.cloud.notifications.ingress.Event;
@@ -7,9 +8,11 @@ import com.redhat.cloud.notifications.ingress.Metadata;
 import com.redhat.cloud.notifications.ingress.Parser;
 import com.redhat.cloud.notifications.ingress.Payload;
 import com.redhat.cloud.notifications.ingress.Recipient;
+import com.redhat.cloud.notifications.model.GatewayCertificate;
 import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.quarkus.logging.Log;
+import io.quarkus.runtime.util.StringUtil;
 import io.smallrye.reactive.messaging.kafka.api.OutgoingKafkaRecordMetadata;
 import io.vertx.core.json.JsonObject;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -25,6 +28,7 @@ import jakarta.ws.rs.WebApplicationException;
 import jakarta.ws.rs.core.HttpHeaders;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
+import jakarta.ws.rs.core.SecurityContext;
 import org.apache.kafka.common.header.internals.RecordHeaders;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.eclipse.microprofile.openapi.annotations.Operation;
@@ -93,10 +97,11 @@ public class GwResource {
         @APIResponse(responseCode = "400", description = "Incoming message was not valid"),
         @APIResponse(responseCode = "503", description = "Message delivery to Kafka failed")
     })
-    public Response forward(@NotNull @Valid RestAction ra) {
+    public Response forward(@jakarta.ws.rs.core.Context SecurityContext sec, @NotNull @Valid RestAction ra) {
         receivedActions.increment();
+        String senderId = ((RhIdPrincipal) sec.getUserPrincipal()).getName();
 
-        if (checkIfOCMEventAndIfOrgIdIsGranted(ra)) {
+        if (checkIfOCMEventAndIfOrgIdIsGranted(ra, ((RhIdPrincipal) sec.getUserPrincipal()))) {
             final String errorMessage = String.format("OrgId %s is forbidden", ra.getOrgId());
             Log.errorf(errorMessage);
             return Response
@@ -237,8 +242,21 @@ public class GwResource {
         return response.encode();
     }
 
-    private boolean checkIfOCMEventAndIfOrgIdIsGranted(RestAction ra) {
-        return ra.bundle.equals("openshift") && ra.application.equals("cluster-manager") &&
-            restrictAccessByOrgId && !allowedOrgIdList.contains(ra.getOrgId());
+    private boolean checkIfOCMEventAndIfOrgIdIsGranted(RestAction ra, RhIdPrincipal rhIdPrincipal) {
+        if (ra.bundle.equals("openshift") && ra.application.equals("cluster-manager")) {
+            if ("X509".equals(rhIdPrincipal.getType())) {
+                try {
+                    GatewayCertificate gatewayCertificate = restValidationClient.validateCertificateAccordingBundleAndApp(ra.getBundle(), ra.getApplication(), rhIdPrincipal.getName());
+                    Log.infof("Certificate validated, coming from %s", gatewayCertificate.environment);
+                } catch (Exception ex) {
+                    Log.infof("Unable to validate certificate '%s' for bundle %s and application '%s'",
+                        rhIdPrincipal.getName(),
+                        ra.getBundle(),
+                        ra.getApplication());
+                }
+            }
+            return restrictAccessByOrgId && !allowedOrgIdList.contains(ra.getOrgId());
+        }
+        return false;
     }
 }

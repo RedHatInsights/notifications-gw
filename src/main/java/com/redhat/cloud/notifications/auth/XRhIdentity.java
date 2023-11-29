@@ -34,4 +34,9 @@ public class XRhIdentity {
       public String getSubject() {
           return identity.getSubject();
       }
+
+    public String getType() {
+        return identity.getType();
+    }
+
   }
