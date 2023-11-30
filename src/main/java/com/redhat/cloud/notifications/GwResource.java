@@ -9,6 +9,7 @@ import com.redhat.cloud.notifications.ingress.Payload;
 import com.redhat.cloud.notifications.ingress.Recipient;
 import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.Tags;
 import io.quarkus.logging.Log;
 import io.smallrye.reactive.messaging.kafka.api.OutgoingKafkaRecordMetadata;
 import io.vertx.core.json.JsonObject;
@@ -58,6 +59,7 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 public class GwResource {
 
     public static final String EGRESS_CHANNEL = "egress";
+    public static final String FAILURES_COUNTER = "notifications.gw.failed.requests";
     public static final String MESSAGE_ID_HEADER = "rh-message-id";
 
     @ConfigProperty(name = "notifications.kafka-callback-timeout-seconds", defaultValue = "60")
@@ -72,6 +74,9 @@ public class GwResource {
     @Inject
     @Channel(EGRESS_CHANNEL)
     Emitter<String> emitter;
+
+    @Inject
+    MeterRegistry meterRegistry;
 
     @RestClient
     RestValidationClient restValidationClient;
@@ -127,6 +132,8 @@ public class GwResource {
                 Log.errorf(logMessage, response.getStatus(), incomingErrorMessage, ra);
             }
 
+            this.incrementFailuresCounter(returningStatusCodeFromGW);
+
             // Notify the caller about the error.
             return Response
                 .status(returningStatusCodeFromGW)
@@ -135,6 +142,8 @@ public class GwResource {
                 .build();
         } catch (final ProcessingException e) {
             Log.errorf(e, "Unable to reach notifications-backend to validate the following payload: %s", ra);
+
+            this.incrementFailuresCounter(SERVICE_UNAVAILABLE);
 
             // Raised when the notifications-backend is unreachable.
             return Response
@@ -206,6 +215,7 @@ public class GwResource {
             String responseEntity = buildResponseEntity(true, null);
             return Response.ok(responseEntity).build();
         } catch (Throwable t) {
+            this.incrementFailuresCounter(SERVICE_UNAVAILABLE);
             Log.error("Message delivery to Kafka failed", t);
             String responseEntity = buildResponseEntity(false, "Message delivery to Kafka failed, please try again later");
             return Response.status(SERVICE_UNAVAILABLE).entity(responseEntity).build();
@@ -240,5 +250,13 @@ public class GwResource {
     private boolean checkIfOCMEventAndIfOrgIdIsGranted(RestAction ra) {
         return ra.bundle.equals("openshift") && ra.application.equals("cluster-manager") &&
             restrictAccessByOrgId && !allowedOrgIdList.contains(ra.getOrgId());
+    }
+
+    /**
+     * Increments the gateway's failures counter.
+     * @param status the status to set as a label.
+     */
+    private void incrementFailuresCounter(final Status status) {
+        this.meterRegistry.counter(FAILURES_COUNTER, Tags.of("status_code", String.valueOf(status.getStatusCode()))).increment();
     }
 }
