@@ -12,7 +12,6 @@ import com.redhat.cloud.notifications.model.GatewayCertificate;
 import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.quarkus.logging.Log;
-import io.quarkus.runtime.util.StringUtil;
 import io.smallrye.reactive.messaging.kafka.api.OutgoingKafkaRecordMetadata;
 import io.vertx.core.json.JsonObject;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -99,7 +98,6 @@ public class GwResource {
     })
     public Response forward(@jakarta.ws.rs.core.Context SecurityContext sec, @NotNull @Valid RestAction ra) {
         receivedActions.increment();
-        String senderId = ((RhIdPrincipal) sec.getUserPrincipal()).getName();
 
         if (checkIfOCMEventAndIfOrgIdIsGranted(ra, ((RhIdPrincipal) sec.getUserPrincipal()))) {
             final String errorMessage = String.format("OrgId %s is forbidden", ra.getOrgId());
@@ -247,7 +245,7 @@ public class GwResource {
             if ("X509".equals(rhIdPrincipal.getType())) {
                 try {
                     GatewayCertificate gatewayCertificate = restValidationClient.validateCertificateAccordingBundleAndApp(ra.getBundle(), ra.getApplication(), rhIdPrincipal.getName());
-                    Log.infof("Certificate validated, coming from %s", gatewayCertificate.environment);
+                    Log.infof("Certificate validated, coming from source environment %s", gatewayCertificate.sourceEnvironment);
                 } catch (Exception ex) {
                     Log.infof("Unable to validate certificate '%s' for bundle %s and application '%s'",
                         rhIdPrincipal.getName(),

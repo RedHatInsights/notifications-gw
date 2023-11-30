@@ -9,5 +9,5 @@ import com.fasterxml.jackson.databind.annotation.JsonNaming;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class GatewayCertificate {
 
-    public String environment;
+    public String sourceEnvironment;
 }

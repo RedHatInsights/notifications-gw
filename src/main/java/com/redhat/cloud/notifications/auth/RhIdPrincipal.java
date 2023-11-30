@@ -43,8 +43,8 @@ public class RhIdPrincipal implements Principal {
   }
 
   public String getType() {
-        return type;
-    }
+    return type;
+  }
 
   public void setRawRhIdHeader(String rawRhId) {
     this.rawRhId = rawRhId;

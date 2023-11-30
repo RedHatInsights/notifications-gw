@@ -3,6 +3,7 @@ package com.redhat.cloud.notifications;
 import com.redhat.cloud.notifications.model.GatewayCertificate;
 import io.quarkus.cache.CacheResult;
 import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
@@ -28,10 +29,10 @@ public interface RestValidationClient {
     Response validate(@RestQuery String bundle, @RestQuery String application, @RestQuery String eventType);
 
     @GET
-    @Path("/certificate-according-bundle-and-app")
+    @Path("/certificate")
     @Retry(maxRetries = 5)
-    @Produces(APPLICATION_JSON)
+    @Consumes(APPLICATION_JSON)
     @CacheResult(cacheName = "certificate-validation")
-    GatewayCertificate validateCertificateAccordingBundleAndApp(@RestQuery String bundle, @RestQuery String application, @RestQuery String certificate);
+    GatewayCertificate validateCertificateAccordingBundleAndApp(@RestQuery String bundle, @RestQuery String application, @RestQuery String certificateSubjectDn);
 
 }
