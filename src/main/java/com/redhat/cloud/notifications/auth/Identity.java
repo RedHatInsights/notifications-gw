@@ -47,4 +47,8 @@ public abstract class Identity {
     public String auth_info;
 
     abstract public String getSubject();
+
+    public String getType() {
+        return type;
+    }
 }

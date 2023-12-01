@@ -1,7 +1,9 @@
 package com.redhat.cloud.notifications;
 
+import com.redhat.cloud.notifications.model.GatewayCertificate;
 import io.quarkus.cache.CacheResult;
 import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
@@ -11,6 +13,7 @@ import org.eclipse.microprofile.faulttolerance.Retry;
 import org.eclipse.microprofile.rest.client.inject.RegisterRestClient;
 import org.jboss.resteasy.reactive.RestQuery;
 
+import static jakarta.ws.rs.core.MediaType.APPLICATION_JSON;
 import static jakarta.ws.rs.core.MediaType.TEXT_PLAIN;
 
 @Path("/internal/validation")
@@ -24,5 +27,13 @@ public interface RestValidationClient {
     @Produces(TEXT_PLAIN)
     @CacheResult(cacheName = "baet-validation")
     Response validate(@RestQuery String bundle, @RestQuery String application, @RestQuery String eventType);
+
+    @GET
+    @Path("/certificate")
+    @Retry(maxRetries = 5)
+    @Consumes(APPLICATION_JSON)
+    @Produces(APPLICATION_JSON)
+    @CacheResult(cacheName = "certificate-validation")
+    GatewayCertificate validateCertificate(@RestQuery String bundle, @RestQuery String application, @RestQuery String certificateSubjectDn);
 
 }
