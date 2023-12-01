@@ -32,7 +32,8 @@ public interface RestValidationClient {
     @Path("/certificate")
     @Retry(maxRetries = 5)
     @Consumes(APPLICATION_JSON)
+    @Produces(APPLICATION_JSON)
     @CacheResult(cacheName = "certificate-validation")
-    GatewayCertificate validateCertificateAccordingBundleAndApp(@RestQuery String bundle, @RestQuery String application, @RestQuery String certificateSubjectDn);
+    GatewayCertificate validateCertificate(@RestQuery String bundle, @RestQuery String application, @RestQuery String certificateSubjectDn);
 
 }

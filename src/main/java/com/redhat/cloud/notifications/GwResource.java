@@ -244,7 +244,7 @@ public class GwResource {
         if (ra.bundle.equals("openshift") && ra.application.equals("cluster-manager")) {
             if ("X509".equals(rhIdPrincipal.getType())) {
                 try {
-                    GatewayCertificate gatewayCertificate = restValidationClient.validateCertificateAccordingBundleAndApp(ra.getBundle(), ra.getApplication(), rhIdPrincipal.getName());
+                    GatewayCertificate gatewayCertificate = restValidationClient.validateCertificate(ra.getBundle(), ra.getApplication(), rhIdPrincipal.getName());
                     Log.infof("Certificate validated, coming from source environment %s", gatewayCertificate.sourceEnvironment);
                 } catch (Exception ex) {
                     Log.infof("Unable to validate certificate '%s' for bundle %s and application '%s'",
