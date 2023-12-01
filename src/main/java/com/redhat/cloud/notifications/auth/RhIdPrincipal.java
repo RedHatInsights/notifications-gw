@@ -20,37 +20,26 @@ import java.security.Principal;
 
 /**
  * Simple implementation of {@link Principal}
+ *
  * @author hrupp
  */
 public class RhIdPrincipal implements Principal {
 
-  private String name;
+    private final String name;
 
-    private String type;
-  private String rawRhId;
+    private final String type;
 
-  public RhIdPrincipal() {
-  }
+    public RhIdPrincipal(String name, String type) {
+        this.name = name;
+        this.type = type;
+    }
 
-  public RhIdPrincipal(String name, String type) {
-    this.name = name;
-    this.type = type;
-  }
+    @Override
+    public String getName() {
+        return name;
+    }
 
-  @Override
-  public String getName() {
-    return name;
-  }
-
-  public String getType() {
-    return type;
-  }
-
-  public void setRawRhIdHeader(String rawRhId) {
-    this.rawRhId = rawRhId;
-  }
-
-  public String getRawRhIdHeader() {
-    return rawRhId;
-  }
+    public String getType() {
+        return type;
+    }
 }

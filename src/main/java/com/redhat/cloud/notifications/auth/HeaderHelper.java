@@ -20,7 +20,6 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import jakarta.ws.rs.core.HttpHeaders;
 import java.util.Base64;
 import java.util.Optional;
 
@@ -32,17 +31,6 @@ public abstract class HeaderHelper {
   static ObjectMapper om = new ObjectMapper();
   static {
     om.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES,false);
-  }
-
-  public static Optional<XRhIdentity> getRhIdFromHeader(HttpHeaders httpHeaders) {
-    if (httpHeaders==null) {
-      return Optional.empty();
-    }
-    String headerString = httpHeaders.getHeaderString("x-rh-identity");
-    if (headerString==null) {
-      return Optional.empty();
-    }
-    return getRhIdFromString(headerString);
   }
 
   public static Optional<XRhIdentity> getRhIdFromString(String xRhIdHeader)  {
