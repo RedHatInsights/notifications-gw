@@ -40,11 +40,11 @@ import java.util.Set;
 @ApplicationScoped
 public class RHIdAuthMechanism implements HttpAuthenticationMechanism {
 
-    public static final String IDENTITY_HEADER = "x-rh-identity";
+    public static final String X_RH_IDENTITY_HEADER = "x-rh-identity";
 
     @Override
     public Uni<SecurityIdentity> authenticate(RoutingContext context, IdentityProviderManager identityProviderManager) {
-        String xRhIdentityHeaderValue = context.request().getHeader(IDENTITY_HEADER);
+        String xRhIdentityHeaderValue = context.request().getHeader(X_RH_IDENTITY_HEADER);
 
         String subject = "-unset-";
         String type = "-unset-";
@@ -74,11 +74,4 @@ public class RHIdAuthMechanism implements HttpAuthenticationMechanism {
     public Set<Class<? extends AuthenticationRequest>> getCredentialTypes() {
         return Collections.singleton(RhIdentityAuthenticationRequest.class);
     }
-
-    @Override
-    public HttpCredentialTransport getCredentialTransport() {
-        return null;
-    }
-
-
 }
