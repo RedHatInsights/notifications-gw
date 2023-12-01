@@ -65,10 +65,6 @@ public class TestLifecycleManager implements QuarkusTestResourceLifecycleManager
         MockServerLifecycleManager.start();
 
         properties.put("quarkus.rest-client.notifications-backend.url", getMockServerUrl());
-        properties.put("quarkus.rest-client.rbac.url", getMockServerUrl());
-
-        String xRhIdentity = TestHelpers.encodeIdentityInfo("test", "user");
-        String access = TestHelpers.getFileAsString("rbac_example_full_access.json");
 
         getClient()
                 .when(request()
@@ -102,17 +98,6 @@ public class TestLifecycleManager implements QuarkusTestResourceLifecycleManager
                 .respond(response()
                         .withStatusCode(404)
                         .withHeader("Content-Type", "application/json")
-                );
-
-        getClient()
-                .when(request()
-                        .withPath("/api/rbac/v1/access/")
-                        .withHeader("x-rh-identity", xRhIdentity)
-                )
-                .respond(response()
-                        .withStatusCode(200)
-                        .withHeader("Content-Type", "application/json")
-                        .withBody(access)
                 );
     }
 
