@@ -42,6 +42,7 @@ import org.eclipse.microprofile.rest.client.inject.RestClient;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.ConcurrentModificationException;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
@@ -118,8 +119,14 @@ public class GwResource {
         } catch (final WebApplicationException e) {
             // Build a nice error message for the caller.
             final Response response = e.getResponse();
-            final String incomingErrorMessage = response.readEntity(String.class);
-
+            String incomingErrorMessage;
+            // TODO The following try/catch block is a workaround for a Quarkus bug. Remove it ASAP!
+            try {
+                incomingErrorMessage = response.readEntity(String.class);
+            } catch (ConcurrentModificationException ex) {
+                incomingErrorMessage = "";
+                Log.error("Could not retrieve entity from notifications-backend response", ex);
+            }
             // Determine which status code we will return to the gateway caller
             // and log the error appropriately.
             final String logMessage = "Unable to validate the provided rest action due to notifications-backend responding with an error. Received status code: %s, received error message: %s, received REST action in the gateway: %s";
