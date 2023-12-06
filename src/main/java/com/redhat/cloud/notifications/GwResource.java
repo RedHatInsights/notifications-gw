@@ -8,7 +8,7 @@ import com.redhat.cloud.notifications.ingress.Metadata;
 import com.redhat.cloud.notifications.ingress.Parser;
 import com.redhat.cloud.notifications.ingress.Payload;
 import com.redhat.cloud.notifications.ingress.Recipient;
-import com.redhat.cloud.notifications.model.GatewayCertificate;
+import com.redhat.cloud.notifications.model.X509Certificate;
 import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Tags;
@@ -65,6 +65,8 @@ public class GwResource {
     public static final String EGRESS_CHANNEL = "egress";
     public static final String FAILURES_COUNTER = "notifications.gw.failed.requests";
     public static final String MESSAGE_ID_HEADER = "rh-message-id";
+
+    private static final String STAGE_SOURCE_ENV = "stage";
 
     @ConfigProperty(name = "notifications.kafka-callback-timeout-seconds", defaultValue = "60")
     long callbackTimeout;
@@ -261,8 +263,12 @@ public class GwResource {
         if (ra.bundle.equals("openshift") && ra.application.equals("cluster-manager")) {
             if ("X509".equals(rhIdPrincipal.getType())) {
                 try {
-                    GatewayCertificate gatewayCertificate = restValidationClient.validateCertificate(ra.getBundle(), ra.getApplication(), rhIdPrincipal.getName());
-                    Log.infof("Certificate validated, coming from source environment %s", gatewayCertificate.sourceEnvironment);
+                    X509Certificate x509Certificate = restValidationClient.validateCertificate(ra.getBundle(), ra.getApplication(), rhIdPrincipal.getName());
+                    Log.infof("Certificate validated, coming from source environment %s", x509Certificate.sourceEnvironment);
+                    if (STAGE_SOURCE_ENV.equals(x509Certificate.sourceEnvironment)) {
+                        // All messages coming from OCM stage are processed with no restriction on the org IDs.
+                        return false;
+                    }
                 } catch (Exception ex) {
                     Log.infof("Unable to validate certificate '%s' for bundle %s and application '%s'",
                         rhIdPrincipal.getName(),
