@@ -263,6 +263,11 @@ public class GwResource {
                 try {
                     GatewayCertificate gatewayCertificate = restValidationClient.validateCertificate(ra.getBundle(), ra.getApplication(), rhIdPrincipal.getName());
                     Log.infof("Certificate validated, coming from source environment %s", gatewayCertificate.sourceEnvironment);
+                    if ("stage".equals(gatewayCertificate.sourceEnvironment)) {
+                        return true;
+                    } else if ("prod".equals(gatewayCertificate.sourceEnvironment)) {
+                        return restrictAccessByOrgId && !allowedOrgIdList.contains(ra.getOrgId());
+                    }
                 } catch (Exception ex) {
                     Log.infof("Unable to validate certificate '%s' for bundle %s and application '%s'",
                         rhIdPrincipal.getName(),
@@ -270,7 +275,6 @@ public class GwResource {
                         ra.getApplication());
                 }
             }
-            return restrictAccessByOrgId && !allowedOrgIdList.contains(ra.getOrgId());
         }
         return false;
     }
