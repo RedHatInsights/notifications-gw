@@ -29,6 +29,7 @@ import jakarta.ws.rs.core.HttpHeaders;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.SecurityContext;
+import org.apache.kafka.common.header.Headers;
 import org.apache.kafka.common.header.internals.RecordHeaders;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.eclipse.microprofile.openapi.annotations.Operation;
@@ -44,6 +45,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.ConcurrentModificationException;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
@@ -67,6 +69,8 @@ public class GwResource {
     public static final String MESSAGE_ID_HEADER = "rh-message-id";
 
     private static final String STAGE_SOURCE_ENV = "stage";
+    private static final String X509_IDENTITY_TYPE = "X509";
+    private static final String SOURCE_ENVIRONMENT_HEADER = "rh-source-environment";
 
     @ConfigProperty(name = "notifications.kafka-callback-timeout-seconds", defaultValue = "60")
     long callbackTimeout;
@@ -107,15 +111,31 @@ public class GwResource {
     public Response forward(@jakarta.ws.rs.core.Context SecurityContext sec, @NotNull @Valid RestAction ra) {
         receivedActions.increment();
 
-        if (checkIfOCMEventAndIfOrgIdIsGranted(ra, ((RhIdPrincipal) sec.getUserPrincipal()))) {
-            final String errorMessage = String.format("OrgId %s is forbidden", ra.getOrgId());
-            Log.errorf(errorMessage);
-            return Response
-                .status(FORBIDDEN)
-                .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON)
-                .entity(buildResponseEntity(false, errorMessage))
-                .build();
+        String sourceEnvironment = null;
+        RhIdPrincipal principal = (RhIdPrincipal) sec.getUserPrincipal();
+        if (X509_IDENTITY_TYPE.equals(principal.getType())) {
+            Optional<X509Certificate> x509Certificate = getX509Certificate(ra.bundle, ra.application, principal.getName());
+            if (x509Certificate.isPresent()) {
+                sourceEnvironment = x509Certificate.get().sourceEnvironment;
+            }
+            // TODO Remove this temporary restriction later.
+            if (
+                "openshift".equals(ra.bundle) &&
+                "cluster-manager".equals(ra.application) &&
+                !STAGE_SOURCE_ENV.equals(sourceEnvironment) &&
+                restrictAccessByOrgId &&
+                !allowedOrgIdList.contains(ra.getOrgId())
+            ) {
+                final String errorMessage = String.format("OrgId %s is forbidden", ra.getOrgId());
+                Log.errorf(errorMessage);
+                return Response
+                        .status(FORBIDDEN)
+                        .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON)
+                        .entity(buildResponseEntity(false, errorMessage))
+                        .build();
+            }
         }
+
         try (Response response = this.restValidationClient.validate(ra.getBundle(), ra.getApplication(), ra.getEventType())) {
             // This try block is intentionally empty.
         } catch (final WebApplicationException e) {
@@ -212,7 +232,7 @@ public class GwResource {
         String serializedAction = Parser.encode(action);
 
         CompletableFuture<Void> callback = new CompletableFuture<>();
-        Message<String> message = buildMessageWithId(serializedAction, callback);
+        Message<String> message = buildMessageWithId(serializedAction, sourceEnvironment, callback);
 
         try {
             emitter.send(message);
@@ -234,10 +254,15 @@ public class GwResource {
         }
     }
 
-    private static Message<String> buildMessageWithId(String payload, CompletableFuture<Void> callback) {
+    private static Message<String> buildMessageWithId(String payload, String sourceEnvironment, CompletableFuture<Void> callback) {
         byte[] messageId = UUID.randomUUID().toString().getBytes(UTF_8);
+        Headers headers = new RecordHeaders()
+                .add(MESSAGE_ID_HEADER, messageId);
+        if (sourceEnvironment != null) {
+            headers.add(SOURCE_ENVIRONMENT_HEADER, sourceEnvironment.getBytes(UTF_8));
+        }
         OutgoingKafkaRecordMetadata<String> metadata = OutgoingKafkaRecordMetadata.<String>builder()
-                .withHeaders(new RecordHeaders().add(MESSAGE_ID_HEADER, messageId))
+                .withHeaders(headers)
                 .build();
         return Message.of(payload)
                 .addMetadata(metadata)
@@ -259,26 +284,18 @@ public class GwResource {
         return response.encode();
     }
 
-    private boolean checkIfOCMEventAndIfOrgIdIsGranted(RestAction ra, RhIdPrincipal rhIdPrincipal) {
-        if (ra.bundle.equals("openshift") && ra.application.equals("cluster-manager")) {
-            if ("X509".equals(rhIdPrincipal.getType())) {
-                try {
-                    X509Certificate x509Certificate = restValidationClient.validateCertificate(ra.getBundle(), ra.getApplication(), rhIdPrincipal.getName());
-                    Log.infof("Certificate validated, coming from source environment %s", x509Certificate.sourceEnvironment);
-                    if (STAGE_SOURCE_ENV.equals(x509Certificate.sourceEnvironment)) {
-                        // All messages coming from OCM stage are processed with no restriction on the org IDs.
-                        return false;
-                    }
-                } catch (Exception ex) {
-                    Log.infof("Unable to validate certificate '%s' for bundle %s and application '%s'",
-                        rhIdPrincipal.getName(),
-                        ra.getBundle(),
-                        ra.getApplication());
-                }
-            }
-            return restrictAccessByOrgId && !allowedOrgIdList.contains(ra.getOrgId());
+    private Optional<X509Certificate> getX509Certificate(String bundle, String app, String certificateDn) {
+        try {
+            X509Certificate x509Certificate = restValidationClient.validateCertificate(bundle, app, certificateDn);
+            Log.infof("Certificate validated, coming from source environment %s", x509Certificate.sourceEnvironment);
+            return Optional.of(x509Certificate);
+        } catch (Exception e) {
+            Log.infof("Unable to validate certificate '%s' for bundle '%s' and application '%s'",
+                certificateDn,
+                bundle,
+                app);
+            return Optional.empty();
         }
-        return false;
     }
 
     /**
