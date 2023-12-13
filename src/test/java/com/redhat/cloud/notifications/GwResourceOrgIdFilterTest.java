@@ -86,7 +86,7 @@ public class GwResourceOrgIdFilterTest {
         recipient.setIgnoreUserPreferences(true);
         recipients.add(recipient);
         recipient.setUsers(List.of("user3", "user4"));
-        recipient.setEmails(List.of("user3@domain.com", "user4@domain.com"));
+        recipient.setEmails(List.of("user3@redhat.com", "user4@redhat.com"));
         ra.setRecipients(recipients);
 
         String identity = TestHelpers.encodeIdentityInfo("test", "user");

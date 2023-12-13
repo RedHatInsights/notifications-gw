@@ -25,8 +25,6 @@ import jakarta.ws.rs.Path;
 import jakarta.ws.rs.ProcessingException;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.WebApplicationException;
-import jakarta.ws.rs.core.HttpHeaders;
-import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.SecurityContext;
 import org.apache.kafka.common.header.Headers;
@@ -52,6 +50,8 @@ import java.util.concurrent.TimeUnit;
 
 import static com.redhat.cloud.notifications.NotificationsGwApp.ALLOWED_ORG_ID_LIST;
 import static com.redhat.cloud.notifications.NotificationsGwApp.RESTRICT_ACCESS_BY_ORG_ID;
+import static jakarta.ws.rs.core.HttpHeaders.CONTENT_TYPE;
+import static jakarta.ws.rs.core.MediaType.APPLICATION_JSON;
 import static jakarta.ws.rs.core.Response.Status;
 import static jakarta.ws.rs.core.Response.Status.BAD_REQUEST;
 import static jakarta.ws.rs.core.Response.Status.FORBIDDEN;
@@ -60,17 +60,19 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 
 @ApplicationScoped
 @Path("/notifications")
-@Consumes(MediaType.APPLICATION_JSON)
-@Produces(MediaType.APPLICATION_JSON)
+@Consumes(APPLICATION_JSON)
+@Produces(APPLICATION_JSON)
 public class GwResource {
 
     public static final String EGRESS_CHANNEL = "egress";
     public static final String FAILURES_COUNTER = "notifications.gw.failed.requests";
     public static final String MESSAGE_ID_HEADER = "rh-message-id";
+    public static final String NOTIFICATIONS_EMAILS_INTERNAL_ONLY_ENABLED = "notifications.emails.internal-only.enabled";
 
     private static final String STAGE_SOURCE_ENV = "stage";
     private static final String X509_IDENTITY_TYPE = "X509";
     private static final String SOURCE_ENVIRONMENT_HEADER = "rh-source-environment";
+    private static final String REDHAT_DOMAIN = "@redhat.com";
 
     @ConfigProperty(name = "notifications.kafka-callback-timeout-seconds", defaultValue = "60")
     long callbackTimeout;
@@ -80,6 +82,9 @@ public class GwResource {
 
     @ConfigProperty(name = ALLOWED_ORG_ID_LIST, defaultValue = "none")
     List<String> allowedOrgIdList;
+
+    @ConfigProperty(name = NOTIFICATIONS_EMAILS_INTERNAL_ONLY_ENABLED, defaultValue = "true")
+    boolean internalEmailsOnly;
 
     @Inject
     @Channel(EGRESS_CHANNEL)
@@ -130,8 +135,30 @@ public class GwResource {
                 Log.errorf(errorMessage);
                 return Response
                         .status(FORBIDDEN)
-                        .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON)
+                        .header(CONTENT_TYPE, APPLICATION_JSON)
                         .entity(buildResponseEntity(false, errorMessage))
+                        .build();
+            }
+        }
+
+        if (internalEmailsOnly) {
+            List<String> forbiddenEmails = new ArrayList<>();
+            if (ra.getRecipients() != null) {
+                for (RestRecipient restRecipient : ra.getRecipients()) {
+                    if (restRecipient.getEmails() != null) {
+                        for (String email : restRecipient.getEmails()) {
+                            if (!email.trim().toLowerCase().endsWith(REDHAT_DOMAIN)) {
+                                forbiddenEmails.add(email);
+                            }
+                        }
+                    }
+                }
+            }
+            if (!forbiddenEmails.isEmpty()) {
+                return Response
+                        .status(BAD_REQUEST)
+                        .header(CONTENT_TYPE, APPLICATION_JSON)
+                        .entity(buildResponseEntity(false, "External email addresses are forbidden in the recipients.emails field: " + String.join(", ", forbiddenEmails)))
                         .build();
             }
         }
@@ -169,7 +196,7 @@ public class GwResource {
             // Notify the caller about the error.
             return Response
                 .status(returningStatusCodeFromGW)
-                .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON)
+                .header(CONTENT_TYPE, APPLICATION_JSON)
                 .entity(buildResponseEntity(false, returningErrorMessageFromGW))
                 .build();
         } catch (final ProcessingException e) {
@@ -180,7 +207,7 @@ public class GwResource {
             // Raised when the notifications-backend is unreachable.
             return Response
                 .status(SERVICE_UNAVAILABLE)
-                .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON)
+                .header(CONTENT_TYPE, APPLICATION_JSON)
                 .entity(buildResponseEntity(false, "Unable to validate the message, please try again later"))
                 .build();
         }
