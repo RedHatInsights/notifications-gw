@@ -37,6 +37,7 @@ import static com.redhat.cloud.notifications.GwResource.MESSAGE_ID_HEADER;
 import static io.restassured.RestAssured.given;
 import static io.restassured.http.ContentType.JSON;
 import static java.nio.charset.StandardCharsets.UTF_8;
+import static java.util.Collections.emptyMap;
 import static org.awaitility.Awaitility.await;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -207,7 +208,7 @@ public class GwResourceTest {
         recipient.setIgnoreUserPreferences(true);
         recipients.add(recipient);
         recipient.setUsers(List.of("user3", "user4"));
-        recipient.setEmails(List.of("user3@domain.com", "user4@domain.com"));
+        recipient.setEmails(List.of("user3@redhat.com", "user4@redhat.com"));
         ra.setRecipients(recipients);
 
         String identity = TestHelpers.encodeIdentityInfo("test", "user");
@@ -263,7 +264,7 @@ public class GwResourceTest {
         assertEquals(Boolean.FALSE, r1.get("only_admins"));
         assertEquals(Boolean.TRUE, r1.get("ignore_user_preferences"));
         assertEquals(List.of("user3", "user4"), r1.get("users"));
-        assertEquals(List.of("user3@domain.com", "user4@domain.com"), r1.get("emails"));
+        assertEquals(List.of("user3@redhat.com", "user4@redhat.com"), r1.get("emails"));
     }
 
     @Test
@@ -369,7 +370,7 @@ public class GwResourceTest {
         action.setEventType("my-event-type");
         action.setOrgId("123");
         action.setTimestamp("2023-10-31T08:52:14.987723");
-        action.setContext(Collections.emptyMap());
+        action.setContext(emptyMap());
         action.setEvents(List.of(event));
 
         // The payload is valid.
@@ -396,5 +397,77 @@ public class GwResourceTest {
                 .extract().asString();
 
         assertTrue(responseBody.contains("recipients[0].emails[0]"));
+    }
+
+    @Test
+    void testAllowedRecipientsEmails() {
+
+        RestEvent event = new RestEvent();
+        event.setMetadata(new RestMetadata());
+        event.setPayload(Collections.emptyMap());
+        List<RestEvent> events = List.of(event);
+
+        RestRecipient recipient = new RestRecipient();
+        recipient.setEmails(List.of("user1@redhat.com", "user2@redhat.com"));
+
+        RestAction action = new RestAction();
+        action.setBundle("bundle");
+        action.setApplication("app");
+        action.setEventType("event-type");
+        action.setOrgId("123");
+        action.setTimestamp("2023-12-13T09:20:08.473912");
+        action.setContext(emptyMap());
+        action.setEvents(events);
+        action.setRecipients(List.of(recipient));
+
+        String identity = TestHelpers.encodeIdentityInfo("test", "user");
+
+        String responseBody = given()
+                .body(action)
+                .header("x-rh-identity", identity)
+                .contentType(MediaType.APPLICATION_JSON)
+                .when().post("/notifications/")
+                .then()
+                .statusCode(200)
+                .extract().asString();
+
+        assertEquals("success", new JsonObject(responseBody).getString("result"));
+    }
+
+    @Test
+    void testForbiddenRecipientsEmails() {
+
+        RestEvent event = new RestEvent();
+        event.setMetadata(new RestMetadata());
+        event.setPayload(Collections.emptyMap());
+        List<RestEvent> events = List.of(event);
+
+        RestRecipient recipient = new RestRecipient();
+        recipient.setEmails(List.of("user3@gmail.com", "user4@redhat.com", "user5@hotmail.com"));
+
+        RestAction action = new RestAction();
+        action.setBundle("bundle");
+        action.setApplication("app");
+        action.setEventType("event-type");
+        action.setOrgId("123");
+        action.setTimestamp("2023-12-13T09:20:08.473912");
+        action.setContext(emptyMap());
+        action.setEvents(events);
+        action.setRecipients(List.of(recipient));
+
+        String identity = TestHelpers.encodeIdentityInfo("test", "user");
+
+        String responseBody = given()
+                .body(action)
+                .header("x-rh-identity", identity)
+                .contentType(MediaType.APPLICATION_JSON)
+                .when().post("/notifications/")
+                .then()
+                .statusCode(400)
+                .extract().asString();
+        JsonObject response = new JsonObject(responseBody);
+
+        assertEquals("error", response.getString("result"));
+        assertEquals("External email addresses are forbidden in the recipients.emails field: user3@gmail.com, user5@hotmail.com", response.getString("details"));
     }
 }

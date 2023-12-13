@@ -127,3 +127,6 @@ parameters:
 - name: NOTIFICATIONS_RESTRICT_ACCESS_BY_ORGID
   description: Enable access restriction according org ids
   value: "true"
+- name: NOTIFICATIONS_EMAILS_INTERNAL_ONLY_ENABLED
+  description: Should the recipients.emails field from the payload be restricted to internal email addresses only?
+  value: "false"
