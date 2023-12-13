@@ -48,13 +48,10 @@ import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 
-import static com.redhat.cloud.notifications.NotificationsGwApp.ALLOWED_ORG_ID_LIST;
-import static com.redhat.cloud.notifications.NotificationsGwApp.RESTRICT_ACCESS_BY_ORG_ID;
 import static jakarta.ws.rs.core.HttpHeaders.CONTENT_TYPE;
 import static jakarta.ws.rs.core.MediaType.APPLICATION_JSON;
 import static jakarta.ws.rs.core.Response.Status;
 import static jakarta.ws.rs.core.Response.Status.BAD_REQUEST;
-import static jakarta.ws.rs.core.Response.Status.FORBIDDEN;
 import static jakarta.ws.rs.core.Response.Status.SERVICE_UNAVAILABLE;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
@@ -69,19 +66,12 @@ public class GwResource {
     public static final String MESSAGE_ID_HEADER = "rh-message-id";
     public static final String NOTIFICATIONS_EMAILS_INTERNAL_ONLY_ENABLED = "notifications.emails.internal-only.enabled";
 
-    private static final String STAGE_SOURCE_ENV = "stage";
     private static final String X509_IDENTITY_TYPE = "X509";
     private static final String SOURCE_ENVIRONMENT_HEADER = "rh-source-environment";
     private static final String REDHAT_DOMAIN = "@redhat.com";
 
     @ConfigProperty(name = "notifications.kafka-callback-timeout-seconds", defaultValue = "60")
     long callbackTimeout;
-
-    @ConfigProperty(name = RESTRICT_ACCESS_BY_ORG_ID, defaultValue = "true")
-    boolean restrictAccessByOrgId;
-
-    @ConfigProperty(name = ALLOWED_ORG_ID_LIST, defaultValue = "none")
-    List<String> allowedOrgIdList;
 
     @ConfigProperty(name = NOTIFICATIONS_EMAILS_INTERNAL_ONLY_ENABLED, defaultValue = "true")
     boolean internalEmailsOnly;
@@ -122,22 +112,6 @@ public class GwResource {
             Optional<X509Certificate> x509Certificate = getX509Certificate(ra.bundle, ra.application, principal.getName());
             if (x509Certificate.isPresent()) {
                 sourceEnvironment = x509Certificate.get().sourceEnvironment;
-            }
-            // TODO Remove this temporary restriction later.
-            if (
-                "openshift".equals(ra.bundle) &&
-                "cluster-manager".equals(ra.application) &&
-                !STAGE_SOURCE_ENV.equals(sourceEnvironment) &&
-                restrictAccessByOrgId &&
-                !allowedOrgIdList.contains(ra.getOrgId())
-            ) {
-                final String errorMessage = String.format("OrgId %s is forbidden", ra.getOrgId());
-                Log.errorf(errorMessage);
-                return Response
-                        .status(FORBIDDEN)
-                        .header(CONTENT_TYPE, APPLICATION_JSON)
-                        .entity(buildResponseEntity(false, errorMessage))
-                        .build();
             }
         }
 

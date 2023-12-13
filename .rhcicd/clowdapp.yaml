@@ -63,6 +63,8 @@ objects:
         env:
         - name: ENV_NAME
           value: ${ENV_NAME}
+        - name: NOTIFICATIONS_EMAILS_INTERNAL_ONLY_ENABLED
+          value: ${NOTIFICATIONS_EMAILS_INTERNAL_ONLY_ENABLED}
         - name: NOTIFICATIONS_KAFKA_CALLBACK_TIMEOUT_SECONDS
           value: ${NOTIFICATIONS_KAFKA_CALLBACK_TIMEOUT_SECONDS}
         - name: QUARKUS_HTTP_PORT
@@ -79,10 +81,6 @@ objects:
           value: ${SENTRY_DSN}${ENV_NAME}
         - name: QUARKUS_LOG_SENTRY_ENVIRONMENT
           value: ${ENV_NAME}
-        - name: NOTIFICATIONS_ALLOWED_ORGID_LIST
-          value: ${NOTIFICATIONS_ALLOWED_ORGID_LIST}
-        - name: NOTIFICATIONS_RESTRICT_ACCESS_BY_ORGID
-          value: ${NOTIFICATIONS_RESTRICT_ACCESS_BY_ORGID}
 parameters:
 - name: CLOUDWATCH_ENABLED
   description: Enable Cloudwatch (or not)
@@ -121,12 +119,6 @@ parameters:
 - name: SENTRY_ENABLED
   description: Enable Sentry (or not)
   value: "false"
-- name: NOTIFICATIONS_ALLOWED_ORGID_LIST
-  description: Specify allowed org_id list
-  value: "none"
-- name: NOTIFICATIONS_RESTRICT_ACCESS_BY_ORGID
-  description: Enable access restriction according org ids
-  value: "true"
 - name: NOTIFICATIONS_EMAILS_INTERNAL_ONLY_ENABLED
   description: Should the recipients.emails field from the payload be restricted to internal email addresses only?
   value: "false"
