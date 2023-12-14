@@ -16,34 +16,38 @@
  */
 package com.redhat.cloud.notifications.auth;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.quarkus.logging.Log;
 
 import java.util.Base64;
 import java.util.Optional;
+
+import static com.redhat.cloud.notifications.auth.RHIdAuthMechanism.X_RH_IDENTITY_HEADER;
+import static java.nio.charset.StandardCharsets.UTF_8;
 
 /**
  * @author hrupp
  */
 public abstract class HeaderHelper {
 
-  static ObjectMapper om = new ObjectMapper();
-  static {
-    om.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES,false);
-  }
+    static ObjectMapper om = new ObjectMapper();
+    static {
+        om.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+    }
 
-  public static Optional<XRhIdentity> getRhIdFromString(String xRhIdHeader)  {
-    XRhIdentity rhIdentity;
-    if (xRhIdHeader==null) {
-      return Optional.empty();
+    public static Optional<XRhIdentity> getRhIdFromString(String xRhIdHeader) {
+        XRhIdentity rhIdentity;
+        if (xRhIdHeader == null) {
+            return Optional.empty();
+        }
+        try {
+            String jsonString = new String(Base64.getDecoder().decode(xRhIdHeader.getBytes(UTF_8)), UTF_8);
+            rhIdentity = om.readValue(jsonString, XRhIdentity.class);
+        } catch (Exception e) {
+            Log.warnf(e, "%s header deserialization failed: %s", X_RH_IDENTITY_HEADER, xRhIdHeader);
+            return Optional.empty();
+        }
+        return Optional.ofNullable(rhIdentity);
     }
-    try {
-      String json_string = new String(Base64.getDecoder().decode(xRhIdHeader));
-      rhIdentity = om.readValue(json_string, XRhIdentity.class);
-    } catch (JsonProcessingException jbe) {
-      return Optional.empty();
-    }
-    return Optional.ofNullable(rhIdentity);
-  }
 }
