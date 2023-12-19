@@ -19,7 +19,6 @@ package com.redhat.cloud.notifications;
 
 import io.quarkus.logging.Log;
 import io.quarkus.runtime.StartupEvent;
-import io.quarkus.runtime.configuration.ProfileManager;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.event.Observes;
 import org.eclipse.microprofile.config.ConfigProvider;
@@ -28,11 +27,8 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
-import static io.quarkus.runtime.LaunchMode.TEST;
 
 /**
  * @author hrupp
@@ -41,8 +37,6 @@ import static io.quarkus.runtime.LaunchMode.TEST;
 public class NotificationsGwApp {
 
     private static final String NOTIFICATIONS_URL_KEY = "quarkus.rest-client.notifications-backend.url";
-    public static final String ALLOWED_ORG_ID_LIST = "notifications.allowed.orgid.list";
-    public static final String RESTRICT_ACCESS_BY_ORG_ID = "notifications.restrict.access.by.orgid";
 
     public static final String FILTER_REGEX = ".*(/health(/\\w+)?|/metrics) HTTP/[0-9].[0-9]\" 200.*\\n?";
     private static final Pattern pattern = Pattern.compile(FILTER_REGEX);
@@ -50,20 +44,12 @@ public class NotificationsGwApp {
     @ConfigProperty(name = "quarkus.http.access-log.category")
     private String loggerName;
 
-    @ConfigProperty(name = RESTRICT_ACCESS_BY_ORG_ID, defaultValue = "true")
-    boolean restrictAccessByOrgId;
-
-    @ConfigProperty(name = ALLOWED_ORG_ID_LIST, defaultValue = "none")
-    List<String> allowedOrgIdList;
-
     void init(@Observes StartupEvent ev) {
         initAccessLogFilter();
 
         Log.info(readGitProperties());
 
         Log.infof(NOTIFICATIONS_URL_KEY + "=%s", ConfigProvider.getConfig().getValue(NOTIFICATIONS_URL_KEY, String.class));
-        Log.infof(ALLOWED_ORG_ID_LIST + "=%s", allowedOrgIdList);
-        Log.infof(RESTRICT_ACCESS_BY_ORG_ID + "=%s", restrictAccessByOrgId);
     }
 
     private void initAccessLogFilter() {
