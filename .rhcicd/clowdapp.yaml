@@ -81,6 +81,8 @@ objects:
           value: ${SENTRY_DSN}${ENV_NAME}
         - name: QUARKUS_LOG_SENTRY_ENVIRONMENT
           value: ${ENV_NAME}
+        - name: QUARKUS_LOG_LEVEL
+          value: ${QUARKUS_LOG_LEVEL}
 parameters:
 - name: CLOUDWATCH_ENABLED
   description: Enable Cloudwatch (or not)
@@ -122,3 +124,6 @@ parameters:
 - name: NOTIFICATIONS_EMAILS_INTERNAL_ONLY_ENABLED
   description: Should the recipients.emails field from the payload be restricted to internal email addresses only?
   value: "false"
+- name: QUARKUS_LOG_LEVEL
+  description: Log level for Quarkus
+  value: DEBUG
