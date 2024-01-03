@@ -57,20 +57,28 @@ public class KafkaSaslInitializer {
     }
 
     private static void configurePlainAuthentication(String securityProtocol, String saslMechanism, String saslJaasConfig) {
-        setValue(KAFKA_SECURITY_PROTOCOL, securityProtocol);
+        /*setValue(KAFKA_SECURITY_PROTOCOL, securityProtocol);
         setValue(KAFKA_SASL_MECHANISM, saslMechanism);
-        setValue(KAFKA_SASL_JAAS_CONFIG, saslJaasConfig);
+        setValue(KAFKA_SASL_JAAS_CONFIG, saslJaasConfig);*/
+        setValue("mp.messaging.outgoing.egress.security.protocol", securityProtocol);
+        setValue("mp.messaging.outgoing.egress.sasl.mechanism", saslMechanism);
+        setValue("mp.messaging.outgoing.egress.jaas-config", saslJaasConfig);
     }
 
     private static void configureScramAuthentication(String securityProtocol, String saslMechanism, String saslJaasConfig) {
-        setValue(KAFKA_SECURITY_PROTOCOL, securityProtocol);
+        /*setValue(KAFKA_SECURITY_PROTOCOL, securityProtocol);
         setValue(KAFKA_SASL_MECHANISM, saslMechanism);
-        setValue(KAFKA_SASL_JAAS_CONFIG, saslJaasConfig);
+        setValue(KAFKA_SASL_JAAS_CONFIG, saslJaasConfig);*/
+        setValue("mp.messaging.outgoing.egress.security.protocol", securityProtocol);
+        setValue("mp.messaging.outgoing.egress.sasl.mechanism", saslMechanism);
+        setValue("mp.messaging.outgoing.egress.sasl.jaas-config", saslJaasConfig);
     }
 
     private static void configureTruststore(String truststoreLocation, String truststoreType) {
-        setValue(KAFKA_SSL_TRUSTSTORE_LOCATION, truststoreLocation);
-        setValue(KAFKA_SSL_TRUSTSTORE_TYPE, truststoreType);
+        /*setValue(KAFKA_SSL_TRUSTSTORE_LOCATION, truststoreLocation);
+        setValue(KAFKA_SSL_TRUSTSTORE_TYPE, truststoreType);*/
+        setValue("mp.messaging.outgoing.egress.ssl.truststore.location", truststoreLocation);
+        setValue("mp.messaging.outgoing.egress.ssl.truststore.type", truststoreType);
     }
 
     private static void setValue(String configKey, String configValue) {
