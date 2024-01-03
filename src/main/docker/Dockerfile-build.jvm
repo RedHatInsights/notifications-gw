@@ -20,7 +20,7 @@ USER jboss
 ENV LANG='en_US.UTF-8' LANGUAGE='en_US:en'
 
 # Configure the JAVA_OPTIONS, you can add -XshowSettings:vm to also display the heap size.
-ENV JAVA_OPTIONS="-Dquarkus.http.host=0.0.0.0 -Djava.util.logging.manager=org.jboss.logmanager.LogManager -XX:+ExitOnOutOfMemoryError -XX:+PrintFlagsFinal"
+ENV JAVA_OPTIONS="-Dquarkus.http.host=0.0.0.0 -Djava.util.logging.manager=org.jboss.logmanager.LogManager -XX:+ExitOnOutOfMemoryError -XX:+PrintFlagsFinal -XshowSettings:vm"
 
 # Use four distinct layers so if there are application changes the library layers can be re-used
 COPY --from=build --chown=185 /home/jboss/target/quarkus-app/lib/ /deployments/lib/
