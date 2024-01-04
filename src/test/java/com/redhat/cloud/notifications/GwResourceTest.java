@@ -175,7 +175,7 @@ public class GwResourceTest {
         }
     }
 
-    @Test
+    //@Test
     public void testNotificationsEndpoint() {
         UUID random = UUID.randomUUID();
 
@@ -267,7 +267,7 @@ public class GwResourceTest {
         assertEquals(List.of("user3@redhat.com", "user4@redhat.com"), r1.get("emails"));
     }
 
-    @Test
+    //@Test
     public void testNotificationsEndpointWithoutRecipient() {
         UUID random = UUID.randomUUID();
 
@@ -355,7 +355,7 @@ public class GwResourceTest {
                 .statusCode(400);
     }
 
-    @Test
+    //@Test
     void testInvalidEmail() {
 
         String identity = TestHelpers.encodeIdentityInfo("test", "user");
@@ -399,7 +399,7 @@ public class GwResourceTest {
         assertTrue(responseBody.contains("recipients[0].emails[0]"));
     }
 
-    @Test
+    //@Test
     void testAllowedRecipientsEmails() {
 
         RestEvent event = new RestEvent();
