@@ -76,8 +76,8 @@ public class GwResource {
     @ConfigProperty(name = NOTIFICATIONS_EMAILS_INTERNAL_ONLY_ENABLED, defaultValue = "true")
     boolean internalEmailsOnly;
 
-    @Inject
-    @Channel(EGRESS_CHANNEL)
+    //@Inject
+    //@Channel(EGRESS_CHANNEL)
     Emitter<String> emitter;
 
     @Inject
