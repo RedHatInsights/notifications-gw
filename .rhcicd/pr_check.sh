@@ -10,7 +10,9 @@ export REF_ENV="insights-stage"
 export IMAGE="quay.io/cloudservices/notifications-gw"
 
 # Bonfire init
-CICD_URL=https://raw.githubusercontent.com/RedHatInsights/bonfire/master/cicd
+CICD_URL=https://raw.githubusercontent.com/gburges/cicd-tools
+BONFIRE_REPO_BRANCH=nowrap 
+BONFIRE_REPO_ORG=gburges
 curl -s $CICD_URL/bootstrap.sh > .cicd_bootstrap.sh && source .cicd_bootstrap.sh
 
 # Build the image and push to Quay
