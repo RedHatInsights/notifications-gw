@@ -126,4 +126,4 @@ parameters:
   value: "false"
 - name: QUARKUS_LOG_LEVEL
   description: Log level for Quarkus
-  value: INFO
+  value: DEBUG
