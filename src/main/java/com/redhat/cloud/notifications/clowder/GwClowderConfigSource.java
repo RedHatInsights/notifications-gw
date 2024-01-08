@@ -46,12 +46,16 @@ public class GwClowderConfigSource implements ConfigSource {
 
     public GwClowderConfigSource(ClowderConfigSource conf, Map<String, ConfigValue> exProp) {
         existingValues = exProp;
+        for(String key : KAFKA_SASL_KEYS) {
+            addIfDefined(conf, key);
+        }
+    }
 
-        props.put(KAFKA_SECURITY_PROTOCOL, conf.getValue(KAFKA_SECURITY_PROTOCOL));
-        props.put(KAFKA_SASL_MECHANISM, conf.getValue(KAFKA_SASL_MECHANISM));
-        props.put(KAFKA_SASL_JAAS_CONFIG, conf.getValue(KAFKA_SASL_JAAS_CONFIG));
-        props.put(KAFKA_SSL_TRUSTSTORE_LOCATION, conf.getValue(KAFKA_SSL_TRUSTSTORE_LOCATION));
-        props.put(KAFKA_SSL_TRUSTSTORE_TYPE, conf.getValue(KAFKA_SSL_TRUSTSTORE_TYPE));
+    private void addIfDefined(ClowderConfigSource conf, String key) {
+        String value = conf.getValue(key);
+        if (value != null && value.trim().length()>0) {
+            props.put(key, value);
+        }
     }
 
     @Override
