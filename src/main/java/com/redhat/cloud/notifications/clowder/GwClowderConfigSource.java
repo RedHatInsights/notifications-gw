@@ -55,6 +55,7 @@ public class GwClowderConfigSource implements ConfigSource {
         String value = conf.getValue(key);
         if (value != null && value.trim().length()>0) {
             props.put(key, value);
+            Log.infof("%s has been set", key);
         }
     }
 
