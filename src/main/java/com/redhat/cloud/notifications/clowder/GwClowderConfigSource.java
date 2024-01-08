@@ -76,7 +76,7 @@ public class GwClowderConfigSource implements ConfigSource {
 
     @Override
     public Set<String> getPropertyNames() {
-        Set<String> keys = new HashSet<>(KAFKA_SASL_KEYS);
+        Set<String> keys = new HashSet<>(props.keySet());
         keys.addAll(existingValues.keySet());
         return keys;
     }
