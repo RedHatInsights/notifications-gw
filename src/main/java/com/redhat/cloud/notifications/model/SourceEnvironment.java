@@ -7,7 +7,7 @@ import com.fasterxml.jackson.databind.annotation.JsonNaming;
 
 @JsonNaming(SnakeCaseStrategy.class)
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class X509Certificate {
+public class SourceEnvironment {
 
-    public String sourceEnvironment;
+    public String name;
 }

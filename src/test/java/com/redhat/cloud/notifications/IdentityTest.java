@@ -96,4 +96,37 @@ public class IdentityTest {
         Assertions.assertEquals("/CN=some-host.example.com",xid.getSubject());
 
     }
+
+    @Test
+    void testServiceAccountIdentity() {
+        String header =
+            "{\n" +
+                "\"identity\": {\n" +
+                "  \"org_id\"        : \"1234567\",\n" +
+                "  \"type\"            : \"ServiceAccount\",\n" +
+                "  \"service_account\" : {\n" +
+                "    \"username\"      : \"nonprod-fedramp-ocm\",\n" +
+                "    \"client_id\"     : \"xxx\",\n" +
+                "    \"scope\"      : \"api.notifications\"\n" +
+                "  },\n" +
+                "  \"internal\"       : {\n" +
+                "    \"org_id\"       : \"1234567\",\n" +
+                "    \"cross_access\" : false\n" +
+                "  }\n" +
+                "}" +
+            "}";
+
+        String xRhEncoded = null;
+        try {
+            xRhEncoded = new String(Base64.getEncoder().encode(header.getBytes("UTF-8")));
+        } catch (UnsupportedEncodingException e) {
+            Assertions.fail();
+        }
+
+        Optional<XRhIdentity> id = HeaderHelper.getRhIdFromString(xRhEncoded);
+        Assertions.assertTrue(id.isPresent());
+        XRhIdentity xid = id.get();
+        Assertions.assertEquals("ServiceAccount",xid.identity.type);
+        Assertions.assertEquals("nonprod-fedramp-ocm",xid.getSubject());
+    }
 }

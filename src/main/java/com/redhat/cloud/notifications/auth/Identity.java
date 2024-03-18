@@ -37,9 +37,10 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
     visible = true
 )
 @JsonSubTypes({
-@JsonSubTypes.Type(value = X509Identity.class, name = "X509"),
-@JsonSubTypes.Type(value = SamlIdentity.class, name = "Associate"),
-    })
+    @JsonSubTypes.Type(value = X509Identity.class, name = "X509"),
+    @JsonSubTypes.Type(value = SamlIdentity.class, name = "Associate"),
+    @JsonSubTypes.Type(value = RhServiceAccountIdentity.class, name = "ServiceAccount")
+})
 public abstract class Identity {
     @JsonProperty(required = true)
     public String type;

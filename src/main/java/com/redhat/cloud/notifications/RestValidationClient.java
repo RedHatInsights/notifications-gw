@@ -1,6 +1,6 @@
 package com.redhat.cloud.notifications;
 
-import com.redhat.cloud.notifications.model.X509Certificate;
+import com.redhat.cloud.notifications.model.SourceEnvironment;
 import io.quarkus.cache.CacheResult;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.ws.rs.Consumes;
@@ -34,6 +34,6 @@ public interface RestValidationClient {
     @Consumes(APPLICATION_JSON)
     @Produces(APPLICATION_JSON)
     @CacheResult(cacheName = "certificate-validation")
-    X509Certificate validateCertificate(@RestQuery String bundle, @RestQuery String application, @RestQuery String certificateSubjectDn);
+    SourceEnvironment validateCertificate(@RestQuery String bundle, @RestQuery String application, @RestQuery String certificateSubjectDn);
 
 }
