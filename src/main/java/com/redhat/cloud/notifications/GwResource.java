@@ -287,14 +287,14 @@ public class GwResource {
         return response.encode();
     }
 
-    private Optional<SourceEnvironment> getSourceEnvironment(String bundle, String app, String identificationData) {
+    private Optional<SourceEnvironment> getSourceEnvironment(String bundle, String app, String authenticationData) {
         try {
-            SourceEnvironment sourceEnvironment = restValidationClient.validateCertificate(bundle, app, identificationData);
-            Log.infof("Identification validated, coming from source environment %s", sourceEnvironment.name);
+            SourceEnvironment sourceEnvironment = restValidationClient.validateCertificate(bundle, app, authenticationData);
+            Log.infof("Authentication validated, coming from source environment %s", sourceEnvironment.name);
             return Optional.of(sourceEnvironment);
         } catch (Exception e) {
-            Log.infof("Unable to validate identification '%s' for bundle '%s' and application '%s'",
-                identificationData,
+            Log.infof("Unable to validate authentication '%s' for bundle '%s' and application '%s'",
+                authenticationData,
                 bundle,
                 app);
             return Optional.empty();

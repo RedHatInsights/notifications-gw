@@ -1,16 +1,16 @@
 package com.redhat.cloud.notifications.auth;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.PropertyNamingStrategies.SnakeCaseStrategy;
+import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import io.quarkus.logging.Log;
 
+@JsonNaming(SnakeCaseStrategy.class)
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class RhServiceAccountIdentity extends Identity {
 
-    @JsonProperty("org_id")
     private String orgId;
 
-    @JsonProperty("service_account")
     private ServiceAccount serviceAccount;
 
     public ServiceAccount getServiceAccount() {
@@ -24,10 +24,8 @@ public class RhServiceAccountIdentity extends Identity {
 
     @JsonIgnoreProperties(ignoreUnknown = true)
     public static class ServiceAccount {
-        @JsonProperty("username")
         private String username;
 
-        @JsonProperty("client_id")
         private String clientId;
 
         public String getClientId() {

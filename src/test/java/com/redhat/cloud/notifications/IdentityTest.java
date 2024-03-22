@@ -98,14 +98,14 @@ public class IdentityTest {
     }
 
     @Test
-    void testServiceAccountIdentity() {
+    void testServiceAccountIdentity() throws UnsupportedEncodingException {
         String header =
             "{\n" +
                 "\"identity\": {\n" +
                 "  \"org_id\"        : \"1234567\",\n" +
                 "  \"type\"            : \"ServiceAccount\",\n" +
                 "  \"service_account\" : {\n" +
-                "    \"username\"      : \"nonprod-fedramp-ocm\",\n" +
+                "    \"username\"      : \"nonprod-test\",\n" +
                 "    \"client_id\"     : \"xxx\",\n" +
                 "    \"scope\"      : \"api.notifications\"\n" +
                 "  },\n" +
@@ -121,12 +121,13 @@ public class IdentityTest {
             xRhEncoded = new String(Base64.getEncoder().encode(header.getBytes("UTF-8")));
         } catch (UnsupportedEncodingException e) {
             Assertions.fail();
+            throw e;
         }
 
         Optional<XRhIdentity> id = HeaderHelper.getRhIdFromString(xRhEncoded);
         Assertions.assertTrue(id.isPresent());
         XRhIdentity xid = id.get();
         Assertions.assertEquals("ServiceAccount",xid.identity.type);
-        Assertions.assertEquals("nonprod-fedramp-ocm",xid.getSubject());
+        Assertions.assertEquals("nonprod-test",xid.getSubject());
     }
 }
