@@ -23,6 +23,7 @@ public class RhServiceAccountIdentity extends Identity {
     }
 
     @JsonIgnoreProperties(ignoreUnknown = true)
+    @JsonNaming(SnakeCaseStrategy.class)
     public static class ServiceAccount {
         private String username;
 
