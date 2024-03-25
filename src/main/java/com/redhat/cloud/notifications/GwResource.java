@@ -8,7 +8,7 @@ import com.redhat.cloud.notifications.ingress.Metadata;
 import com.redhat.cloud.notifications.ingress.Parser;
 import com.redhat.cloud.notifications.ingress.Payload;
 import com.redhat.cloud.notifications.ingress.Recipient;
-import com.redhat.cloud.notifications.model.X509Certificate;
+import com.redhat.cloud.notifications.model.SourceEnvironment;
 import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Tags;
@@ -67,6 +67,8 @@ public class GwResource {
     public static final String NOTIFICATIONS_EMAILS_INTERNAL_ONLY_ENABLED = "notifications.emails.internal-only.enabled";
 
     private static final String X509_IDENTITY_TYPE = "X509";
+
+    private static final String SERVICE_ACCOUNT_IDENTITY_TYPE = "ServiceAccount";
     private static final String SOURCE_ENVIRONMENT_HEADER = "rh-source-environment";
     private static final String REDHAT_DOMAIN = "@redhat.com";
 
@@ -108,10 +110,10 @@ public class GwResource {
 
         String sourceEnvironment = null;
         RhIdPrincipal principal = (RhIdPrincipal) sec.getUserPrincipal();
-        if (X509_IDENTITY_TYPE.equals(principal.getType())) {
-            Optional<X509Certificate> x509Certificate = getX509Certificate(ra.bundle, ra.application, principal.getName());
-            if (x509Certificate.isPresent()) {
-                sourceEnvironment = x509Certificate.get().sourceEnvironment;
+        if (X509_IDENTITY_TYPE.equals(principal.getType()) || SERVICE_ACCOUNT_IDENTITY_TYPE.equals(principal.getType())) {
+            Optional<SourceEnvironment> sourceEnv = getSourceEnvironment(ra.bundle, ra.application, principal.getName());
+            if (sourceEnv.isPresent()) {
+                sourceEnvironment = sourceEnv.get().name;
             }
         }
 
@@ -285,14 +287,14 @@ public class GwResource {
         return response.encode();
     }
 
-    private Optional<X509Certificate> getX509Certificate(String bundle, String app, String certificateDn) {
+    private Optional<SourceEnvironment> getSourceEnvironment(String bundle, String app, String authenticationData) {
         try {
-            X509Certificate x509Certificate = restValidationClient.validateCertificate(bundle, app, certificateDn);
-            Log.infof("Certificate validated, coming from source environment %s", x509Certificate.sourceEnvironment);
-            return Optional.of(x509Certificate);
+            SourceEnvironment sourceEnvironment = restValidationClient.validateCertificate(bundle, app, authenticationData);
+            Log.infof("Authentication validated, coming from source environment %s", sourceEnvironment.name);
+            return Optional.of(sourceEnvironment);
         } catch (Exception e) {
-            Log.infof("Unable to validate certificate '%s' for bundle '%s' and application '%s'",
-                certificateDn,
+            Log.infof("Unable to validate authentication '%s' for bundle '%s' and application '%s'",
+                authenticationData,
                 bundle,
                 app);
             return Optional.empty();
