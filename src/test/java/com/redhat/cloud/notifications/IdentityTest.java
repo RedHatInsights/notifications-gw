@@ -116,13 +116,7 @@ public class IdentityTest {
                 "}" +
             "}";
 
-        String xRhEncoded = null;
-        try {
-            xRhEncoded = new String(Base64.getEncoder().encode(header.getBytes("UTF-8")));
-        } catch (UnsupportedEncodingException e) {
-            Assertions.fail();
-            throw e;
-        }
+        String xRhEncoded = new String(Base64.getEncoder().encode(header.getBytes("UTF-8")));
 
         Optional<XRhIdentity> id = HeaderHelper.getRhIdFromString(xRhEncoded);
         Assertions.assertTrue(id.isPresent());
