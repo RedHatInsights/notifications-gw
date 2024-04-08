@@ -52,6 +52,7 @@ import static jakarta.ws.rs.core.HttpHeaders.CONTENT_TYPE;
 import static jakarta.ws.rs.core.MediaType.APPLICATION_JSON;
 import static jakarta.ws.rs.core.Response.Status;
 import static jakarta.ws.rs.core.Response.Status.BAD_REQUEST;
+import static jakarta.ws.rs.core.Response.Status.FORBIDDEN;
 import static jakarta.ws.rs.core.Response.Status.SERVICE_UNAVAILABLE;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
@@ -65,8 +66,10 @@ public class GwResource {
     public static final String FAILURES_COUNTER = "notifications.gw.failed.requests";
     public static final String MESSAGE_ID_HEADER = "rh-message-id";
     public static final String NOTIFICATIONS_EMAILS_INTERNAL_ONLY_ENABLED = "notifications.emails.internal-only.enabled";
+    public static final String ALLOW_LIST_ERROR_MESSAGE = "Org ID %s needs to be approved by the Notifications team before it can receive notifications from a staging environment.";
 
     private static final String X509_IDENTITY_TYPE = "X509";
+    private static final String STAGE_SOURCE_ENV = "stage";
 
     private static final String SERVICE_ACCOUNT_IDENTITY_TYPE = "ServiceAccount";
     private static final String SOURCE_ENVIRONMENT_HEADER = "rh-source-environment";
@@ -77,6 +80,9 @@ public class GwResource {
 
     @ConfigProperty(name = NOTIFICATIONS_EMAILS_INTERNAL_ONLY_ENABLED, defaultValue = "true")
     boolean internalEmailsOnly;
+
+    @Inject
+    GwConfig gwConfig;
 
     @Inject
     @Channel(EGRESS_CHANNEL)
@@ -115,6 +121,22 @@ public class GwResource {
             if (sourceEnv.isPresent()) {
                 sourceEnvironment = sourceEnv.get().name;
             }
+        }
+
+        /*
+         * Some tenants such as OCM may send messages from their staging environment to this app in our prod environment. While
+         * this is perfectly fine for testing purposes, it should only happen if the messages are targeting an org ID that has
+         * been whitelisted beforehand. Internal Red Hat organizations should be the only ones whitelisted. We should never
+         * send a pre-prod notification to a real customer.
+         */
+        if (gwConfig.isAllowListEnabled() && STAGE_SOURCE_ENV.equals(sourceEnvironment) && !gwConfig.getAllowListOrgIds().contains(ra.getOrgId())) {
+            Log.warnf("Notification from a staging source environment rejected [bundle=%s, application=%s, orgId=%s]", ra.getBundle(), ra.getApplication(), ra.getOrgId());
+            String errorMessage = String.format(ALLOW_LIST_ERROR_MESSAGE, ra.getOrgId());
+            return Response
+                    .status(FORBIDDEN)
+                    .header(CONTENT_TYPE, APPLICATION_JSON)
+                    .entity(buildResponseEntity(false, errorMessage))
+                    .build();
         }
 
         if (internalEmailsOnly) {
