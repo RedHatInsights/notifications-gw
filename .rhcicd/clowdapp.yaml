@@ -63,6 +63,10 @@ objects:
         env:
         - name: ENV_NAME
           value: ${ENV_NAME}
+        - name: NOTIFICATIONS_ALLOW_LIST_ENABLED
+          value: ${NOTIFICATIONS_ALLOW_LIST_ENABLED}
+        - name: NOTIFICATIONS_ALLOW_LIST_ORG_IDS
+          value: ${NOTIFICATIONS_ALLOW_LIST_ORG_IDS}
         - name: NOTIFICATIONS_EMAILS_INTERNAL_ONLY_ENABLED
           value: ${NOTIFICATIONS_EMAILS_INTERNAL_ONLY_ENABLED}
         - name: NOTIFICATIONS_KAFKA_CALLBACK_TIMEOUT_SECONDS
@@ -110,6 +114,12 @@ parameters:
   value: 250Mi
 - name: MIN_REPLICAS
   value: "1"
+- name: NOTIFICATIONS_ALLOW_LIST_ENABLED
+  description: Is the org IDs whitelisting enabled? If true, only whitelisted org IDs are allowed to receive messages originating from a staging environment.
+  value: "false"
+- name: NOTIFICATIONS_ALLOW_LIST_ORG_IDS
+  description: The list of org IDs that are allowed to receive messages originating from a staging environment, when the org IDs whitelisting is enabled.
+  value: "[]"
 - name: NOTIFICATIONS_KAFKA_CALLBACK_TIMEOUT_SECONDS
   description: Delay in seconds before the app stops waiting for the Kafka ack/nack callback result and returns an HTTP error to the caller
   value: "60"
