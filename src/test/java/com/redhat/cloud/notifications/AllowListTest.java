@@ -78,6 +78,18 @@ public class AllowListTest {
         sendMessage("123", 200, "success", null);
     }
 
+    @Test
+    void testAllowListEnabledStageKnownOrgId() {
+        mock(true, "stage", List.of("456", "789"));
+        sendMessage("456", 200, "success", null);
+    }
+
+    @Test
+    void testAllowListEnabledProdKnownOrgId() {
+        mock(true, "prod", List.of("456", "789"));
+        sendMessage("456", 200, "success", null);
+    }
+
     private void mock(boolean allowListEnabled, String sourceEnv, List<String> allowListOrgIds) {
         when(gwConfig.isAllowListEnabled()).thenReturn(allowListEnabled);
         when(gwConfig.getAllowListOrgIds()).thenReturn(allowListOrgIds);
