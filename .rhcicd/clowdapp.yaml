@@ -115,10 +115,10 @@ parameters:
 - name: MIN_REPLICAS
   value: "1"
 - name: NOTIFICATIONS_ALLOW_LIST_ENABLED
-  description: Is the org IDs whitelisting enabled? If true, only whitelisted org IDs are allowed to send messages from their staging env to our prod env.
+  description: Is the org IDs whitelisting enabled? If true, only whitelisted org IDs are allowed to receive messages originating from a staging environment.
   value: "false"
 - name: NOTIFICATIONS_ALLOW_LIST_ORG_IDS
-  description: The list of org IDs that are allowed to send messages from their staging env to our prod env, when the org IDs whitelisting is enabled.
+  description: The list of org IDs that are allowed to receive messages originating from a staging environment, when the org IDs whitelisting is enabled.
   value: "[]"
 - name: NOTIFICATIONS_KAFKA_CALLBACK_TIMEOUT_SECONDS
   description: Delay in seconds before the app stops waiting for the Kafka ack/nack callback result and returns an HTTP error to the caller
