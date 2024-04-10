@@ -15,7 +15,26 @@ if [[ -z "$RH_REGISTRY_USER" || -z "$RH_REGISTRY_TOKEN" ]]; then
     exit 1
 fi
 
-DOCKER_CONF="$PWD/.docker"
+# Set the job's build directory to something else other than the workspace, in
+# order to avoid leaks.
+readonly job_directory_path=$(mktemp --directory -p "${HOME}" -t "jenkins-${JOB_NAME}-${BUILD_NUMBER}.XXXXXX")
+echo "Temporary directory location for the job: ${job_directory_path}"
+
+# job_directory_cleanup cleans forcefully and recursively removes the
+#                       specified directory path.
+# @param directory_path the path of the directory to remove.
+function job_directory_cleanup() {
+  echo "Cleaning up the temporary directory for the job: ${1}"
+
+  rm --force --recursive "${1}"
+}
+
+# Make sure the temporary directory and all of its contents are removed in the
+# case where this script does not finish successfully.
+trap 'job_directory_cleanup ${job_directory_path}' ERR EXIT SIGINT SIGTERM
+
+# Place our docker configuration in the freshly created temporary directory.
+DOCKER_CONF="${job_directory_path}/.docker"
 mkdir -p "$DOCKER_CONF"
 
 docker --config="$DOCKER_CONF" login -u="$QUAY_USER" -p="$QUAY_TOKEN" quay.io
