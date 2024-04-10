@@ -1,3 +1,7 @@
+# Ignore the internal configuration directories that might contain secrets.
+.docker
+.kube
+.podman
 
 !target/*-runner
 !target/*-runner.jar
