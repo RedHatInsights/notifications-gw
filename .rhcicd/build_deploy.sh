@@ -15,16 +15,15 @@ if [[ -z "$RH_REGISTRY_USER" || -z "$RH_REGISTRY_TOKEN" ]]; then
     exit 1
 fi
 
-# Set the job's build directory to something else other than the workspace, in
-# order to avoid leaks.
+# Create a temporary directory isolated from $WORKSPACE to store the Docker config and prevent leaking that config in the Docker image.
 readonly job_directory_path=$(mktemp --directory -p "${HOME}" -t "jenkins-${JOB_NAME}-${BUILD_NUMBER}.XXXXXX")
-echo "Temporary directory location for the job: ${job_directory_path}"
+echo "Temporary directory location for the Docker config: ${job_directory_path}"
 
 # job_directory_cleanup cleans forcefully and recursively removes the
 #                       specified directory path.
 # @param directory_path the path of the directory to remove.
 function job_directory_cleanup() {
-  echo "Cleaning up the temporary directory for the job: ${1}"
+  echo "Cleaning up the temporary directory for the Docker config: ${1}"
 
   rm --force --recursive "${1}"
 }
