@@ -18,7 +18,7 @@ metadata:
 spec:
   params:
   - name: dockerfile
-    value: https://raw.githubusercontent.com/RedHatInsights/notifications-gw/main/src/main/docker/Dockerfile-build.jvm
+    value: /src/main/docker/Dockerfile-build.jvm
   - name: git-url
     value: '{{source_url}}'
   - name: output-image
