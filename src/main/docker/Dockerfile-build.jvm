@@ -24,6 +24,9 @@ ENV LANG='en_US.UTF-8' LANGUAGE='en_US:en'
 # Configure the JAVA_OPTIONS, you can add -XshowSettings:vm to also display the heap size.
 ENV JAVA_OPTIONS="-Dquarkus.http.host=0.0.0.0 -Djava.util.logging.manager=org.jboss.logmanager.LogManager -XX:+ExitOnOutOfMemoryError"
 
+# Konflux preflight check requires a license
+COPY --from=build /home/jboss/LICENSE /licenses/LICENSE
+
 # Use four distinct layers so if there are application changes the library layers can be re-used
 COPY --from=build --chown=185 /home/jboss/target/quarkus-app/lib/ /deployments/lib/
 COPY --from=build --chown=185 /home/jboss/target/quarkus-app/*.jar /deployments/
