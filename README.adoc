@@ -1,5 +1,5 @@
 # notifications-gw project
-
+ 
 To run the application you'll need Kafka running on port 9092.
 To start kafka you can use the included `docker-compose.yaml` file and use it via `docker-compose up`
 
