@@ -7,7 +7,7 @@ metadata:
     build.appstudio.redhat.com/pull_request_number: '{{pull_request_number}}'
     build.appstudio.redhat.com/target_branch: '{{target_branch}}'
     pipelinesascode.tekton.dev/max-keep-runs: "3"
-    pipelinesascode.tekton.dev/on-comment: "^/konflux$"
+    pipelinesascode.tekton.dev/on-cel-expression: event == "pull_request" && target_branch == "main" && body.pull_request.labels.exists(label, label.name == "ready-for-konflux")
   creationTimestamp: null
   labels:
     appstudio.openshift.io/application: notifications
@@ -29,6 +29,8 @@ spec:
     value: .
   - name: revision
     value: '{{revision}}'
+  - name: ready-for-konflux
+    value: '{{body.pull_request.labels.exists(label, label.name == "ready-for-konflux")}}'
   pipelineSpec:
     finally:
     - name: show-sbom
@@ -140,6 +142,8 @@ spec:
         value: $(params.rebuild)
       - name: skip-checks
         value: $(params.skip-checks)
+      - name: ready-for-konflux
+        value: $(params.ready-for-konflux)
       taskRef:
         params:
         - name: name
@@ -149,6 +153,11 @@ spec:
         - name: kind
           value: task
         resolver: bundles
+      when:
+        - input: $(params.ready-for-konflux)
+          operator: in
+          values:
+            - "true"
     - name: clone-repository
       params:
       - name: url
