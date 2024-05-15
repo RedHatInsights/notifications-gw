@@ -20,6 +20,8 @@ import org.eclipse.microprofile.reactive.messaging.Message;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.Mockito;
 
 import java.time.Duration;
@@ -175,8 +177,9 @@ public class GwResourceTest {
         }
     }
 
-    @Test
-    public void testNotificationsEndpoint() {
+    @ParameterizedTest
+    @ValueSource(strings = {"/notifications/", "/api/notifications-gw/notifications"}) // to test cases when endpoint have already some servers error or not
+    public void testNotificationsEndpoint(String endpointPath) {
         UUID random = UUID.randomUUID();
 
         RestAction ra = new RestAction();
@@ -217,7 +220,7 @@ public class GwResourceTest {
                 .body(ra)
                 .header("x-rh-identity", identity)
                 .contentType(MediaType.APPLICATION_JSON)
-                .when().post("/notifications/")
+                .when().post(endpointPath)
                 .then()
                 .statusCode(200)
                 .extract().asString();
