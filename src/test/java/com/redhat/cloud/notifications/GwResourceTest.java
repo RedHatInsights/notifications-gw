@@ -178,7 +178,7 @@ public class GwResourceTest {
     }
 
     @ParameterizedTest
-    @ValueSource(strings = {"/notifications/", "/api/notifications-gw/notifications"}) // to test cases when endpoint have already some servers error or not
+    @ValueSource(strings = {"/notifications/", "/api/notifications-gw/notifications"}) // to validate direct path and redirected path (used in ephemeral)
     public void testNotificationsEndpoint(String endpointPath) {
         UUID random = UUID.randomUUID();
 
