@@ -26,7 +26,7 @@ public class IncomingRequestInterceptor implements ContainerRequestFilter {
 
     /**
      * In ephemeral environment, the path exposed for notifications GW endpoint is not the same as Stage or prod
-     * (because Threescale is not available in ephemeral), then we have to rewrite it on the fly.
+     * (because 3scale is not available in ephemeral), then we have to rewrite it on the fly.
      */
     private void routeRedirector(ContainerRequestContext requestContext) {
 
