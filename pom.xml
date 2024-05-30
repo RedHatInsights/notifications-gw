@@ -36,7 +36,7 @@
     </dependencies>
   </dependencyManagement>
   <dependencies>
-
+ 
     <!-- Insights -->
     <dependency>
       <groupId>com.redhat.cloud.common</groupId>
