@@ -13,7 +13,7 @@ metadata:
     appstudio.openshift.io/component: notifications-gw
     pipelines.appstudio.openshift.io/type: build
   name: notifications-gw-on-push
-  namespace: hcc-notifications-tenant
+  namespace: hcc-integrations-tenant
 spec:
   params:
   - name: dockerfile
@@ -21,7 +21,7 @@ spec:
   - name: git-url
     value: '{{source_url}}'
   - name: output-image
-    value: quay.io/redhat-user-workloads/hcc-notifications-tenant/notifications/notifications-gw:{{revision}}
+    value: quay.io/redhat-user-workloads/hcc-integrations-tenant/notifications/notifications-gw:{{revision}}
   - name: path-context
     value: .
   - name: revision
