@@ -34,7 +34,7 @@ spec:
     - name: revision
       value: main
     - name: pathInRepo
-      value: pipelines/build-pipeline.yaml
+      value: .tekton/build-pipeline.yaml
     resolver: git
   taskRunTemplate: {}
   workspaces:
