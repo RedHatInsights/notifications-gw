@@ -16,6 +16,7 @@
  */
 package com.redhat.cloud.notifications;
 
+import com.redhat.cloud.notifications.ingress.RecipientsAuthorizationCriterion;
 import io.vertx.core.json.JsonObject;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotEmpty;
@@ -68,6 +69,9 @@ public class RestAction {
     @NotEmpty
     @JsonProperty("org_id")
     public String orgId;
+
+    @JsonProperty("recipients_authorization_criterion")
+    public RecipientsAuthorizationCriterion recipientsAuthorizationCriterion;
 
     @NotNull
     public List<RestEvent> events;
@@ -157,6 +161,14 @@ public class RestAction {
         this.recipients = recipients;
     }
 
+    public RecipientsAuthorizationCriterion getRecipientsAuthorizationCriterion() {
+        return recipientsAuthorizationCriterion;
+    }
+
+    public void setRecipientsAuthorizationCriterion(RecipientsAuthorizationCriterion recipientsAuthorizationCriterion) {
+        this.recipientsAuthorizationCriterion = recipientsAuthorizationCriterion;
+    }
+
     @Override
     public String toString() {
         final JsonObject json = new JsonObject();
@@ -171,6 +183,7 @@ public class RestAction {
         json.put("events", this.events);
         json.put("context", this.context);
         json.put("recipients", this.recipients);
+        json.put("recipientsAuthorizationCriterion", this.recipientsAuthorizationCriterion);
 
         return json.encode();
     }
