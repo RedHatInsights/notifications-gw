@@ -252,6 +252,9 @@ public class GwResource {
         builder.withContext(contextBuilder.build());
         builder.withOrgId(ra.orgId);
         builder.withId(ra.id);
+        if (ra.recipientsAuthorizationCriterion != null) {
+            builder.withRecipientsAuthorizationCriterion(ra.recipientsAuthorizationCriterion);
+        }
 
         Action action = builder.build();
         String serializedAction = Parser.encode(action);

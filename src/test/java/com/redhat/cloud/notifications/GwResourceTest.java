@@ -1,5 +1,8 @@
 package com.redhat.cloud.notifications;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.redhat.cloud.notifications.ingress.RecipientsAuthorizationCriterion;
+import com.redhat.cloud.notifications.ingress.Type;
 import io.quarkus.test.InjectMock;
 import io.quarkus.test.common.QuarkusTestResource;
 import io.quarkus.test.junit.QuarkusTest;
@@ -14,6 +17,7 @@ import jakarta.inject.Inject;
 import jakarta.ws.rs.WebApplicationException;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
+import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.http.HttpStatus;
 import org.apache.kafka.common.header.Header;
 import org.eclipse.microprofile.reactive.messaging.Message;
@@ -42,6 +46,7 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.util.Collections.emptyMap;
 import static org.awaitility.Awaitility.await;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.anyString;
 
@@ -326,6 +331,77 @@ public class GwResourceTest {
         Map<String, Object> payloadR = (Map<String, Object>) eventR.get("payload");
         assertEquals(2, payloadR.size());
         assertEquals(random.toString(), payloadR.get("uuid"));
+    }
+
+    @Test
+    public void testNotificationsWithAndWithoutRecipientsAuthorizationCriterion() {
+        UUID random = UUID.randomUUID();
+
+        RestAction ra = new RestAction();
+        ra.setBundle("my-bundle");
+        ra.setOrgId("123");
+        ra.setApplication("my-app");
+        ra.setEventType("a_type");
+
+        List<RestEvent> events = new ArrayList<>();
+        RestEvent event = new RestEvent();
+        Map<String, Object> payload = new HashMap<>();
+        payload.put("key", "value");
+        payload.put("uuid", random.toString());
+        event.setMetadata(new RestMetadata());
+        event.setPayload(payload);
+        events.add(event);
+        ra.setEvents(events);
+        ra.setTimestamp("2020-12-18T17:04:04.417921");
+        ra.setContext(new HashMap<>());
+        RecipientsAuthorizationCriterion criterion = new RecipientsAuthorizationCriterion.RecipientsAuthorizationCriterionBuilder()
+            .withId(RandomStringUtils.secure().nextAlphanumeric(10))
+            .withRelation(RandomStringUtils.secure().nextAlphanumeric(10))
+            .withType(new Type().builder().withNamespace(RandomStringUtils.secure().nextAlphanumeric(10))
+                .withName(RandomStringUtils.secure().nextAlphanumeric(10)).build())
+            .build();
+        ra.setRecipientsAuthorizationCriterion(criterion);
+
+        String identity = TestHelpers.encodeIdentityInfo("test", "user");
+
+        given()
+            .body(ra)
+            .header("x-rh-identity", identity)
+            .contentType(MediaType.APPLICATION_JSON)
+            .when().post("/notifications/")
+            .then()
+            .statusCode(200);
+
+        // Now check if we got a message
+        await().atMost(Duration.ofSeconds(10L)).until(() -> inMemorySink.received().size() > 0);
+
+        // Message received!
+        Message<String> message = inMemorySink.received().get(0);
+
+        Map<String, Object> am = Json.decodeValue(message.getPayload(), Map.class);
+        ObjectMapper objectMapper = new ObjectMapper();
+        RecipientsAuthorizationCriterion racFromAm = objectMapper.convertValue(am.get("recipients_authorization_criterion"), RecipientsAuthorizationCriterion.class);
+        assertTrue(racFromAm.equals(ra.getRecipientsAuthorizationCriterion()));
+
+        ra.setRecipientsAuthorizationCriterion(null);
+
+        inMemorySink.clear();
+
+        given()
+            .body(ra)
+            .header("x-rh-identity", identity)
+            .contentType(MediaType.APPLICATION_JSON)
+            .when().post("/notifications/")
+            .then()
+            .statusCode(200);
+
+        // Now check if we got a message
+        await().atMost(Duration.ofSeconds(10L)).until(() -> inMemorySink.received().size() > 0);
+
+        // Message received!
+        message = inMemorySink.received().get(0);
+        am = Json.decodeValue(message.getPayload(), Map.class);
+        assertFalse(am.containsKey("recipients_authorization_criterion"));
     }
 
     @Test
