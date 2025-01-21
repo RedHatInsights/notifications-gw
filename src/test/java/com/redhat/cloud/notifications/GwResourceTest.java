@@ -3,9 +3,13 @@ package com.redhat.cloud.notifications;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.redhat.cloud.notifications.ingress.RecipientsAuthorizationCriterion;
 import com.redhat.cloud.notifications.ingress.Type;
+import com.redhat.cloud.notifications.model.SourceEnvironment;
+import io.quarkus.cache.Cache;
+import io.quarkus.cache.CacheName;
 import io.quarkus.test.InjectMock;
 import io.quarkus.test.common.QuarkusTestResource;
 import io.quarkus.test.junit.QuarkusTest;
+import io.quarkus.test.junit.mockito.InjectSpy;
 import io.smallrye.reactive.messaging.kafka.api.KafkaMessageMetadata;
 import io.smallrye.reactive.messaging.memory.InMemoryConnector;
 import io.smallrye.reactive.messaging.memory.InMemorySink;
@@ -17,6 +21,7 @@ import jakarta.inject.Inject;
 import jakarta.ws.rs.WebApplicationException;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
+import java.time.LocalDateTime;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.http.HttpStatus;
 import org.apache.kafka.common.header.Header;
@@ -37,6 +42,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
+import software.amazon.awssdk.http.HttpStatusCode;
 
 import static com.redhat.cloud.notifications.GwResource.EGRESS_CHANNEL;
 import static com.redhat.cloud.notifications.GwResource.MESSAGE_ID_HEADER;
@@ -48,7 +54,12 @@ import static org.awaitility.Awaitility.await;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 @QuarkusTest
 @QuarkusTestResource(TestLifecycleManager.class)
@@ -64,6 +75,20 @@ public class GwResourceTest {
 
     InMemorySink<String> inMemorySink;
 
+    @InjectSpy
+    GwConfig gwConfig;
+
+    @InjectSpy
+    GwResource gwResource;
+
+    @CacheName("get-baets")
+    Cache cacheBaet;
+
+    @CacheName("get-certificates")
+    Cache cacheCertificates;
+
+    private static final String SOURCE_ENVIRONMENT_HEADER = "rh-source-environment";
+
     @PostConstruct
     void postConstruct() {
         inMemorySink = inMemoryConnector.sink(EGRESS_CHANNEL);
@@ -78,20 +103,23 @@ public class GwResourceTest {
      * Tests that the gateway returns a bad request with the error message that
      * the notifications backend gave us.
      */
-    @Test
-    void shouldReturnBadRequestWhenApplicationBundleAndEventTypeAreInvalid() {
+    @ParameterizedTest
+    @ValueSource(booleans = {false, true})
+    void shouldReturnBadRequestWhenApplicationBundleAndEventTypeAreInvalid(final boolean isBulkCachesEnabled) {
         // Simulate that we received a bad response from the notifications
         // backend.
         final WebApplicationException wae = Mockito.mock(WebApplicationException.class);
         final Response mockedResponse = Mockito.mock(Response.class);
 
         // Prepare the mock calls to satisfy the error handlers.
-        final String errorMessage = "Error message returned from the backend";
+        String errorMessage = "Error message returned from the backend";
 
-        Mockito.when(mockedResponse.readEntity(String.class)).thenReturn(errorMessage);
-        Mockito.when(mockedResponse.getStatus()).thenReturn(HttpStatus.SC_BAD_REQUEST);
-        Mockito.when(wae.getResponse()).thenReturn(mockedResponse);
-        Mockito.when(this.restValidationClient.validate(anyString(), anyString(), anyString())).thenThrow(wae);
+        when(mockedResponse.readEntity(String.class)).thenReturn(errorMessage);
+        when(mockedResponse.getStatus()).thenReturn(HttpStatus.SC_BAD_REQUEST);
+        when(wae.getResponse()).thenReturn(mockedResponse);
+        when(this.restValidationClient.validate(anyString(), anyString(), anyString())).thenThrow(wae);
+        when(this.restValidationClient.getBaets()).thenThrow(wae);
+        when(gwConfig.isBulkCachesEnabled()).thenReturn(isBulkCachesEnabled);
 
         // Prepare the test payload to be sent to the gateway's endpoint.
         final RestAction ra = new RestAction();
@@ -99,6 +127,13 @@ public class GwResourceTest {
         ra.setOrgId("123");
         ra.setApplication("my-invalid-app");
         ra.setEventType("a_invalid-type");
+
+        if (isBulkCachesEnabled) {
+            errorMessage = String.format("No event type found for [bundle=%s, application=%s, eventType=%s]",
+                ra.getBundle(),
+                ra.getApplication(),
+                ra.getEventType());
+        }
 
         final List<RestEvent> events = new ArrayList<>();
         ra.setEvents(events);
@@ -147,10 +182,10 @@ public class GwResourceTest {
             // Prepare the mock calls to satisfy the error handlers.
             final String errorMessage = "Unable to validate the message, please try again later";
 
-            Mockito.when(mockedResponse.readEntity(String.class)).thenReturn(errorMessage);
-            Mockito.when(mockedResponse.getStatus()).thenReturn(testStatusCode);
-            Mockito.when(wae.getResponse()).thenReturn(mockedResponse);
-            Mockito.when(this.restValidationClient.validate(anyString(), anyString(), anyString())).thenThrow(wae);
+            when(mockedResponse.readEntity(String.class)).thenReturn(errorMessage);
+            when(mockedResponse.getStatus()).thenReturn(testStatusCode);
+            when(wae.getResponse()).thenReturn(mockedResponse);
+            when(this.restValidationClient.validate(anyString(), anyString(), anyString())).thenThrow(wae);
 
             // Prepare the test payload to be sent to the gateway's endpoint.
             final RestAction ra = new RestAction();
@@ -277,35 +312,11 @@ public class GwResourceTest {
 
     @Test
     public void testNotificationsEndpointWithoutRecipient() {
-        UUID random = UUID.randomUUID();
 
-        RestAction ra = new RestAction();
-        ra.setBundle("my-bundle");
-        ra.setOrgId("123");
-        ra.setApplication("my-app");
-        ra.setEventType("a_type");
+        String uuid = UUID.randomUUID().toString();
+        String application = "my-app";
 
-        List<RestEvent> events = new ArrayList<>();
-        RestEvent event = new RestEvent();
-        Map<String, Object> payload = new HashMap<>();
-        payload.put("key", "value");
-        payload.put("uuid", random.toString());
-        event.setMetadata(new RestMetadata());
-        event.setPayload(payload);
-        events.add(event);
-        ra.setEvents(events);
-        ra.setTimestamp("2020-12-18T17:04:04.417921");
-        ra.setContext(new HashMap<>());
-
-        String identity = TestHelpers.encodeIdentityInfo("test", "user");
-
-        given()
-                .body(ra)
-                .header("x-rh-identity", identity)
-                .contentType(MediaType.APPLICATION_JSON)
-                .when().post("/notifications/")
-                .then()
-                .statusCode(200);
+        testSimplePayload(uuid, "my-bundle", application, "a_type", HttpStatusCode.OK);
 
         // Now check if we got a message
         await().atMost(Duration.ofSeconds(10L)).until(() -> inMemorySink.received().size() > 0);
@@ -323,16 +334,44 @@ public class GwResourceTest {
         assertEquals("4", headerValue.substring(14, 15));
 
         Map<String, Object> am = Json.decodeValue(message.getPayload(), Map.class);
-        assertEquals(ra.application, am.get("application"));
-        assertEquals(ra.accountId, am.get("account_id"));
+        assertEquals(application, am.get("application"));
         List<Map<String, Object>> eventList = (List<Map<String, Object>>) am.get("events");
         assertEquals(1, eventList.size());
         Map<String, Object> eventR = eventList.get(0);
         Map<String, Object> payloadR = (Map<String, Object>) eventR.get("payload");
         assertEquals(2, payloadR.size());
-        assertEquals(random.toString(), payloadR.get("uuid"));
+        assertEquals(uuid, payloadR.get("uuid"));
     }
 
+    void testSimplePayload(final String uuid, final String bundle, final String application, final String eventType, final int expectedStatusCode) {
+        RestAction ra = new RestAction();
+        ra.setBundle(bundle);
+        ra.setOrgId("123");
+        ra.setApplication(application);
+        ra.setEventType(eventType);
+
+        List<RestEvent> events = new ArrayList<>();
+        RestEvent event = new RestEvent();
+        Map<String, Object> payload = new HashMap<>();
+        payload.put("key", "value");
+        payload.put("uuid", uuid);
+        event.setMetadata(new RestMetadata());
+        event.setPayload(payload);
+        events.add(event);
+        ra.setEvents(events);
+        ra.setTimestamp("2020-12-18T17:04:04.417921");
+        ra.setContext(new HashMap<>());
+
+        String identity = TestHelpers.encodeIdentityInfo("test", "user");
+
+        given()
+            .body(ra)
+            .header("x-rh-identity", identity)
+            .contentType(MediaType.APPLICATION_JSON)
+            .when().post("/notifications/")
+            .then()
+            .statusCode(expectedStatusCode);
+    }
     @Test
     public void testNotificationsWithAndWithoutRecipientsAuthorizationCriterion() {
         UUID random = UUID.randomUUID();
@@ -548,5 +587,101 @@ public class GwResourceTest {
 
         assertEquals("error", response.getString("result"));
         assertEquals("External email addresses are forbidden in the recipients.emails field: user3@gmail.com, user5@hotmail.com", response.getString("details"));
+    }
+
+    @Test
+    void testRefreshBaet() {
+        when(gwConfig.isBulkCachesEnabled()).thenReturn(true);
+
+        String uuid = UUID.randomUUID().toString();
+        String bundle = "my-bundle";
+        String application = "my-app";
+        String eventType = "my-event-type";
+
+        // baet list is not yet loaded
+        testSimplePayload(uuid, bundle, application, eventType, HttpStatusCode.BAD_REQUEST);
+        verify(restValidationClient, times(0)).getBaets();
+        verify(gwResource, times(1)).refreshSourceEnvironment();
+
+        // baet list has been loaded
+        when(restValidationClient.getBaets()).thenReturn(Map.of(bundle, Map.of(application, List.of(eventType))));
+        cacheBaet.invalidateAll().await().indefinitely();
+        testSimplePayload(uuid, bundle, application, eventType, HttpStatusCode.OK);
+        verify(restValidationClient, times(1)).getBaets();
+
+        // Should use cached data
+        testSimplePayload(uuid, bundle, application, eventType, HttpStatusCode.OK);
+        verify(restValidationClient, times(1)).getBaets();
+
+        // baet list failed to refresh
+        cacheBaet.invalidateAll().await().indefinitely();
+        when(restValidationClient.getBaets()).thenThrow(WebApplicationException.class);
+        testSimplePayload(uuid, bundle, application, eventType, HttpStatusCode.OK);
+        // we expect 7 calls = 1 from previous exec + 1 attempts + 5 retries
+        verify(restValidationClient, times(7)).getBaets();
+    }
+
+    @Test
+    void testRefreshEnvironments() {
+        when(gwConfig.isBulkCachesEnabled()).thenReturn(true);
+
+        String uuid = UUID.randomUUID().toString();
+        String bundle = "my-bundle";
+        String application = "my-app";
+        String eventType = "my-event-type";
+
+        SourceEnvironment sourceEnvironment = new SourceEnvironment();
+        sourceEnvironment.name = "STAGE";
+        sourceEnvironment.bundle = bundle;
+        sourceEnvironment.application = application;
+        sourceEnvironment.subjectDn = "/dn=user";
+
+        cacheBaet.invalidateAll().await().indefinitely();
+        when(restValidationClient.getBaets()).thenReturn(Map.of(bundle, Map.of(application, List.of(eventType))));
+
+        // certificates list is not yet loaded
+        testSimplePayload(uuid, bundle, application, eventType, HttpStatusCode.OK);
+        verify(restValidationClient, times(0)).getCertificates();
+
+        // Message received
+        Message<String> message = inMemorySink.received().get(0);
+
+        // It should not contain a "rh-source-environment" header.
+        Optional<KafkaMessageMetadata> messageMetadata = message.getMetadata(KafkaMessageMetadata.class);
+        Iterator<Header> headers = messageMetadata.get().getHeaders().headers(SOURCE_ENVIRONMENT_HEADER).iterator();
+        assertFalse(headers.hasNext());
+
+        // certificates list loaded
+        cacheCertificates.invalidateAll().await().indefinitely();
+        when(restValidationClient.getCertificates()).thenReturn(List.of(sourceEnvironment));
+        inMemorySink.clear();
+        testSimplePayload(uuid, bundle, application, eventType, HttpStatusCode.OK);
+        verify(restValidationClient, times(1)).getCertificates();
+
+        // Message received
+        message = inMemorySink.received().get(0);
+
+        // It should contain a "rh-source-environment" header.
+        messageMetadata = message.getMetadata(KafkaMessageMetadata.class);
+        headers = messageMetadata.get().getHeaders().headers(SOURCE_ENVIRONMENT_HEADER).iterator();
+        String headerValue = new String(headers.next().value(), UTF_8);
+        assertEquals(sourceEnvironment.name, headerValue);
+
+        // certificates list failed to refresh
+        cacheCertificates.invalidateAll().await().indefinitely();
+        when(restValidationClient.getCertificates()).thenThrow(WebApplicationException.class);
+        inMemorySink.clear();
+        testSimplePayload(uuid, bundle, application, eventType, HttpStatusCode.OK);
+        verify(restValidationClient, times(7)).getCertificates();
+
+        // Message received
+        message = inMemorySink.received().get(0);
+
+        // It should contain a "rh-source-environment" header.
+        messageMetadata = message.getMetadata(KafkaMessageMetadata.class);
+        headers = messageMetadata.get().getHeaders().headers(SOURCE_ENVIRONMENT_HEADER).iterator();
+        headerValue = new String(headers.next().value(), UTF_8);
+        assertEquals(sourceEnvironment.name, headerValue);
+
     }
 }
