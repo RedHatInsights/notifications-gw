@@ -71,6 +71,8 @@ objects:
           value: ${NOTIFICATIONS_EMAILS_INTERNAL_ONLY_ENABLED}
         - name: NOTIFICATIONS_KAFKA_CALLBACK_TIMEOUT_SECONDS
           value: ${NOTIFICATIONS_KAFKA_CALLBACK_TIMEOUT_SECONDS}
+        - name: NOTIFICATIONS_BULK_CACHES_ENABLED
+          value: ${NOTIFICATIONS_BULK_CACHES_ENABLED}
         - name: QUARKUS_HTTP_PORT
           value: "8000"
         - name: QUARKUS_LOG_CATEGORY__COM_REDHAT_CLOUD_NOTIFICATIONS__LEVEL
@@ -137,3 +139,6 @@ parameters:
 - name: QUARKUS_LOG_LEVEL
   description: Log level for Quarkus
   value: INFO
+- name: NOTIFICATIONS_BULK_CACHES_ENABLED
+  description: Enable bulk baet and certificates caches (or not)
+  value: "false"
