@@ -105,11 +105,9 @@ public class GwResource {
 
     Map<String, Map<String, List<String>>> mapBaet = new HashMap<>();
 
-    @PostConstruct
-    public void init() {
-        Log.info("Init caches");
-        refreshBaets();
-        refreshSourceEnvironment();
+
+    public boolean init() {
+        return refreshBaets() && refreshSourceEnvironment();
     }
 
     public GwResource(MeterRegistry registry) {

@@ -600,25 +600,25 @@ public class GwResourceTest {
 
         // baet list is not yet loaded
         testSimplePayload(uuid, bundle, application, eventType, HttpStatusCode.BAD_REQUEST);
-        verify(restValidationClient, times(0)).getBaets();
+        verify(restValidationClient, times(1)).getBaets();
         verify(gwResource, times(1)).refreshSourceEnvironment();
 
         // baet list has been loaded
         when(restValidationClient.getBaets()).thenReturn(Map.of(bundle, Map.of(application, List.of(eventType))));
         cacheBaet.invalidateAll().await().indefinitely();
         testSimplePayload(uuid, bundle, application, eventType, HttpStatusCode.OK);
-        verify(restValidationClient, times(1)).getBaets();
+        verify(restValidationClient, times(2)).getBaets();
 
         // Should use cached data
         testSimplePayload(uuid, bundle, application, eventType, HttpStatusCode.OK);
-        verify(restValidationClient, times(1)).getBaets();
+        verify(restValidationClient, times(2)).getBaets();
 
         // baet list failed to refresh
         cacheBaet.invalidateAll().await().indefinitely();
         when(restValidationClient.getBaets()).thenThrow(WebApplicationException.class);
         testSimplePayload(uuid, bundle, application, eventType, HttpStatusCode.OK);
-        // we expect 7 calls = 1 from previous exec + 1 attempts + 5 retries
-        verify(restValidationClient, times(7)).getBaets();
+        // we expect 7 calls = 2 from previous exec + 1 attempts + 5 retries
+        verify(restValidationClient, times(8)).getBaets();
     }
 
     @Test

@@ -48,6 +48,9 @@ public class NotificationsGwApp {
     @Inject
     GwConfig gwConfig;
 
+    @Inject
+    GwResource gwResource;
+
     void init(@Observes StartupEvent ev) {
         initAccessLogFilter();
 
@@ -56,6 +59,9 @@ public class NotificationsGwApp {
         Log.infof(NOTIFICATIONS_URL_KEY + "=%s", ConfigProvider.getConfig().getValue(NOTIFICATIONS_URL_KEY, String.class));
 
         gwConfig.logConfiguration();
+        if (gwConfig.isBulkCachesEnabled() && false == gwResource.init()) {
+            throw new IllegalStateException("Baet and or Certificate caches didn't load properly");
+        }
     }
 
     private void initAccessLogFilter() {
