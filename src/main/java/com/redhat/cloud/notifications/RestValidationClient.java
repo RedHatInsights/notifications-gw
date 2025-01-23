@@ -41,14 +41,12 @@ public interface RestValidationClient {
     @GET
     @Path("/certificates")
     @Retry(maxRetries = 5)
-    @Consumes(APPLICATION_JSON)
     @Produces(APPLICATION_JSON)
     List<SourceEnvironment> getCertificates();
 
     @GET
     @Path("/baet_list")
     @Retry(maxRetries = 5)
-    @Consumes(APPLICATION_JSON)
     @Produces(APPLICATION_JSON)
     Map<String, Map<String, List<String>>> getBaets();
 }
