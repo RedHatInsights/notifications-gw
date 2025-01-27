@@ -105,7 +105,6 @@ public class GwResource {
 
     Map<String, Map<String, List<String>>> mapBaet = new HashMap<>();
 
-
     public boolean init() {
         return refreshBaets() && refreshSourceEnvironment();
     }
@@ -174,12 +173,8 @@ public class GwResource {
             }
         }
 
-
         if (gwConfig.isBulkCachesEnabled()) {
-            refreshBaets();
-            if (mapBaet.containsKey(ra.getBundle())
-                && mapBaet.get(ra.getBundle()).containsKey(ra.getApplication())
-                && mapBaet.get(ra.getBundle()).get(ra.getApplication()).contains(ra.getEventType())) {
+            if (checkEventType(ra.getBundle(), ra.getApplication(), ra.getEventType())) {
                 Log.debugf("Event type found for [bundle=%s, application=%s, eventType=%s]", ra.getBundle(), ra.getApplication(), ra.getEventType());
             } else {
                 String errorMessage = String.format("No event type found for [bundle=%s, application=%s, eventType=%s]", ra.getBundle(), ra.getApplication(), ra.getEventType());
@@ -312,6 +307,13 @@ public class GwResource {
             String responseEntity = buildResponseEntity(false, "Message delivery to Kafka failed, please try again later");
             return Response.status(SERVICE_UNAVAILABLE).entity(responseEntity).build();
         }
+    }
+
+    private boolean checkEventType(String bundle, String application, String eventType) {
+        refreshBaets();
+        return mapBaet.containsKey(bundle)
+            && mapBaet.get(bundle).containsKey(application)
+            && mapBaet.get(bundle).get(application).contains(eventType);
     }
 
     private static Message<String> buildMessageWithId(String payload, String sourceEnvironment, CompletableFuture<Void> callback) {
