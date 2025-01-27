@@ -103,6 +103,8 @@ public class GwResource {
 
     List<SourceEnvironment> sourceEnvironments = new ArrayList<>();
 
+    // Store bundle, application and event types like
+    // Map<Bundle_name, Map<application_name, List<event_type_name>>
     Map<String, Map<String, List<String>>> mapBaet = new HashMap<>();
 
     public boolean init() {
