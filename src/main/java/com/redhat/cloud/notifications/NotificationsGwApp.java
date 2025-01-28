@@ -21,6 +21,7 @@ import io.quarkus.logging.Log;
 import io.quarkus.runtime.StartupEvent;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.event.Observes;
+import jakarta.inject.Inject;
 import org.eclipse.microprofile.config.ConfigProvider;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import java.io.BufferedReader;
@@ -44,12 +45,23 @@ public class NotificationsGwApp {
     @ConfigProperty(name = "quarkus.http.access-log.category")
     private String loggerName;
 
+    @Inject
+    GwConfig gwConfig;
+
+    @Inject
+    GwResource gwResource;
+
     void init(@Observes StartupEvent ev) {
         initAccessLogFilter();
 
         Log.info(readGitProperties());
 
         Log.infof(NOTIFICATIONS_URL_KEY + "=%s", ConfigProvider.getConfig().getValue(NOTIFICATIONS_URL_KEY, String.class));
+
+        gwConfig.logConfiguration();
+        if (gwConfig.isBulkCachesEnabled() && false == gwResource.init()) {
+            throw new IllegalStateException("Baet and or Certificate caches didn't load properly");
+        }
     }
 
     private void initAccessLogFilter() {

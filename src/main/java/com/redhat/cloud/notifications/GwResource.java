@@ -12,9 +12,11 @@ import com.redhat.cloud.notifications.model.SourceEnvironment;
 import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Tags;
+import io.quarkus.cache.CacheResult;
 import io.quarkus.logging.Log;
 import io.smallrye.reactive.messaging.kafka.api.OutgoingKafkaRecordMetadata;
 import io.vertx.core.json.JsonObject;
+import jakarta.annotation.PostConstruct;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.validation.Valid;
@@ -27,6 +29,8 @@ import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.WebApplicationException;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.SecurityContext;
+import java.util.HashMap;
+import java.util.Map;
 import org.apache.kafka.common.header.Headers;
 import org.apache.kafka.common.header.internals.RecordHeaders;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
@@ -97,6 +101,16 @@ public class GwResource {
     private final Counter receivedActions;
     private final Counter forwardedActions;
 
+    List<SourceEnvironment> sourceEnvironments = new ArrayList<>();
+
+    // Store bundle, application and event types like
+    // Map<Bundle_name, Map<application_name, List<event_type_name>>
+    Map<String, Map<String, List<String>>> mapBaet = new HashMap<>();
+
+    public boolean init() {
+        return refreshBaets() && refreshSourceEnvironment();
+    }
+
     public GwResource(MeterRegistry registry) {
         receivedActions = registry.counter("notifications.gw.received");
         forwardedActions = registry.counter("notifications.gw.forwarded");
@@ -161,53 +175,68 @@ public class GwResource {
             }
         }
 
-        try (Response response = this.restValidationClient.validate(ra.getBundle(), ra.getApplication(), ra.getEventType())) {
-            // This try block is intentionally empty.
-        } catch (final WebApplicationException e) {
-            // Build a nice error message for the caller.
-            final Response response = e.getResponse();
-            String incomingErrorMessage;
-            // TODO The following try/catch block is a workaround for a Quarkus bug. Remove it ASAP!
-            try {
-                incomingErrorMessage = response.readEntity(String.class);
-            } catch (ConcurrentModificationException ex) {
-                incomingErrorMessage = "";
-                Log.error("Could not retrieve entity from notifications-backend response", ex);
-            }
-            // Determine which status code we will return to the gateway caller
-            // and log the error appropriately.
-            final String logMessage = "Unable to validate the provided rest action due to notifications-backend responding with an error. Received status code: %s, received error message: %s, received REST action in the gateway: %s";
-            final Status returningStatusCodeFromGW;
-            final String returningErrorMessageFromGW;
-            if (response.getStatus() == BAD_REQUEST.getStatusCode()) {
-                returningStatusCodeFromGW = BAD_REQUEST;
-                returningErrorMessageFromGW = incomingErrorMessage;
-                Log.debugf(logMessage, response.getStatus(), incomingErrorMessage, ra);
+        if (gwConfig.isBulkCachesEnabled()) {
+            if (checkEventType(ra.getBundle(), ra.getApplication(), ra.getEventType())) {
+                Log.debugf("Event type found for [bundle=%s, application=%s, eventType=%s]", ra.getBundle(), ra.getApplication(), ra.getEventType());
             } else {
-                returningStatusCodeFromGW = SERVICE_UNAVAILABLE;
-                returningErrorMessageFromGW = "Unable to validate the message, please try again later";
-                Log.errorf(logMessage, response.getStatus(), incomingErrorMessage, ra);
+                String errorMessage = String.format("No event type found for [bundle=%s, application=%s, eventType=%s]", ra.getBundle(), ra.getApplication(), ra.getEventType());
+                Log.debug(errorMessage);
+                return Response
+                    .status(BAD_REQUEST)
+                    .header(CONTENT_TYPE, APPLICATION_JSON)
+                    .entity(buildResponseEntity(false, errorMessage))
+                    .build();
             }
+        } else {
 
-            this.incrementFailuresCounter(returningStatusCodeFromGW);
+            try (Response response = this.restValidationClient.validate(ra.getBundle(), ra.getApplication(), ra.getEventType())) {
+                // This try block is intentionally empty.
+            } catch (final WebApplicationException e) {
+                // Build a nice error message for the caller.
+                final Response response = e.getResponse();
+                String incomingErrorMessage;
+                // TODO The following try/catch block is a workaround for a Quarkus bug. Remove it ASAP!
+                try {
+                    incomingErrorMessage = response.readEntity(String.class);
+                } catch (ConcurrentModificationException ex) {
+                    incomingErrorMessage = "";
+                    Log.error("Could not retrieve entity from notifications-backend response", ex);
+                }
+                // Determine which status code we will return to the gateway caller
+                // and log the error appropriately.
+                final String logMessage = "Unable to validate the provided rest action due to notifications-backend responding with an error. Received status code: %s, received error message: %s, received REST action in the gateway: %s";
+                final Status returningStatusCodeFromGW;
+                final String returningErrorMessageFromGW;
+                if (response.getStatus() == BAD_REQUEST.getStatusCode()) {
+                    returningStatusCodeFromGW = BAD_REQUEST;
+                    returningErrorMessageFromGW = incomingErrorMessage;
+                    Log.debugf(logMessage, response.getStatus(), incomingErrorMessage, ra);
+                } else {
+                    returningStatusCodeFromGW = SERVICE_UNAVAILABLE;
+                    returningErrorMessageFromGW = "Unable to validate the message, please try again later";
+                    Log.errorf(logMessage, response.getStatus(), incomingErrorMessage, ra);
+                }
 
-            // Notify the caller about the error.
-            return Response
-                .status(returningStatusCodeFromGW)
-                .header(CONTENT_TYPE, APPLICATION_JSON)
-                .entity(buildResponseEntity(false, returningErrorMessageFromGW))
-                .build();
-        } catch (final ProcessingException e) {
-            Log.errorf(e, "Unable to reach notifications-backend to validate the following payload: %s", ra);
+                this.incrementFailuresCounter(returningStatusCodeFromGW);
 
-            this.incrementFailuresCounter(SERVICE_UNAVAILABLE);
+                // Notify the caller about the error.
+                return Response
+                    .status(returningStatusCodeFromGW)
+                    .header(CONTENT_TYPE, APPLICATION_JSON)
+                    .entity(buildResponseEntity(false, returningErrorMessageFromGW))
+                    .build();
+            } catch (final ProcessingException e) {
+                Log.errorf(e, "Unable to reach notifications-backend to validate the following payload: %s", ra);
 
-            // Raised when the notifications-backend is unreachable.
-            return Response
-                .status(SERVICE_UNAVAILABLE)
-                .header(CONTENT_TYPE, APPLICATION_JSON)
-                .entity(buildResponseEntity(false, "Unable to validate the message, please try again later"))
-                .build();
+                this.incrementFailuresCounter(SERVICE_UNAVAILABLE);
+
+                // Raised when the notifications-backend is unreachable.
+                return Response
+                    .status(SERVICE_UNAVAILABLE)
+                    .header(CONTENT_TYPE, APPLICATION_JSON)
+                    .entity(buildResponseEntity(false, "Unable to validate the message, please try again later"))
+                    .build();
+            }
         }
 
         Action.ActionBuilder builder = new Action.ActionBuilder();
@@ -282,6 +311,13 @@ public class GwResource {
         }
     }
 
+    private boolean checkEventType(String bundle, String application, String eventType) {
+        refreshBaets();
+        return mapBaet.containsKey(bundle)
+            && mapBaet.get(bundle).containsKey(application)
+            && mapBaet.get(bundle).get(application).contains(eventType);
+    }
+
     private static Message<String> buildMessageWithId(String payload, String sourceEnvironment, CompletableFuture<Void> callback) {
         byte[] messageId = UUID.randomUUID().toString().getBytes(UTF_8);
         Headers headers = new RecordHeaders()
@@ -313,6 +349,23 @@ public class GwResource {
     }
 
     private Optional<SourceEnvironment> getSourceEnvironment(String bundle, String app, String authenticationData) {
+        if (gwConfig.isBulkCachesEnabled()) {
+            refreshSourceEnvironment();
+            Optional<SourceEnvironment> environment = sourceEnvironments.stream()
+                .filter(srcEnv -> bundle.equals(srcEnv.bundle) && app.equals(srcEnv.application) && authenticationData.equals(srcEnv.subjectDn))
+                .findFirst();
+
+            if (environment.isPresent()) {
+                Log.infof("Authentication validated, coming from source environment %s", environment.get().name);
+            } else {
+                Log.infof("Unable to validate authentication '%s' for bundle '%s' and application '%s'",
+                    authenticationData,
+                    bundle,
+                    app);
+            }
+            return environment;
+        }
+
         try {
             SourceEnvironment sourceEnvironment = restValidationClient.validateCertificate(bundle, app, authenticationData);
             Log.infof("Authentication validated, coming from source environment %s", sourceEnvironment.name);
@@ -324,6 +377,30 @@ public class GwResource {
                 app);
             return Optional.empty();
         }
+    }
+
+    @CacheResult(cacheName = "get-baets")
+    boolean refreshBaets() {
+        try {
+            mapBaet = restValidationClient.getBaets();
+            Log.infof("Baet map refreshed with %d bundles", mapBaet.size());
+            return true;
+        } catch (Exception ex) {
+            Log.error("Impossible to refresh baet map", ex);
+        }
+        return false;
+    }
+
+    @CacheResult(cacheName = "get-certificates")
+    boolean refreshSourceEnvironment() {
+        try {
+            sourceEnvironments = restValidationClient.getCertificates();
+            Log.infof("Source environments list refreshed with %d records", sourceEnvironments.size());
+            return true;
+        } catch (Exception ex) {
+            Log.error("Impossible to refresh source environments", ex);
+        }
+        return false;
     }
 
     /**

@@ -12,4 +12,10 @@ public class SourceEnvironment {
 
     @JsonProperty("source_environment")
     public String name;
+
+    public String subjectDn;
+
+    public String bundle;
+
+    public String application;
 }

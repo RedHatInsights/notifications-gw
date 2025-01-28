@@ -9,6 +9,8 @@ import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.Response;
 
+import java.util.List;
+import java.util.Map;
 import org.eclipse.microprofile.faulttolerance.Retry;
 import org.eclipse.microprofile.rest.client.inject.RegisterRestClient;
 import org.jboss.resteasy.reactive.RestQuery;
@@ -36,4 +38,15 @@ public interface RestValidationClient {
     @CacheResult(cacheName = "certificate-validation")
     SourceEnvironment validateCertificate(@RestQuery String bundle, @RestQuery String application, @RestQuery String certificateSubjectDn);
 
+    @GET
+    @Path("/certificates")
+    @Retry(maxRetries = 5)
+    @Produces(APPLICATION_JSON)
+    List<SourceEnvironment> getCertificates();
+
+    @GET
+    @Path("/baet_list")
+    @Retry(maxRetries = 5)
+    @Produces(APPLICATION_JSON)
+    Map<String, Map<String, List<String>>> getBaets();
 }
