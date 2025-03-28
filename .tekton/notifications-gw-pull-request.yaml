@@ -32,7 +32,7 @@ spec:
   pipelineRef:
     params:
     - name: url
-      value: https://github.com/RedHatInsights/konflux-pipelines.git
+      value: https://github.com/RedHatInsights/konflux-pipelines
     - name: revision
       value: main
     - name: pathInRepo
@@ -40,17 +40,6 @@ spec:
     resolver: git
   taskRunTemplate: {}
   workspaces:
-  - name: workspace
-    volumeClaimTemplate:
-      metadata:
-        creationTimestamp: null
-      spec:
-        accessModes:
-        - ReadWriteOnce
-        resources:
-          requests:
-            storage: 1Gi
-      status: {}
   - name: git-auth
     secret:
       secretName: '{{ git_auth_secret }}'
