@@ -36,7 +36,7 @@ spec:
     - name: revision
       value: main
     - name: pathInRepo
-      value: pipelines/docker-build.yaml
+      value: pipelines/docker-build-oci-ta.yaml
     resolver: git
   taskRunTemplate: {}
   workspaces:
