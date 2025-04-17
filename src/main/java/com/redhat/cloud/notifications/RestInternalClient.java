@@ -13,7 +13,7 @@ import java.util.Map;
 
 import static jakarta.ws.rs.core.MediaType.APPLICATION_JSON;
 
-@Path("/internal")
+@Path("/internal/gw")
 @RegisterRestClient(configKey = "notifications-backend")
 @ApplicationScoped // This scope is required to mock the client during tests.
 public interface RestInternalClient {
