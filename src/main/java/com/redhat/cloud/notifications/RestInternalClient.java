@@ -22,5 +22,5 @@ public interface RestInternalClient {
     @Path("/subscriptions/{bundle}/{application}")
     @Retry(maxRetries = 5)
     @Produces(APPLICATION_JSON)
-    Map<String, List<String>> getOrgSubscriptionsPerEventType(@RestPath String bundle, @RestPath String application, @RestQuery List<String> eventTypes);
+    Map<String, List<String>> getOrgSubscriptionsPerEventType(@RestPath String bundle, @RestPath String application, @RestQuery List<String> eventTypeNames);
 }
