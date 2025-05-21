@@ -29,7 +29,8 @@ spec:
     value: .
   pipelineRef:
     name: docker-build-oci-ta
-  taskRunTemplate: {}
+  taskRunTemplate:
+    serviceAccountName: build-pipeline-notifications-gw
   workspaces:
   - name: git-auth
     secret:

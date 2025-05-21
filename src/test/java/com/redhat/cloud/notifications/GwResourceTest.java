@@ -10,6 +10,7 @@ import io.quarkus.test.InjectMock;
 import io.quarkus.test.common.QuarkusTestResource;
 import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.test.junit.mockito.InjectSpy;
+import io.restassured.common.mapper.TypeRef;
 import io.smallrye.reactive.messaging.kafka.api.KafkaMessageMetadata;
 import io.smallrye.reactive.messaging.memory.InMemoryConnector;
 import io.smallrye.reactive.messaging.memory.InMemorySink;
@@ -57,6 +58,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -72,6 +74,10 @@ public class GwResourceTest {
     @InjectMock
     @RestClient
     RestValidationClient restValidationClient;
+
+    @InjectMock
+    @RestClient
+    RestInternalClient restInternalClient;
 
     InMemorySink<String> inMemorySink;
 
@@ -682,6 +688,33 @@ public class GwResourceTest {
         headers = messageMetadata.get().getHeaders().headers(SOURCE_ENVIRONMENT_HEADER).iterator();
         headerValue = new String(headers.next().value(), UTF_8);
         assertEquals(sourceEnvironment.name, headerValue);
+    }
 
+    @Test
+    void testSearchSubscribedOrgByEventType() {
+        String identity = TestHelpers.encodeIdentityInfo("test", "user");
+
+        String bundle = RandomStringUtils.secure().nextAlphabetic(10);
+        String application = RandomStringUtils.secure().nextAlphabetic(10);
+        List<String> eventTypes = List.of(
+            RandomStringUtils.secure().nextAlphabetic(10),
+            RandomStringUtils.secure().nextAlphabetic(10),
+            RandomStringUtils.secure().nextAlphabetic(10)
+        );
+
+        Map<String, List<String>> resultMap = given()
+            .header("x-rh-identity", identity)
+            .contentType(MediaType.APPLICATION_JSON)
+            .pathParam("bundle", bundle)
+            .pathParam("application", application)
+            .param("eventTypeNames", eventTypes)
+            .when()
+            .get("/notifications/subscriptions/{bundle}/{application}")
+            .then()
+            .statusCode(HttpStatus.SC_OK).extract().as(new TypeRef<>() {
+        });
+
+        assertTrue(resultMap.isEmpty());
+        verify(restInternalClient, times(1)).getOrgSubscriptionsPerEventType(eq(bundle), eq(application), eq(eventTypes));
     }
 }

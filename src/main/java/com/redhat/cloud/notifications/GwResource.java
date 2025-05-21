@@ -22,8 +22,10 @@ import jakarta.inject.Inject;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import jakarta.ws.rs.Consumes;
+import jakarta.ws.rs.GET;
 import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
+import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.ProcessingException;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.WebApplicationException;
@@ -51,6 +53,7 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
+import org.jboss.resteasy.reactive.RestQuery;
 
 import static jakarta.ws.rs.core.HttpHeaders.CONTENT_TYPE;
 import static jakarta.ws.rs.core.MediaType.APPLICATION_JSON;
@@ -97,6 +100,9 @@ public class GwResource {
 
     @RestClient
     RestValidationClient restValidationClient;
+
+    @RestClient
+    RestInternalClient restInternalClient;
 
     private final Counter receivedActions;
     private final Counter forwardedActions;
@@ -409,5 +415,20 @@ public class GwResource {
      */
     private void incrementFailuresCounter(final Status status) {
         this.meterRegistry.counter(FAILURES_COUNTER, Tags.of("status_code", String.valueOf(status.getStatusCode()))).increment();
+    }
+
+    /**
+     * Search org ids grouped by even type when at least one subscriber to instant email Notifications
+     *
+     * @param bundleName Application bundle name
+     * @param applicationName Application name
+     * @param eventTypeNames Event types
+     * @return list of org id grouped by event types
+     */
+    @GET
+    @Path("/subscriptions/{bundleName}/{applicationName}")
+    @Produces(APPLICATION_JSON)
+    public Map<String, List<String>> getOrgSubscriptions(@PathParam("bundleName") String bundleName, @PathParam("applicationName") String applicationName, @RestQuery List<String> eventTypeNames) {
+        return restInternalClient.getOrgSubscriptionsPerEventType(bundleName, applicationName, eventTypeNames);
     }
 }
