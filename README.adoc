@@ -1,3 +1,4 @@
+
 # notifications-gw project
 
 To run the application you'll need Kafka running on port 9092.
