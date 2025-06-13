@@ -18,8 +18,8 @@
     <quarkus.platform.group-id>io.quarkus.platform</quarkus.platform.group-id>
     <surefire-plugin.version>3.5.3</surefire-plugin.version>
     <testcontainers.version>1.21.1</testcontainers.version>
-    <mockserver-netty-no-dependencies.version>5.15.0</mockserver-netty-no-dependencies.version>
-    <insights-notification-schemas-java.version>0.22</insights-notification-schemas-java.version>
+    <mockserver-netty.version>5.15.0</mockserver-netty.version>
+    <insights-notification-schemas-java.version>0.23</insights-notification-schemas-java.version>
     <clowder-quarkus-config-source.version>2.7.1</clowder-quarkus-config-source.version>
     <quarkus-logging-cloudwatch.version>6.13.0</quarkus-logging-cloudwatch.version>
     <quarkus-logging-sentry.version>2.1.4</quarkus-logging-sentry.version>
@@ -123,8 +123,8 @@
     </dependency>
     <dependency>
       <groupId>org.mock-server</groupId>
-      <artifactId>mockserver-netty-no-dependencies</artifactId>
-      <version>${mockserver-netty-no-dependencies.version}</version>
+      <artifactId>mockserver-netty</artifactId>
+      <version>${mockserver-netty.version}</version>
       <scope>test</scope>
     </dependency>
     <dependency>
