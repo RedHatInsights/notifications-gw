@@ -22,7 +22,7 @@ spec:
   - name: revision
     value: '{{revision}}'
   - name: output-image
-    value: quay.io/redhat-user-workloads/hcc-integrations-tenant/notifications-sc/notifications-gw-sc:{{revision}}
+    value: quay.io/redhat-user-workloads/hcc-fr-tenant/hcc-integrations-tenant/notifications-sc/notifications-gw-sc:{{revision}}
   - name: dockerfile
     value: ./src/main/docker/Dockerfile-build.jvm
   - name: path-context
