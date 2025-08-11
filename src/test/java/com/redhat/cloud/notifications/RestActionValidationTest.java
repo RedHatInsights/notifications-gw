@@ -54,6 +54,7 @@ public class RestActionValidationTest {
         a.setEvents(events);
         a.setTimestamp("2020-12-18T17:04:04.417921");
         a.setContext(new HashMap());
+        a.setSeverity("Important");
 
         Set<ConstraintViolation<RestAction>> violations = validator.validate(a);
         assertEquals(0,violations.size(), violations.toString());

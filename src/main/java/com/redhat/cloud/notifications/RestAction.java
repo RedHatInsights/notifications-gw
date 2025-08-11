@@ -70,6 +70,9 @@ public class RestAction {
     @JsonProperty("org_id")
     public String orgId;
 
+    @JsonProperty("severity")
+    public String severity;
+
     @JsonProperty("recipients_authorization_criterion")
     public RecipientsAuthorizationCriterion recipientsAuthorizationCriterion;
 
@@ -137,6 +140,14 @@ public class RestAction {
         this.orgId = orgId;
     }
 
+    public String getSeverity() {
+        return severity;
+    }
+
+    public void setSeverity(String severity) {
+        this.severity = severity;
+    }
+
     public List<RestEvent> getEvents() {
         return events;
     }
@@ -180,6 +191,7 @@ public class RestAction {
         json.put("timestamp", this.timestamp);
         json.put("accountId", this.accountId);
         json.put("orgId", this.orgId);
+        json.put("severity", this.severity);
         json.put("events", this.events);
         json.put("context", this.context);
         json.put("recipients", this.recipients);
