@@ -284,6 +284,7 @@ public class GwResource {
         builder.withApplication(ra.application);
         builder.withBundle(ra.bundle);
         builder.withAccountId(ra.accountId);
+        builder.withSeverity(ra.severity);
         builder.withContext(contextBuilder.build());
         builder.withOrgId(ra.orgId);
         builder.withId(ra.id);

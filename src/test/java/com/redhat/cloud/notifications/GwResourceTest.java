@@ -246,6 +246,7 @@ public class GwResourceTest {
         ra.setEvents(events);
         ra.setTimestamp("2020-12-18T17:04:04.417921");
         ra.setContext(new HashMap<>());
+        ra.setSeverity("Critical");
 
         List<RestRecipient> recipients = new ArrayList<>();
         RestRecipient recipient = new RestRecipient();
@@ -293,6 +294,7 @@ public class GwResourceTest {
         assertEquals(ra.accountId, am.get("account_id"));
         assertEquals(ra.orgId, am.get("org_id"));
         assertEquals(ra.id.toString(), am.get("id"));
+        assertEquals(ra.severity, am.get("severity"));
         List<Map<String, Object>> eventList = (List<Map<String, Object>>) am.get("events");
         assertEquals(1, eventList.size());
 
