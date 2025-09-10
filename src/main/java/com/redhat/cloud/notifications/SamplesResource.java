@@ -33,6 +33,7 @@ public class SamplesResource {
         a.setBundle("my-bundle");
         a.setAccountId("123");
         a.setOrgId("234567");
+        a.setSeverity("Important");
         a.setApplication("my-app");
         a.setEventType("a_type");
         List<RestEvent> events = new ArrayList<RestEvent>();
