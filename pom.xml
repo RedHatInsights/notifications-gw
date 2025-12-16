@@ -17,7 +17,7 @@
     <quarkus.platform.artifact-id>quarkus-bom</quarkus.platform.artifact-id>
     <quarkus.platform.group-id>io.quarkus.platform</quarkus.platform.group-id>
     <surefire-plugin.version>3.5.4</surefire-plugin.version>
-    <testcontainers.version>1.21.3</testcontainers.version>
+    <testcontainers.version>1.21.4</testcontainers.version>
     <mockserver-netty.version>5.15.0</mockserver-netty.version>
     <insights-notification-schemas-java.version>1.0.1</insights-notification-schemas-java.version>
     <clowder-quarkus-config-source.version>2.7.1</clowder-quarkus-config-source.version>
