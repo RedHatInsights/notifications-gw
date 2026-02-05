@@ -18,16 +18,17 @@ package com.redhat.cloud.notifications;
 
 import io.quarkus.test.common.QuarkusTestResourceLifecycleManager;
 import io.smallrye.reactive.messaging.memory.InMemoryConnector;
-import org.mockserver.model.Parameter;
 
 import java.util.HashMap;
 import java.util.Map;
 
+import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
+import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
+import static com.github.tomakehurst.wiremock.client.WireMock.get;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
 import static com.redhat.cloud.notifications.GwResource.EGRESS_CHANNEL;
 import static com.redhat.cloud.notifications.MockServerLifecycleManager.getClient;
 import static com.redhat.cloud.notifications.MockServerLifecycleManager.getMockServerUrl;
-import static org.mockserver.model.HttpRequest.request;
-import static org.mockserver.model.HttpResponse.response;
 
 public class TestLifecycleManager implements QuarkusTestResourceLifecycleManager {
 
@@ -66,39 +67,35 @@ public class TestLifecycleManager implements QuarkusTestResourceLifecycleManager
 
         properties.put("quarkus.rest-client.notifications-backend.url", getMockServerUrl());
 
-        getClient()
-                .when(request()
-                        .withPath("/internal/validation/baet")
-                        .withQueryStringParameter(new Parameter("bundle", "my-bundle"))
-                        .withQueryStringParameter(new Parameter("application", "my-app"))
-                        .withQueryStringParameter(new Parameter("eventtype", "a_type"))
-                )
-                .respond(response()
-                        .withStatusCode(200)
+        getClient().stubFor(get(urlPathEqualTo("/internal/validation/baet"))
+                .withQueryParam("bundle", equalTo("my-bundle"))
+                .withQueryParam("application", equalTo("my-app"))
+                .withQueryParam("eventtype", equalTo("a_type"))
+                .willReturn(aResponse()
+                        .withStatus(200)
                         .withHeader("Content-Type", "application/json")
-                );
-        getClient()
-            .when(request()
-                .withPath("/internal/validation/baet")
-                .withQueryStringParameter(new Parameter("bundle", "openshift"))
-                .withQueryStringParameter(new Parameter("application", "cluster-manager"))
-                .withQueryStringParameter(new Parameter("eventtype", "a_type"))
-            )
-            .respond(response()
-                .withStatusCode(200)
-                .withHeader("Content-Type", "application/json")
-            );
-        getClient()
-                .when(request()
-                        .withPath("/internal/validation/baet")
-                        .withQueryStringParameter(new Parameter("bundle", "my-invalid-bundle"))
-                        .withQueryStringParameter(new Parameter("application", "my-invalid-app"))
-                        .withQueryStringParameter(new Parameter("eventtype", "a_invalid-type"))
                 )
-                .respond(response()
-                        .withStatusCode(404)
+        );
+
+        getClient().stubFor(get(urlPathEqualTo("/internal/validation/baet"))
+                .withQueryParam("bundle", equalTo("openshift"))
+                .withQueryParam("application", equalTo("cluster-manager"))
+                .withQueryParam("eventtype", equalTo("a_type"))
+                .willReturn(aResponse()
+                        .withStatus(200)
                         .withHeader("Content-Type", "application/json")
-                );
+                )
+        );
+
+        getClient().stubFor(get(urlPathEqualTo("/internal/validation/baet"))
+                .withQueryParam("bundle", equalTo("my-invalid-bundle"))
+                .withQueryParam("application", equalTo("my-invalid-app"))
+                .withQueryParam("eventtype", equalTo("a_invalid-type"))
+                .willReturn(aResponse()
+                        .withStatus(404)
+                        .withHeader("Content-Type", "application/json")
+                )
+        );
     }
 
 }
