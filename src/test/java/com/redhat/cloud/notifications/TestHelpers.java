@@ -4,8 +4,7 @@ import io.vertx.core.json.JsonObject;
 
 import java.io.UnsupportedEncodingException;
 import java.util.Base64;
-
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.fail;
 
 public class TestHelpers {
     public static String encodeIdentityInfo(String tenant, String username) {
