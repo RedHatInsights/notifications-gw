@@ -1,34 +1,31 @@
 package com.redhat.cloud.notifications;
 
-import org.mockserver.integration.ClientAndServer;
-
-import static org.mockserver.integration.ClientAndServer.startClientAndServer;
+import com.github.tomakehurst.wiremock.WireMockServer;
+import com.github.tomakehurst.wiremock.core.WireMockConfiguration;
 
 public class MockServerLifecycleManager {
 
-    private static final String LOG_LEVEL_KEY = "mockserver.logLevel";
-
-    private static ClientAndServer mockServer;
+    private static WireMockServer wireMockServer;
     private static String mockServerUrl;
 
     public static void start() {
-        if (System.getProperty(LOG_LEVEL_KEY) == null) {
-            System.setProperty(LOG_LEVEL_KEY, "OFF");
-            System.out.println("MockServer log is disabled. Use '-D" + LOG_LEVEL_KEY + "=WARN|INFO|DEBUG|TRACE' to enable it.");
-        }
-        mockServer = startClientAndServer();
-        mockServerUrl = "http://localhost:" + mockServer.getPort();
+        wireMockServer = new WireMockServer(WireMockConfiguration.options().dynamicPort());
+        wireMockServer.start();
+        mockServerUrl = "http://localhost:" + wireMockServer.port();
+        System.out.println("WireMock started on: " + mockServerUrl);
     }
 
     public static String getMockServerUrl() {
         return mockServerUrl;
     }
 
-    public static ClientAndServer getClient() {
-        return mockServer;
+    public static WireMockServer getClient() {
+        return wireMockServer;
     }
 
     public static void stop() {
-        mockServer.stop();
+        if (wireMockServer != null) {
+            wireMockServer.stop();
+        }
     }
 }
