@@ -104,7 +104,7 @@ parameters:
   required: true
 - name: IMAGE
   description: Image URL
-  value: quay.io/cloudservices/notifications-gw
+  value: quay.io/redhat-services-prod/hcc-integrations-tenant/notifications/notifications-gw
 - name: IMAGE_TAG
   description: Image tag
   value: latest
