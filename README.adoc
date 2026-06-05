@@ -239,11 +239,8 @@ For detailed conventions, architecture, and domain-specific guidelines, see:
 | link:docs/quarkus-guidelines.md[quarkus]
 | Quarkus config patterns, CDI scoping, RESTEasy Reactive, caching
 
-| link:docs/rh-identity-guidelines.md[rh-identity]
-| Identity type hierarchy, header decoding, authentication mechanism
-
 | link:docs/security-guidelines.md[security]
-| Authentication enforcement, allow-list controls, log injection prevention
+| Authentication mechanism, identity dispatch, allow-list controls, log injection prevention
 
 | link:docs/testing-guidelines.md[testing]
 | Test annotations, REST Assured patterns, MockServer setup, parameterized tests

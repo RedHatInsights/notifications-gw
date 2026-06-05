@@ -1,17 +1,21 @@
 # Security Guidelines
 
-## Authentication and Identity Handling
+## Authentication Mechanism and Identity Dispatch
 
-- Authenticate all requests through the `x-rh-identity` header, decoded in `RHIdAuthMechanism`. Do not add alternative authentication paths or bypass the `HeaderHelper.getRhIdFromString` parsing flow.
-- Preserve the polymorphic identity type dispatch in `Identity.java` (X509, Associate/SAML, ServiceAccount). When adding a new identity type, add a `@JsonSubTypes.Type` entry in the `Identity` class and create a corresponding subclass with a `getSubject()` implementation.
-- Avoid logging the raw `x-rh-identity` header value on the success path. The existing WARN-level log in `HeaderHelper` on deserialization failure intentionally logs the raw header value for debugging; do not add the header value to success-path logs.
-- Keep `RHIdAuthMechanism.authenticate` non-blocking -- it returns a `Uni<SecurityIdentity>` and should not perform I/O or call backend services during authentication.
+- Authenticate all requests through `RHIdAuthMechanism`, the sole Quarkus `HttpAuthenticationMechanism`. It reads the raw `x-rh-identity` header, decodes it via `HeaderHelper.getRhIdFromString()`, and builds a `QuarkusSecurityIdentity` with an `RhIdPrincipal`. Do not add alternative authentication paths or bypass this flow.
+- Decode the `x-rh-identity` header exclusively through `HeaderHelper.getRhIdFromString()`. Do not call the underlying Base64 or Jackson APIs directly.
+- Keep `RHIdAuthMechanism.authenticate` non-blocking — it returns a `Uni<SecurityIdentity>` and must not perform I/O or call backend services during authentication.
+- Avoid logging the raw `x-rh-identity` header value on the success path. The existing WARN-level log in `HeaderHelper` on deserialization failure intentionally logs the raw header for debugging; do not add it to success-path logs.
+- Register new identity types in `Identity.java` via `@JsonSubTypes` with the exact `type` string from the x-rh-identity JSON payload. The three current discriminator values are `"X509"`, `"Associate"`, and `"ServiceAccount"`. Extend `Identity` (abstract class) and implement `getSubject()` to return the caller-identifying string (e.g., `subject_dn` for X509, `email` for Associate, `username` for ServiceAccount).
+- Annotate ServiceAccount-style identity classes with both `@JsonNaming(SnakeCaseStrategy.class)` and `@JsonIgnoreProperties(ignoreUnknown = true)`. X509 and Associate identity classes use default field naming with public fields.
+- `RhIdPrincipal` carries both `name` (subject string) and `type` (discriminator). Cast `SecurityContext.getUserPrincipal()` to `RhIdPrincipal` in resource methods to access `getType()`.
+- Check `principal.getType()` against the string constants `"X509"` and `"ServiceAccount"` (private constants in `GwResource`) to determine whether source environment validation applies. Associate identity types skip source environment checks.
 
 ## Allow-List and Source Environment Controls
 
-- Enforce the staging environment allow-list check in `GwResource.forward()` before any Kafka message is sent. The guard checks `gwConfig.isAllowListEnabled()`, source environment equality to `"stage"`, and org ID membership in `gwConfig.getAllowListOrgIds()`.
-- When modifying allow-list logic, update `AllowListTest` with matching scenarios. Each combination of enabled/disabled, stage/prod, and known/unknown org ID has a dedicated test case.
-- Prefer returning HTTP 403 (FORBIDDEN) for allow-list rejections from staging sources. The error response includes the org ID (via `ALLOW_LIST_ERROR_MESSAGE`) but does not expose the full allow-list contents.
+- Enforce the staging allow-list check in `GwResource.forward()` before any Kafka message is sent. The guard fires only when all three conditions hold: `gwConfig.isAllowListEnabled()` is true, source environment equals `"stage"`, and the org ID is not in `gwConfig.getAllowListOrgIds()`. Production source environments bypass the allow-list entirely.
+- Return HTTP 403 for allow-list rejections. The error response includes the org ID via `ALLOW_LIST_ERROR_MESSAGE` but does not expose the full allow-list contents.
+- When modifying allow-list logic, update `AllowListTest` with matching scenarios. Use `@InjectMock GwConfig` and `@InjectMock @RestClient RestValidationClient`. Each combination of enabled/disabled, stage/prod, and known/unknown org ID has a dedicated test case.
 
 ## Log Injection Prevention
 
@@ -31,7 +35,7 @@
 
 ## Container and Runtime Security
 
-- Run the production container as non-root user 185 (jboss). The Dockerfile switches to `USER jboss` after `microdnf clean all` and then to `USER 185` for the final runtime layer (after the COPY steps).
+- Run the production container as non-root user 185 (jboss). The Dockerfile switches to `USER jboss` after `microdnf clean all` and then to `USER 185` for the final runtime layer.
 - Include `-XX:+ExitOnOutOfMemoryError` in `JAVA_OPTIONS` to terminate the JVM on OOM rather than running in a degraded state.
 - Update base image packages with `microdnf upgrade --refresh --nodocs --setopt=install_weak_deps=0 -y` during container builds to pick up security patches.
 
@@ -40,23 +44,24 @@
 - CodeQL analysis runs on every push and PR to `main` via `.github/workflows/codeql-analysis.yml`. Do not disable or skip this workflow.
 - Platform Security scans (Grype vulnerability scan and Syft SBOM generation) run via `.github/workflows/platsec-gw.yml` on push and PR to `main`, `master`, and `security-compliance` branches. The scan uses the Dockerfile at `src/main/docker/Dockerfile-build.jvm`.
 
+## Test Identity Construction
+
+- For non-X509 identity types in tests, manually construct the JSON, Base64-encode it, and pass it as the `x-rh-identity` header. Follow the patterns in `IdentityTest.java` (`testSamlIdentity`, `testX509Identity`, `testServiceAccountIdentity`).
+
 ## Verification
 
 ```bash
-# Run all tests including security-related identity, allow-list, and validation tests
+# Run identity deserialization and allow-list tests
+./mvnw test -Dtest=IdentityTest,AllowListTest --no-transfer-progress
+
+# Run full test suite including all security-related tests
 ./mvnw test --no-transfer-progress
 
-# Verify allow-list test coverage
-./mvnw test -Dtest=AllowListTest --no-transfer-progress
+# Verify input validation and email recipient tests
+./mvnw test -Dtest=RestActionValidationTest,GwResourceTest#testForbiddenRecipientsEmails --no-transfer-progress
 
-# Verify identity parsing test coverage
-./mvnw test -Dtest=IdentityTest --no-transfer-progress
-
-# Verify input validation test coverage
-./mvnw test -Dtest=RestActionValidationTest --no-transfer-progress
-
-# Verify email and recipient validation tests
-./mvnw test -Dtest=GwResourceTest#testForbiddenRecipientsEmails --no-transfer-progress
+# Verify all identity subtypes are registered
+grep -c "@JsonSubTypes.Type" src/main/java/com/redhat/cloud/notifications/auth/Identity.java
 
 # Check for secrets or credentials accidentally committed
 grep -riE "(api_key|password|secret|token|credential)\s*[:=]\s*['\"][^'\"]{8,}" src/main/resources/

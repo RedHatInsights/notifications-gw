@@ -85,6 +85,5 @@ Read the relevant guideline before working in that domain:
 - [docs/logging-and-observability-guidelines.md](docs/logging-and-observability-guidelines.md) — Logging framework, log levels, CloudWatch/Sentry sinks, Micrometer metrics, and health checks
 - [docs/performance-guidelines.md](docs/performance-guidelines.md) — Kafka callback timeout, retry overhead, bulk caches vs per-request validation, and resource limits
 - [docs/quarkus-guidelines.md](docs/quarkus-guidelines.md) — Quarkus config patterns, CDI scoping, RESTEasy Reactive, caching, and startup lifecycle
-- [docs/rh-identity-guidelines.md](docs/rh-identity-guidelines.md) — Identity type hierarchy, header decoding, RHIdAuthMechanism, and test identity construction
-- [docs/security-guidelines.md](docs/security-guidelines.md) — Authentication enforcement, allow-list controls, log injection prevention, and CI security scanning
+- [docs/security-guidelines.md](docs/security-guidelines.md) — Authentication mechanism, identity dispatch, allow-list controls, log injection prevention, and CI security scanning
 - [docs/testing-guidelines.md](docs/testing-guidelines.md) — Test annotations, REST Assured patterns, MockServer setup, cache handling, and parameterized tests
