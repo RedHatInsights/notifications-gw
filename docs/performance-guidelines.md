@@ -18,10 +18,6 @@
 
 - The `getSourceEnvironment()` method in `GwResource.java` performs a linear scan over the `sourceEnvironments` list. If this list grows beyond a few hundred entries, prefer replacing it with a lookup `Map` keyed by a composite of `bundle + application + subjectDn`.
 
-## Kafka Message Construction
-
-- The Kafka topic `platform.notifications.ingress` is configured with 3 partitions in `clowdapp.yaml`. When scaling replicas (`MIN_REPLICAS`), keep replica count at or below the partition count to avoid idle consumers.
-
 ## Metrics Cardinality
 
 - Avoid high-cardinality tags (e.g., org IDs, UUIDs) on Micrometer counters -- they create unbounded metric series and increase Prometheus scrape memory.
