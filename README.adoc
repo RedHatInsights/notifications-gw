@@ -1,53 +1,251 @@
-# notifications-gw project
+= notifications-gw
+:toc: auto
+:toclevels: 3
 
-To run the application you'll need Kafka running on port 9092.
-To start kafka you can use the included `docker-compose.yaml` file and use it via `docker-compose up`
+Notifications Gateway is a Red Hat Insights microservice that receives notification payloads via REST, validates them against `notifications-backend`, and forwards them to Kafka (`platform.notifications.ingress`). It acts as the public entry point for the notifications platform -- there is exactly one Kafka producer channel and no consumers. The gateway does not own any database or persistent state.
 
-This project uses Quarkus, the Supersonic Subatomic Java Framework.
+The service is built with *Java 21* and *Quarkus 3.30.5*, packaged as a JVM container on UBI 9, and deployed via Clowder on OpenShift. It is licensed under the Apache License 2.0.
 
-If you want to learn more about Quarkus, please visit its website: https://quarkus.io/ .
+== Tech Stack and Key Dependencies
 
-## Running the application in dev mode
+[cols="1,2"]
+|===
+| Component | Detail
 
-You can run your application in dev mode that enables live coding using:
+| Language
+| Java 21
+
+| Framework
+| Quarkus 3.30.5 (RESTEasy Reactive, SmallRye Reactive Messaging, SmallRye Fault Tolerance, SmallRye Health, SmallRye OpenAPI)
+
+| Messaging
+| Apache Kafka via `quarkus-messaging-kafka` -- single producer to `platform.notifications.ingress`
+
+| Caching
+| Quarkus Cache (Caffeine) for bulk BAET and certificate validation
+
+| Metrics
+| Micrometer with Prometheus registry
+
+| Logging
+| Quarkus logging with CloudWatch and Sentry extensions
+
+| Validation
+| Hibernate Validator (Bean Validation)
+
+| Security
+| Custom `x-rh-identity` header authentication mechanism
+
+| Platform config
+| link:https://github.com/RedHatInsights/clowder-quarkus-config-source[Clowder Quarkus Config Source]
+
+| Build tool
+| Maven wrapper (`./mvnw`) -- always use this, never system `mvn`
+
+| CI
+| GitHub Actions (build + test), Tekton pipelines, CodeQL analysis
+
+| Testing
+| JUnit 5, REST Assured, MockServer, Awaitility, in-memory Kafka connector
+|===
+
+== Project Structure
+
+----
+src/
+  main/
+    java/com/redhat/cloud/notifications/
+      auth/             # x-rh-identity authentication mechanism and identity types
+      model/            # DTO model classes (e.g., SourceEnvironment)
+      GwResource.java   # Main REST endpoint: POST /notifications
+      GwConfig.java     # Application configuration bean
+      RestAction.java   # Inbound notification payload DTO
+      RestValidationClient.java  # REST client to notifications-backend (per-request validation)
+      RestInternalClient.java    # REST client for bulk cache data
+      IncomingRequestInterceptor.java  # Path rewriting and log-injection prevention
+      ISO8601Timestamp.java      # Custom timestamp validation constraint
+      SamplesResource.java       # Sample payload endpoint
+    resources/
+      application.properties     # All application and Quarkus configuration
+    docker/
+      Dockerfile-build.jvm       # Multi-stage JVM build Dockerfile
+  test/
+    java/com/redhat/cloud/notifications/
+      GwResourceTest.java        # Main endpoint tests (both validation paths)
+      TestLifecycleManager.java  # Starts MockServer and in-memory Kafka connector
+      ...                        # Identity, validation, allow-list, and other tests
+.rhcicd/
+  clowdapp.yaml                  # ClowdApp OpenShift template
+  build_deploy.sh                # CI build/deploy script
+.tekton/                         # Tekton pipeline definitions
+.github/workflows/               # GitHub Actions CI workflows
+docs/                            # Detailed domain-specific guidelines
+AGENTS.md                        # Cross-cutting coding conventions for AI agents
+----
+
+== Getting Started
+
+=== Prerequisites
+
+* *JDK 21* (e.g., OpenJDK, Adoptium)
+* *Docker* or *Podman* (for Kafka in dev mode)
+
+=== Running the application in dev mode
+
+Start Kafka first using the included Docker Compose file, then launch Quarkus in dev mode with live reload:
+
 [source,shell]
 ----
-./mvnw compile quarkus:dev
+docker-compose up -d
+./mvnw quarkus:dev
 ----
 
-## Packaging and running the application
+The dev server starts on port *8086* (see `application.properties`).
 
-The application can be packaged using:
+=== Building and running the application
+
+Package the application:
+
 [source,shell]
 ----
 ./mvnw package
 ----
 
-It produces the `notifications-gw-1.0.0-SNAPSHOT-runner.jar` file in the `/target` directory.
-Be aware that it’s not an _über-jar_ as the dependencies are copied into the `target/lib` directory.
+This produces a fast-jar in `target/quarkus-app/`. Run it with:
 
-If you want to build an _über-jar_, execute the following command:
-[souce,shell]
+[source,shell]
+----
+java -jar target/quarkus-app/quarkus-run.jar
+----
+
+To build an uber-jar instead:
+
+[source,shell]
 ----
 ./mvnw package -Dquarkus.package.type=uber-jar
 ----
 
-The application is now runnable using `java -jar target/notifications-gw-1.0.0-SNAPSHOT-runner.jar`.
+=== Running tests
 
-## Usage of the Clowder Config Source
+Tests require *no external services* -- `TestLifecycleManager` starts MockServer and switches Kafka to an in-memory connector automatically. Docker is not needed.
 
-This project uses the Clowder Config Source from https://github.com/RedHatInsights/clowder-quarkus-config-source To configure this source to use
-a different file than `/cdappconfig/cdappconfig.json` you can use the property `clowder.file=/path/to/file.json`.
+[source,shell]
+----
+# Full build + all tests (matches CI)
+./mvnw clean package --no-transfer-progress
 
-## Enabling the MockServer log during tests
+# Tests only (faster iteration)
+./mvnw test
 
-This project uses link:https://www.mock-server.com[MockServer] to mock external services during the tests execution.
+# Single test class
+./mvnw test -Dtest=GwResourceTest
 
-The MockServer log is disabled by default to reduce the noise in the application log.
-It can be enabled by adding the following argument to the Maven build command:
+# Single test method
+./mvnw test -Dtest=GwResourceTest#testNotificationsEndpoint
 
-```
--Dmockserver.logLevel=WARN|INFO|DEBUG|TRACE
-```
+# Enable MockServer logging for debugging
+./mvnw test -Dmockserver.logLevel=WARN
+----
 
-Details about each MockServer log level are available in the link:https://www.mock-server.com/mock_server/debugging_issues.html[MockServer documentation].
+See link:AGENTS.md[AGENTS.md] for additional test tips including cache invalidation and parameterized test patterns.
+
+== Configuration
+
+=== Key Application Properties
+
+All application-specific properties use the `notifications.*` prefix. Key settings include:
+
+* `notifications.bulk-caches.enabled` -- Toggle between per-request REST validation and locally cached bulk validation
+* `notifications.allow-list.enabled` / `notifications.allow-list.org-ids` -- Org ID allow-list for staging environments
+* `notifications.kafka-callback-timeout-seconds` -- Kafka ack/nack callback timeout
+* `notifications.emails.internal-only.enabled` -- Restrict recipient emails to internal addresses
+
+=== Clowder Config Source
+
+This project uses the link:https://github.com/RedHatInsights/clowder-quarkus-config-source[Clowder Quarkus Config Source]. To point it at a different config file than the default `/cdappconfig/cdappconfig.json`:
+
+[source,properties]
+----
+clowder.file=/path/to/file.json
+----
+
+=== Port Configuration
+
+[cols="1,1"]
+|===
+| Environment | Port
+
+| Dev (`application.properties`)
+| 8086
+
+| Production (`clowdapp.yaml` via `QUARKUS_HTTP_PORT`)
+| 8000
+
+| Dockerfile `EXPOSE`
+| 8080
+|===
+
+=== Non-application Root Path
+
+Health (`/health/*`), metrics (`/metrics`), and OpenAPI (`/openapi.json`) are served at `/` -- *not* under `/q/`. This is set by `quarkus.http.non-application-root-path=/`.
+
+== Documentation
+
+For detailed conventions, architecture, and domain-specific guidelines, see:
+
+* link:AGENTS.md[AGENTS.md] -- Cross-cutting coding conventions, architecture context, test commands, common pitfalls, and PR expectations
+* link:docs/[docs/] -- Domain-specific guideline files covering:
+
+[cols="1,2"]
+|===
+| Guideline | Scope
+
+| link:docs/api-contracts-guidelines.md[api-contracts]
+| RestAction payload format, response envelope, authentication headers
+
+| link:docs/async-and-messaging-guidelines.md[async-and-messaging]
+| Kafka producer pattern, ack/nack callbacks, message headers
+
+| link:docs/code-organization-guidelines.md[code-organization]
+| Package structure, REST resource conventions, bean validation, caching
+
+| link:docs/configuration-guidelines.md[configuration]
+| Application properties, GwConfig bean, environment variable mapping
+
+| link:docs/data-validation-guidelines.md[data-validation]
+| Bean Validation constraints, custom timestamp validation
+
+| link:docs/dependency-management-guidelines.md[dependency-management]
+| Version properties, Quarkus BOM alignment, automated updates
+
+| link:docs/deployment-guidelines.md[deployment]
+| Dockerfile, Tekton/GitHub Actions CI, ClowdApp template, health probes
+
+| link:docs/error-handling-guidelines.md[error-handling]
+| HTTP status codes, failures counter, logging levels
+
+| link:docs/fault-tolerance-guidelines.md[fault-tolerance]
+| REST client retry policy, Kafka callback pattern
+
+| link:docs/integration-guidelines.md[integration]
+| Kafka message production, REST client registration, path routing
+
+| link:docs/logging-and-observability-guidelines.md[logging-and-observability]
+| Logging framework, log levels, CloudWatch/Sentry, Micrometer metrics
+
+| link:docs/performance-guidelines.md[performance]
+| Kafka callback timeout, retry overhead, bulk caches vs per-request
+
+| link:docs/quarkus-guidelines.md[quarkus]
+| Quarkus config patterns, CDI scoping, RESTEasy Reactive, caching
+
+| link:docs/security-guidelines.md[security]
+| Authentication mechanism, identity dispatch, allow-list controls, log injection prevention
+
+| link:docs/testing-guidelines.md[testing]
+| Test annotations, REST Assured patterns, MockServer setup, parameterized tests
+|===
+
+== License
+
+This project is licensed under the link:LICENSE[Apache License 2.0].
