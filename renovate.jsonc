@@ -1,0 +1,35 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": ["github>konflux-ci/mintmaker//config/renovate/renovate.json"],
+  "baseBranchPatterns": ["main"],
+  "tekton": {
+    "schedule": ["at any time"]
+  },
+  "packageRules": [
+    {
+      "matchManagers": ["github-actions"],
+      "matchUpdateTypes": ["patch", "minor"],
+      // Delay before automerging, to reduce the risk of merging a compromised release (supply-chain attacks are often caught and pulled within days of publishing).
+      "minimumReleaseAge": "3 days",
+      "automerge": true
+    },
+    {
+      "matchManagers": ["maven"],
+      "matchUpdateTypes": ["patch", "minor"],
+      // Delay before automerging, to reduce the risk of merging a compromised release (supply-chain attacks are often caught and pulled within days of publishing).
+      "minimumReleaseAge": "3 days",
+      "automerge": true
+    },
+    {
+      // Quarkus bumps need manual review so we stick to the latest LTS instead of the newest minor. See https://quarkus.io/releases/.
+      "matchManagers": ["maven"],
+      "matchPackageNames": ["io.quarkus*"],
+      "automerge": false
+    },
+    {
+      // Maven wrapper version bumps (.mvn/wrapper/maven-wrapper.properties, mvnw) need manual review.
+      "matchManagers": ["maven-wrapper"],
+      "automerge": false
+    }
+  ]
+}
