@@ -31,7 +31,6 @@ import io.vertx.ext.web.RoutingContext;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.ws.rs.core.Response;
 import java.util.Collections;
-import java.util.Optional;
 import java.util.Set;
 
 /**
@@ -48,22 +47,25 @@ public class RHIdAuthMechanism implements HttpAuthenticationMechanism {
     public Uni<SecurityIdentity> authenticate(RoutingContext context, IdentityProviderManager identityProviderManager) {
         String xRhIdentityHeaderValue = context.request().getHeader(X_RH_IDENTITY_HEADER);
 
-        Optional<XRhIdentity> oxid = HeaderHelper.getRhIdFromString(xRhIdentityHeaderValue);
-        if (oxid.isEmpty()) {
-            return Uni.createFrom().failure(new AuthenticationFailedException(String.format("Missing or invalid %s header", X_RH_IDENTITY_HEADER)));
-        }
+        return Uni.createFrom().item(() -> {
+            XRhIdentity xid = HeaderHelper.getRhIdFromString(xRhIdentityHeaderValue)
+                    .orElseThrow(() -> {
+                        // The raw header value is not logged here: HeaderHelper already logs it at WARN level
+                        // when decoding fails, and it must never be logged on a missing-header rejection since
+                        // there is nothing sensitive to add beyond the fact that it was absent.
+                        Log.warnf("Rejecting request: %s header is %s", X_RH_IDENTITY_HEADER, xRhIdentityHeaderValue == null ? "missing" : "invalid");
+                        return new AuthenticationFailedException(String.format("Missing or invalid %s header", X_RH_IDENTITY_HEADER));
+                    });
 
-        XRhIdentity xid = oxid.get();
-        String subject = xid.getSubject();
-        String type = xid.getType();
+            String subject = xid.getSubject();
+            String type = xid.getType();
 
-        Log.debugf("Using subject %s, from type %s", subject, type);
+            Log.debugf("Using subject %s, from type %s", subject, type);
 
-        return Uni.createFrom().item(
-                QuarkusSecurityIdentity.builder()
+            return QuarkusSecurityIdentity.builder()
                     .setPrincipal(new RhIdPrincipal(subject, type))
-                    .build()
-        );
+                    .build();
+        });
     }
 
     @Override

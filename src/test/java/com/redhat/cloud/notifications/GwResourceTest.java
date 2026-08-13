@@ -451,8 +451,7 @@ public class GwResourceTest {
         assertFalse(am.containsKey("recipients_authorization_criterion"));
     }
 
-    @Test
-    void testMissingIdentityHeaderIsRejected() {
+    private static RestAction buildValidRestAction() {
         RestAction ra = new RestAction();
         ra.setBundle("my-bundle");
         ra.setOrgId("123");
@@ -460,9 +459,13 @@ public class GwResourceTest {
         ra.setEventType("a_type");
         ra.setEvents(new ArrayList<>());
         ra.setTimestamp("2020-12-18T17:04:04.417921");
+        return ra;
+    }
 
+    @Test
+    void testMissingIdentityHeaderIsRejected() {
         given()
-                .body(ra)
+                .body(buildValidRestAction())
                 .contentType(MediaType.APPLICATION_JSON)
                 .when().post("/notifications/")
                 .then()
@@ -471,16 +474,8 @@ public class GwResourceTest {
 
     @Test
     void testInvalidIdentityHeaderIsRejected() {
-        RestAction ra = new RestAction();
-        ra.setBundle("my-bundle");
-        ra.setOrgId("123");
-        ra.setApplication("my-app");
-        ra.setEventType("a_type");
-        ra.setEvents(new ArrayList<>());
-        ra.setTimestamp("2020-12-18T17:04:04.417921");
-
         given()
-                .body(ra)
+                .body(buildValidRestAction())
                 .header("x-rh-identity", "not-a-valid-base64-identity")
                 .contentType(MediaType.APPLICATION_JSON)
                 .when().post("/notifications/")
