@@ -17,6 +17,7 @@
 package com.redhat.cloud.notifications.auth;
 
 import io.quarkus.logging.Log;
+import io.quarkus.security.AuthenticationFailedException;
 import io.quarkus.security.identity.IdentityProviderManager;
 import io.quarkus.security.identity.SecurityIdentity;
 import io.quarkus.security.identity.request.AuthenticationRequest;
@@ -28,6 +29,7 @@ import io.smallrye.mutiny.Uni;
 import io.vertx.ext.web.RoutingContext;
 
 import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.ws.rs.core.Response;
 import java.util.Collections;
 import java.util.Optional;
 import java.util.Set;
@@ -46,15 +48,14 @@ public class RHIdAuthMechanism implements HttpAuthenticationMechanism {
     public Uni<SecurityIdentity> authenticate(RoutingContext context, IdentityProviderManager identityProviderManager) {
         String xRhIdentityHeaderValue = context.request().getHeader(X_RH_IDENTITY_HEADER);
 
-        String subject = "-unset-";
-        String type = "-unset-";
-
         Optional<XRhIdentity> oxid = HeaderHelper.getRhIdFromString(xRhIdentityHeaderValue);
-        if (oxid.isPresent()) {
-            XRhIdentity xid = oxid.get();
-            subject = xid.getSubject();
-            type = xid.getType();
+        if (oxid.isEmpty()) {
+            return Uni.createFrom().failure(new AuthenticationFailedException(String.format("Missing or invalid %s header", X_RH_IDENTITY_HEADER)));
         }
+
+        XRhIdentity xid = oxid.get();
+        String subject = xid.getSubject();
+        String type = xid.getType();
 
         Log.debugf("Using subject %s, from type %s", subject, type);
 
@@ -67,7 +68,7 @@ public class RHIdAuthMechanism implements HttpAuthenticationMechanism {
 
     @Override
     public Uni<ChallengeData> getChallenge(RoutingContext context) {
-        return Uni.createFrom().nullItem();
+        return Uni.createFrom().item(new ChallengeData(Response.Status.UNAUTHORIZED.getStatusCode(), null, null));
     }
 
     @Override

@@ -452,6 +452,43 @@ public class GwResourceTest {
     }
 
     @Test
+    void testMissingIdentityHeaderIsRejected() {
+        RestAction ra = new RestAction();
+        ra.setBundle("my-bundle");
+        ra.setOrgId("123");
+        ra.setApplication("my-app");
+        ra.setEventType("a_type");
+        ra.setEvents(new ArrayList<>());
+        ra.setTimestamp("2020-12-18T17:04:04.417921");
+
+        given()
+                .body(ra)
+                .contentType(MediaType.APPLICATION_JSON)
+                .when().post("/notifications/")
+                .then()
+                .statusCode(401);
+    }
+
+    @Test
+    void testInvalidIdentityHeaderIsRejected() {
+        RestAction ra = new RestAction();
+        ra.setBundle("my-bundle");
+        ra.setOrgId("123");
+        ra.setApplication("my-app");
+        ra.setEventType("a_type");
+        ra.setEvents(new ArrayList<>());
+        ra.setTimestamp("2020-12-18T17:04:04.417921");
+
+        given()
+                .body(ra)
+                .header("x-rh-identity", "not-a-valid-base64-identity")
+                .contentType(MediaType.APPLICATION_JSON)
+                .when().post("/notifications/")
+                .then()
+                .statusCode(401);
+    }
+
+    @Test
     void noEmptyContent() {
 
         String identity = TestHelpers.encodeIdentityInfo("test", "user");
