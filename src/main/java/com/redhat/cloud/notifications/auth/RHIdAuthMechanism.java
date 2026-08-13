@@ -47,29 +47,31 @@ public class RHIdAuthMechanism implements HttpAuthenticationMechanism {
     public Uni<SecurityIdentity> authenticate(RoutingContext context, IdentityProviderManager identityProviderManager) {
         String xRhIdentityHeaderValue = context.request().getHeader(X_RH_IDENTITY_HEADER);
 
-        return Uni.createFrom().item(() -> {
-            XRhIdentity xid = HeaderHelper.getRhIdFromString(xRhIdentityHeaderValue)
-                    .orElseThrow(() -> {
-                        // The raw header value is not logged here: HeaderHelper already logs it at WARN level
-                        // when decoding fails, and it must never be logged on a missing-header rejection since
-                        // there is nothing sensitive to add beyond the fact that it was absent.
-                        Log.warnf("Rejecting request: %s header is %s", X_RH_IDENTITY_HEADER, xRhIdentityHeaderValue == null ? "missing" : "invalid");
-                        return new AuthenticationFailedException(String.format("Missing or invalid %s header", X_RH_IDENTITY_HEADER));
-                    });
+        XRhIdentity xid = HeaderHelper.getRhIdFromString(xRhIdentityHeaderValue)
+                .orElseThrow(() -> {
+                    // The raw header value is not logged here: HeaderHelper already logs it at WARN level
+                    // when decoding fails, and it must never be logged on a missing-header rejection since
+                    // there is nothing sensitive to add beyond the fact that it was absent.
+                    Log.warnf("Rejecting request: %s header is %s", X_RH_IDENTITY_HEADER, xRhIdentityHeaderValue == null ? "missing" : "invalid");
+                    return new AuthenticationFailedException(String.format("Missing or invalid %s header", X_RH_IDENTITY_HEADER));
+                });
 
-            String subject = xid.getSubject();
-            String type = xid.getType();
+        String subject = xid.getSubject();
+        String type = xid.getType();
 
-            Log.debugf("Using subject %s, from type %s", subject, type);
+        Log.debugf("Using subject %s, from type %s", subject, type);
 
-            return QuarkusSecurityIdentity.builder()
-                    .setPrincipal(new RhIdPrincipal(subject, type))
-                    .build();
-        });
+        SecurityIdentity identity = QuarkusSecurityIdentity.builder()
+                .setPrincipal(new RhIdPrincipal(subject, type))
+                .build();
+
+        return Uni.createFrom().item(identity);
     }
 
     @Override
     public Uni<ChallengeData> getChallenge(RoutingContext context) {
+        // Invoked by Quarkus REST's AuthenticationFailedExceptionMapper when authenticate() fails,
+        // to build the HTTP response sent back to the caller.
         return Uni.createFrom().item(new ChallengeData(Response.Status.UNAUTHORIZED.getStatusCode(), null, null));
     }
 
