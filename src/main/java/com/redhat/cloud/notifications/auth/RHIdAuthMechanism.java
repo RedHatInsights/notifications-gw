@@ -60,11 +60,11 @@ public class RHIdAuthMechanism implements HttpAuthenticationMechanism {
 
         Log.debugf("Using subject %s, from type %s", subject, type);
 
-        SecurityIdentity identity = QuarkusSecurityIdentity.builder()
-                .setPrincipal(new RhIdPrincipal(subject, type))
-                .build();
-
-        return Uni.createFrom().item(identity);
+        return Uni.createFrom().item(
+                QuarkusSecurityIdentity.builder()
+                    .setPrincipal(new RhIdPrincipal(subject, type))
+                    .build()
+        );
     }
 
     @Override
