@@ -29,7 +29,6 @@ import io.smallrye.mutiny.Uni;
 import io.vertx.ext.web.RoutingContext;
 
 import jakarta.enterprise.context.ApplicationScoped;
-import jakarta.ws.rs.core.Response;
 import java.util.Collections;
 import java.util.Set;
 
@@ -70,9 +69,9 @@ public class RHIdAuthMechanism implements HttpAuthenticationMechanism {
 
     @Override
     public Uni<ChallengeData> getChallenge(RoutingContext context) {
-        // Invoked by Quarkus REST's AuthenticationFailedExceptionMapper when authenticate() fails,
-        // to build the HTTP response sent back to the caller.
-        return Uni.createFrom().item(new ChallengeData(Response.Status.UNAUTHORIZED.getStatusCode(), null, null));
+        // No custom challenge: when authenticate() fails, Quarkus REST's AuthenticationFailedExceptionMapper
+        // calls this and, on a null item, falls back to its default 401 response.
+        return Uni.createFrom().nullItem();
     }
 
     @Override
