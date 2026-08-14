@@ -134,6 +134,11 @@ public class GwResource {
     public Response forward(@jakarta.ws.rs.core.Context SecurityContext sec, @NotNull @Valid RestAction ra) {
         receivedActions.increment();
 
+        // Logged once here, at DEBUG only, since the REST action may contain PII such as recipient emails. Even if
+        // DEBUG logging is turned on, quarkus.log.cloudwatch.level=INFO means it still won't reach CloudWatch.
+        // Downstream log statements only need to carry the request id to correlate back to this entry.
+        Log.debugf("Received request id: %s, REST action: %s", ra.getId(), ra);
+
         String sourceEnvironment = null;
         RhIdPrincipal principal = (RhIdPrincipal) sec.getUserPrincipal();
         if (X509_IDENTITY_TYPE.equals(principal.getType()) || SERVICE_ACCOUNT_IDENTITY_TYPE.equals(principal.getType())) {
@@ -209,18 +214,19 @@ public class GwResource {
                     Log.error("Could not retrieve entity from notifications-backend response", ex);
                 }
                 // Determine which status code we will return to the gateway caller
-                // and log the error appropriately.
-                final String logMessage = "Unable to validate the provided rest action due to notifications-backend responding with an error. Received status code: %s, received error message: %s, received REST action in the gateway: %s";
+                // and log the error appropriately. The REST action itself was already logged at DEBUG when the
+                // request came in, so these entries only need the request id to correlate back to it.
+                final String logMessage = "Unable to validate the provided rest action due to notifications-backend responding with an error. Request id: %s, received status code: %s, received error message: %s";
                 final Status returningStatusCodeFromGW;
                 final String returningErrorMessageFromGW;
                 if (response.getStatus() == BAD_REQUEST.getStatusCode()) {
                     returningStatusCodeFromGW = BAD_REQUEST;
                     returningErrorMessageFromGW = incomingErrorMessage;
-                    Log.debugf(logMessage, response.getStatus(), incomingErrorMessage, ra);
+                    Log.debugf(logMessage, ra.getId(), response.getStatus(), incomingErrorMessage);
                 } else {
                     returningStatusCodeFromGW = SERVICE_UNAVAILABLE;
                     returningErrorMessageFromGW = "Unable to validate the message, please try again later";
-                    Log.errorf(logMessage, response.getStatus(), incomingErrorMessage, ra);
+                    Log.errorf(logMessage, ra.getId(), response.getStatus(), incomingErrorMessage);
                 }
 
                 this.incrementFailuresCounter(returningStatusCodeFromGW);
@@ -232,7 +238,9 @@ public class GwResource {
                     .entity(buildResponseEntity(false, returningErrorMessageFromGW))
                     .build();
             } catch (final ProcessingException e) {
-                Log.errorf(e, "Unable to reach notifications-backend to validate the following payload: %s", ra);
+                // The REST action itself was already logged at DEBUG when the request came in; this only needs
+                // the request id to correlate back to it.
+                Log.errorf(e, "Unable to reach notifications-backend to validate the request. Request id: %s", ra.getId());
 
                 this.incrementFailuresCounter(SERVICE_UNAVAILABLE);
 

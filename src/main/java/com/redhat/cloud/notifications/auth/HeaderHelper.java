@@ -45,7 +45,12 @@ public abstract class HeaderHelper {
             String jsonString = new String(Base64.getDecoder().decode(xRhIdHeader.getBytes(UTF_8)), UTF_8);
             rhIdentity = om.readValue(jsonString, XRhIdentity.class);
         } catch (Exception e) {
-            Log.warnf(e, "%s header deserialization failed: %s", X_RH_IDENTITY_HEADER, xRhIdHeader);
+            // Two entries on purpose: the raw header may contain PII, so it's only logged at DEBUG. Even if DEBUG
+            // logging is turned on, quarkus.log.cloudwatch.level=INFO means it still won't reach CloudWatch.
+            // The WARN entry omits the header value, but will reach us through Sentry, helping draw attention to
+            // possible issues.
+            Log.debugf(e, "%s header deserialization failed: %s", X_RH_IDENTITY_HEADER, xRhIdHeader);
+            Log.warnf(e, "%s header deserialization failed", X_RH_IDENTITY_HEADER);
             return Optional.empty();
         }
         return Optional.ofNullable(rhIdentity);
