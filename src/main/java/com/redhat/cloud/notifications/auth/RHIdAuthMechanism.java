@@ -48,7 +48,7 @@ public class RHIdAuthMechanism implements HttpAuthenticationMechanism {
 
         XRhIdentity xid = HeaderHelper.getRhIdFromString(xRhIdentityHeaderValue)
                 .orElseThrow(() -> {
-                    // The raw header value is not logged here: HeaderHelper already logs it at WARN level
+                    // The raw header value is not logged here: HeaderHelper already logs it at DEBUG level
                     // when decoding fails, and it must never be logged on a missing-header rejection since
                     // there is nothing sensitive to add beyond the fact that it was absent.
                     Log.warnf("Rejecting request: %s header is %s", X_RH_IDENTITY_HEADER, xRhIdentityHeaderValue == null ? "missing" : "invalid");
