@@ -17,6 +17,7 @@
 package com.redhat.cloud.notifications.auth;
 
 import io.quarkus.logging.Log;
+import io.quarkus.security.AuthenticationFailedException;
 import io.quarkus.security.identity.IdentityProviderManager;
 import io.quarkus.security.identity.SecurityIdentity;
 import io.quarkus.security.identity.request.AuthenticationRequest;
@@ -29,7 +30,6 @@ import io.vertx.ext.web.RoutingContext;
 
 import jakarta.enterprise.context.ApplicationScoped;
 import java.util.Collections;
-import java.util.Optional;
 import java.util.Set;
 
 /**
@@ -46,15 +46,17 @@ public class RHIdAuthMechanism implements HttpAuthenticationMechanism {
     public Uni<SecurityIdentity> authenticate(RoutingContext context, IdentityProviderManager identityProviderManager) {
         String xRhIdentityHeaderValue = context.request().getHeader(X_RH_IDENTITY_HEADER);
 
-        String subject = "-unset-";
-        String type = "-unset-";
+        XRhIdentity xid = HeaderHelper.getRhIdFromString(xRhIdentityHeaderValue)
+                .orElseThrow(() -> {
+                    // The raw header value is not logged here: HeaderHelper already logs it at DEBUG level
+                    // when decoding fails, and it must never be logged on a missing-header rejection since
+                    // there is nothing sensitive to add beyond the fact that it was absent.
+                    Log.warnf("Rejecting request: %s header is %s", X_RH_IDENTITY_HEADER, xRhIdentityHeaderValue == null ? "missing" : "invalid");
+                    return new AuthenticationFailedException(String.format("Missing or invalid %s header", X_RH_IDENTITY_HEADER));
+                });
 
-        Optional<XRhIdentity> oxid = HeaderHelper.getRhIdFromString(xRhIdentityHeaderValue);
-        if (oxid.isPresent()) {
-            XRhIdentity xid = oxid.get();
-            subject = xid.getSubject();
-            type = xid.getType();
-        }
+        String subject = xid.getSubject();
+        String type = xid.getType();
 
         Log.debugf("Using subject %s, from type %s", subject, type);
 
@@ -67,6 +69,8 @@ public class RHIdAuthMechanism implements HttpAuthenticationMechanism {
 
     @Override
     public Uni<ChallengeData> getChallenge(RoutingContext context) {
+        // No custom challenge: when authenticate() fails, Quarkus REST's AuthenticationFailedExceptionMapper
+        // calls this and, on a null item, falls back to its default 401 response.
         return Uni.createFrom().nullItem();
     }
 

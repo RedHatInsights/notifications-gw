@@ -14,6 +14,7 @@ import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Tags;
 import io.quarkus.cache.CacheResult;
 import io.quarkus.logging.Log;
+import io.quarkus.security.Authenticated;
 import io.smallrye.reactive.messaging.kafka.api.OutgoingKafkaRecordMetadata;
 import io.vertx.core.json.JsonObject;
 import jakarta.annotation.PostConstruct;
@@ -67,6 +68,7 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 @Path("/notifications")
 @Consumes(APPLICATION_JSON)
 @Produces(APPLICATION_JSON)
+@Authenticated
 public class GwResource {
 
     public static final String EGRESS_CHANNEL = "egress";

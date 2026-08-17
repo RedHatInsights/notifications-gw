@@ -451,6 +451,38 @@ public class GwResourceTest {
         assertFalse(am.containsKey("recipients_authorization_criterion"));
     }
 
+    private static RestAction buildValidRestAction() {
+        RestAction ra = new RestAction();
+        ra.setBundle("my-bundle");
+        ra.setOrgId("123");
+        ra.setApplication("my-app");
+        ra.setEventType("a_type");
+        ra.setEvents(new ArrayList<>());
+        ra.setTimestamp("2020-12-18T17:04:04.417921");
+        return ra;
+    }
+
+    @Test
+    void testMissingIdentityHeaderIsRejected() {
+        given()
+                .body(buildValidRestAction())
+                .contentType(MediaType.APPLICATION_JSON)
+                .when().post("/notifications/")
+                .then()
+                .statusCode(401);
+    }
+
+    @Test
+    void testInvalidIdentityHeaderIsRejected() {
+        given()
+                .body(buildValidRestAction())
+                .header("x-rh-identity", "not-a-valid-base64-identity")
+                .contentType(MediaType.APPLICATION_JSON)
+                .when().post("/notifications/")
+                .then()
+                .statusCode(401);
+    }
+
     @Test
     void noEmptyContent() {
 
