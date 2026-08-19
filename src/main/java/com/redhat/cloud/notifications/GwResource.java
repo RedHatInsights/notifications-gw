@@ -68,7 +68,6 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 @Path("/notifications")
 @Consumes(APPLICATION_JSON)
 @Produces(APPLICATION_JSON)
-@Authenticated
 public class GwResource {
 
     public static final String EGRESS_CHANNEL = "egress";
@@ -125,6 +124,7 @@ public class GwResource {
     }
 
     @POST
+    @Authenticated
     @Operation(summary = "Forward one message to the notification system")
     @APIResponses({
         @APIResponse(responseCode = "200", description = "Message forwarded"),
@@ -437,6 +437,7 @@ public class GwResource {
      * @return list of org id grouped by event types
      */
     @GET
+    @Authenticated
     @Path("/subscriptions/{bundleName}/{applicationName}")
     @Produces(APPLICATION_JSON)
     public Map<String, List<String>> getOrgSubscriptions(@PathParam("bundleName") String bundleName, @PathParam("applicationName") String applicationName, @RestQuery List<String> eventTypeNames) {
