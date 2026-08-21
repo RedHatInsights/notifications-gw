@@ -83,6 +83,7 @@ public class RestActionValidationTest {
 
         a.setEvents(events);
         a.setTimestamp("2020-12-18T17:04:04.417921");
+        a.setContext(new HashMap<>());
 
         Set<ConstraintViolation<RestAction>> violations = validator.validate(a);
         assertEquals(0,violations.size(), violations.toString());
@@ -97,7 +98,7 @@ public class RestActionValidationTest {
         ra.timestamp="2020-12-18T17:04:04.417921";
 
         Set<ConstraintViolation<RestAction>> violations = validator.validate(ra);
-        assertEquals(6,violations.size(), violations.toString());
+        assertEquals(7,violations.size(), violations.toString());
     }
 
     @Test
@@ -110,7 +111,7 @@ public class RestActionValidationTest {
         ra.timestamp="2020-12-18T17:04:04.417921";
 
         Set<ConstraintViolation<RestAction>> violations = validator.validate(ra);
-        assertEquals(3,violations.size(), violations.toString());
+        assertEquals(4,violations.size(), violations.toString());
     }
 
     @Test
@@ -122,7 +123,7 @@ public class RestActionValidationTest {
         ra.timestamp="2020-12-18T17:04:04.417921";
 
         Set<ConstraintViolation<RestAction>> violations = validator.validate(ra);
-        assertEquals(3,violations.size(), violations.toString());
+        assertEquals(4,violations.size(), violations.toString());
     }
 
 }

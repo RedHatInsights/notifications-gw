@@ -79,6 +79,7 @@ public class RestAction {
     @NotNull
     public List<RestEvent> events;
 
+    @NotNull
     public Map<String, Object> context;
 
     @Valid

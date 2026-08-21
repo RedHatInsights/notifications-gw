@@ -133,6 +133,7 @@ public class GwResourceTest {
         ra.setOrgId("123");
         ra.setApplication("my-invalid-app");
         ra.setEventType("a_invalid-type");
+        ra.setContext(Map.of());
 
         if (isBulkCachesEnabled) {
             errorMessage = String.format("No event type found for [bundle=%s, application=%s, eventType=%s]",
@@ -199,6 +200,7 @@ public class GwResourceTest {
             ra.setOrgId("123");
             ra.setApplication("my-invalid-app");
             ra.setEventType("a_invalid-type");
+            ra.setContext(Map.of());
 
             final List<RestEvent> events = new ArrayList<>();
             ra.setEvents(events);
@@ -451,6 +453,86 @@ public class GwResourceTest {
         assertFalse(am.containsKey("recipients_authorization_criterion"));
     }
 
+    @Test
+    void testNullContextIsRejected() {
+        String identity = TestHelpers.encodeIdentityInfo("test", "user");
+
+        // Explicit "context": null in the JSON payload
+        String payload = """
+            {
+                "bundle": "my-bundle",
+                "application": "my-app",
+                "event_type": "a_type",
+                "org_id": "123",
+                "timestamp": "2020-12-18T17:04:04.417921",
+                "events": [],
+                "context": null
+            }
+            """;
+
+        given()
+            .body(payload)
+            .header("x-rh-identity", identity)
+            .contentType(MediaType.APPLICATION_JSON)
+            .when().post("/notifications/")
+            .then()
+            .statusCode(400);
+    }
+
+    @Test
+    void testMissingContextIsRejected() {
+        String identity = TestHelpers.encodeIdentityInfo("test", "user");
+
+        // No "context" key at all in the JSON payload
+        String payload = """
+            {
+                "bundle": "my-bundle",
+                "application": "my-app",
+                "event_type": "a_type",
+                "org_id": "123",
+                "timestamp": "2020-12-18T17:04:04.417921",
+                "events": []
+            }
+            """;
+
+        given()
+            .body(payload)
+            .header("x-rh-identity", identity)
+            .contentType(MediaType.APPLICATION_JSON)
+            .when().post("/notifications/")
+            .then()
+            .statusCode(400);
+    }
+
+    @Test
+    void testEmptyContextIsAccepted() {
+        RestEvent event = new RestEvent();
+        event.setMetadata(new RestMetadata());
+        event.setPayload(Map.of("key", "value"));
+
+        RestAction action = new RestAction();
+        action.setBundle("my-bundle");
+        action.setApplication("my-app");
+        action.setEventType("a_type");
+        action.setOrgId("123");
+        action.setTimestamp("2020-12-18T17:04:04.417921");
+        action.setContext(emptyMap());
+        action.setEvents(List.of(event));
+
+        String identity = TestHelpers.encodeIdentityInfo("test", "user");
+
+        String responseBody = given()
+            .body(action)
+            .header("x-rh-identity", identity)
+            .contentType(MediaType.APPLICATION_JSON)
+            .when().post("/notifications/")
+            .then()
+            .statusCode(200)
+            .extract().asString();
+
+        assertEquals("success", new JsonObject(responseBody).getString("result"));
+    }
+
     private static RestAction buildValidRestAction() {
         RestAction ra = new RestAction();
         ra.setBundle("my-bundle");
@@ -459,6 +541,7 @@ public class GwResourceTest {
         ra.setEventType("a_type");
         ra.setEvents(new ArrayList<>());
         ra.setTimestamp("2020-12-18T17:04:04.417921");
+        ra.setContext(Map.of());
         return ra;
     }
 
