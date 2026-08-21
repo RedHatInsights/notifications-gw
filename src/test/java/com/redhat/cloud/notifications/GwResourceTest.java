@@ -133,6 +133,7 @@ public class GwResourceTest {
         ra.setOrgId("123");
         ra.setApplication("my-invalid-app");
         ra.setEventType("a_invalid-type");
+        ra.setContext(Map.of());
 
         if (isBulkCachesEnabled) {
             errorMessage = String.format("No event type found for [bundle=%s, application=%s, eventType=%s]",
@@ -199,6 +200,7 @@ public class GwResourceTest {
             ra.setOrgId("123");
             ra.setApplication("my-invalid-app");
             ra.setEventType("a_invalid-type");
+            ra.setContext(Map.of());
 
             final List<RestEvent> events = new ArrayList<>();
             ra.setEvents(events);
@@ -539,6 +541,7 @@ public class GwResourceTest {
         ra.setEventType("a_type");
         ra.setEvents(new ArrayList<>());
         ra.setTimestamp("2020-12-18T17:04:04.417921");
+        ra.setContext(Map.of());
         return ra;
     }
 

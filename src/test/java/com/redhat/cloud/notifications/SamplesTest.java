@@ -61,6 +61,7 @@ public class SamplesTest {
         events.add(event);
         ra.setEvents(events);
         ra.timestamp="2020-12-18T17:04:04.417921";
+        ra.setContext(new HashMap<>());
 
         given()
                 .body(ra)
