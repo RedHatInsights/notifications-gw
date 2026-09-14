@@ -21,9 +21,10 @@
 ## GitHub Actions Workflows
 
 - `build.yml` runs `./mvnw clean package --no-transfer-progress` on push and PR. It caches `~/.m2/repository` keyed on `pom.xml` hash.
-- `base-image-auto-update.yml` runs daily, checks the `ubi9/openjdk-21-runtime:latest` digest via `skopeo`, and opens a PR if it changed. The digest is tracked in `.baseimage` at the repo root.
 - `platsec-gw.yml` runs Anchore Grype vulnerability scanning and Syft SBOM generation. It points to `dockerfile_path: './src/main/docker'` and `dockerfile_name: 'Dockerfile-build.jvm'`.
 - `codeql-analysis.yml` runs CodeQL for Java on push/PR to `main`.
+- `renovate-config-validator.yml` validates `renovate.jsonc` against the Konflux schema whenever it changes.
+- Base image digest updates for `ubi9/openjdk-21` and `ubi9/openjdk-21-runtime` (both pinned to `tag@sha256` in `Dockerfile-build.jvm`) are handled by Renovate, not a standalone workflow. The old `base-image-auto-update.yml` and its `.baseimage` tracking file were removed.
 
 ## ClowdApp Deployment (`.rhcicd/clowdapp.yaml`)
 

@@ -1,17 +1,15 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
-  "extends": [
-    "github>konflux-ci/mintmaker//config/renovate/renovate.json",
-    // Automerges updates that fix a vulnerability alert with HIGH, CRITICAL or UNKNOWN severity.
-    "github>konflux-ci/mintmaker-presets:cve-automerge-high"
-  ],
-  "baseBranchPatterns": [
-    "main"
-  ],
+  // Renovate overrides for this repository. MintMaker merges them on top of its
+  // global config, which sets the managers, the release-age delay, the
+  // vulnerability alerts, branch naming and PR limits:
+  // https://github.com/konflux-ci/mintmaker/blob/main/config/renovate/renovate.json
   // Raise fix PRs for vulnerabilities found in OSV.dev. Its coverage differs from GitHub's (already enabled by the mintmaker base config), so we need both.
   "osvVulnerabilityAlerts": true,
   "tekton": {
+    // Konflux pipeline updates in .tekton/: the PR's own Konflux build tests them.
     "automerge": true,
+    // Any day, instead of MintMaker's Saturday batch.
     "schedule": ["at any time"]
   },
   "packageRules": [
@@ -42,6 +40,18 @@
       // Maven wrapper version bumps (.mvn/wrapper/maven-wrapper.properties, mvnw) need manual review.
       "matchManagers": ["maven-wrapper"],
       "automerge": false
+    },
+    {
+      // The Konflux PR build builds and tests the image. A digest update is a rebuild of
+      // the same tag; a new RHEL or JDK line is a major and stays on manual review.
+      "matchManagers": ["dockerfile"],
+      "matchUpdateTypes": ["digest", "patch", "minor"],
+      "automerge": true
+    },
+    {
+      // Pins FROM lines to tag@sha256, so rebuilds of a tag arrive as digest PRs.
+      "matchManagers": ["dockerfile"],
+      "pinDigests": true
     }
   ]
 }
