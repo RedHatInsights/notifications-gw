@@ -20,10 +20,10 @@
 
 ## Automated Dependency Updates
 
-- Dependabot handles Maven dependency bumps on a daily schedule and GitHub Actions version bumps weekly, configured in `.github/dependabot.yml`.
-- Renovate is also configured via `renovate.json` (extending `github>konflux-ci/mintmaker//config/renovate/renovate.json`) and runs against the `main` branch.
-- The base container image (`ubi9/openjdk-21-runtime:latest`) is tracked by digest in `.baseimage` and auto-updated nightly by `.github/workflows/base-image-auto-update.yml` using `skopeo inspect`. Do not edit `.baseimage` manually.
-- Prefer merging automated dependency PRs from Dependabot/Renovate rather than manually editing versions, so the commit history retains bot attribution and PR references.
+- Renovate (via MintMaker) handles Maven, GitHub Actions, and base container image updates, configured in `renovate.jsonc`. Patch and minor bumps of vetted packages/actions automerge once required checks pass; majors, `io.quarkus*`, and the Maven wrapper stay on manual review. See `renovate.jsonc` for the full rules.
+- Dependabot is not used in this repository; `.github/dependabot.yml` was removed once Renovate covered the same ecosystems, to avoid two bots racing to open PRs for the same bump. Dependabot alerts (Settings > Advanced Security) stay on regardless — Renovate's vulnerability fix PRs are built from those alerts.
+- The base container image (`ubi9/openjdk-21-runtime:latest`) is pinned to `tag@sha256` in `src/main/docker/Dockerfile-build.jvm` and updated via Renovate digest PRs. The old `.github/workflows/base-image-auto-update.yml` script and its `.baseimage` tracking file were removed as redundant.
+- Prefer merging automated dependency PRs from Renovate rather than manually editing versions, so the commit history retains bot attribution and PR references.
 
 ## Adding a New Dependency
 
