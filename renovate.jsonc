@@ -1,4 +1,4 @@
-// Set up with the MintMaker Automerge plugin v0.9.0: https://github.com/gwenneg/mintmaker-automerge
+// Set up with the MintMaker Automerge plugin v0.11.1: https://github.com/gwenneg/mintmaker-automerge
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   // Renovate overrides for this repository. MintMaker merges them on top of its
@@ -32,14 +32,16 @@
     "schedule": ["at any time"]
   },
   "packageRules": [
-    // --- github-actions: patch and minor of actions/cache, actions/checkout, actions/setup-java, github/codeql-action/*; majors and every other action stay manual
+    // --- github-actions: patch and minor of actions/cache, actions/checkout, actions/setup-java, github/codeql-action; majors and every other action stay manual
     {
       "matchManagers": ["github-actions"],
       // Excludes digest-only updates, so a hijacked tag re-pointed to a malicious commit
       // with no version delta never gets automerged.
       "matchUpdateTypes": ["patch", "minor"],
-      // Actions vetted for automerge. Add new ones deliberately.
-      "matchDepNames": ["actions/checkout", "actions/cache", "actions/setup-java", "github/codeql-action/analyze", "github/codeql-action/autobuild", "github/codeql-action/init"],
+      // Actions vetted for automerge. Add new ones deliberately. A name is owner/repo
+      // only: Renovate drops any subpath, so github/codeql-action covers every job
+      // (analyze, autobuild, init) that repo's workflows use.
+      "matchDepNames": ["actions/checkout", "actions/cache", "actions/setup-java", "github/codeql-action"],
       // No minimumReleaseAge here: MintMaker's base config already enforces a delay before automerging, to reduce the risk of merging a compromised release.
       "automerge": true,
       "groupName": "GitHub Actions"
