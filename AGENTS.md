@@ -2,7 +2,7 @@
 
 ## Cross-Cutting Conventions
 
-- **Java 21, Quarkus 3.x, Maven wrapper only.** Always use `./mvnw`, never system `mvn`. The project is a single-module Maven build with no submodules.
+- **Java 25, Quarkus 3.x, Maven wrapper only.** Always use `./mvnw`, never system `mvn`. The project is a single-module Maven build with no submodules.
 - **Package root:** `com.redhat.cloud.notifications`. Sub-packages are `auth` (identity/authentication) and `model` (DTOs shared with notifications-backend). New REST model POJOs go in the root package.
 - **No wildcard imports.** `.editorconfig` sets `ij_java_names_count_to_use_import_on_demand = 999` to force explicit imports.
 - **snake_case JSON, camelCase Java.** Use `@JsonProperty("snake_case_name")` on fields whose wire name differs from the Java name. The canonical examples are `event_type`, `org_id`, `account_id`.
