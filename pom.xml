@@ -23,9 +23,16 @@
     <clowder-quarkus-config-source.version>2.12.0</clowder-quarkus-config-source.version>
     <quarkus-logging-cloudwatch.version>6.16.0</quarkus-logging-cloudwatch.version>
     <quarkus-logging-sentry.version>2.3.5</quarkus-logging-sentry.version>
+    <snappy.version>1.1.10.9</snappy.version>
   </properties>
   <dependencyManagement>
     <dependencies>
+      <!-- CVE-2026-93452: override snappy-java before Quarkus BOM (first-declared wins) -->
+      <dependency>
+        <groupId>org.xerial.snappy</groupId>
+        <artifactId>snappy-java</artifactId>
+        <version>${snappy.version}</version>
+      </dependency>
       <dependency>
         <groupId>${quarkus.platform.group-id}</groupId>
         <artifactId>${quarkus.platform.artifact-id}</artifactId>
