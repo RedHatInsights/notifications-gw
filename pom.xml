@@ -23,9 +23,18 @@
     <clowder-quarkus-config-source.version>2.12.0</clowder-quarkus-config-source.version>
     <quarkus-logging-cloudwatch.version>6.16.0</quarkus-logging-cloudwatch.version>
     <quarkus-logging-sentry.version>2.3.5</quarkus-logging-sentry.version>
+    <jackson-bom.version>2.21.7</jackson-bom.version>
   </properties>
   <dependencyManagement>
     <dependencies>
+      <!-- CVE-2026-89407: override jackson-bom before Quarkus BOM (first-declared wins) -->
+      <dependency>
+        <groupId>com.fasterxml.jackson</groupId>
+        <artifactId>jackson-bom</artifactId>
+        <version>${jackson-bom.version}</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
       <dependency>
         <groupId>${quarkus.platform.group-id}</groupId>
         <artifactId>${quarkus.platform.artifact-id}</artifactId>
