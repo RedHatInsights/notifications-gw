@@ -24,14 +24,20 @@
     <quarkus-logging-cloudwatch.version>6.16.0</quarkus-logging-cloudwatch.version>
     <quarkus-logging-sentry.version>2.3.5</quarkus-logging-sentry.version>
     <snappy.version>1.1.10.9</snappy.version>
+    <lz4.version>1.11.4</lz4.version>
   </properties>
   <dependencyManagement>
     <dependencies>
-      <!-- CVE-2026-93452: override snappy-java before Quarkus BOM (first-declared wins) -->
+      <!-- CVE overrides: declare before Quarkus BOM (first-declared wins) -->
       <dependency>
         <groupId>org.xerial.snappy</groupId>
         <artifactId>snappy-java</artifactId>
         <version>${snappy.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.lz4</groupId>
+        <artifactId>lz4-java</artifactId>
+        <version>${lz4.version}</version>
       </dependency>
       <dependency>
         <groupId>${quarkus.platform.group-id}</groupId>
