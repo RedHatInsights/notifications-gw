@@ -4,7 +4,7 @@
 
 Notifications Gateway is a Red Hat Insights microservice that receives notification payloads via REST, validates them against `notifications-backend`, and forwards them to Kafka (`platform.notifications.ingress`). It acts as the public entry point for the notifications platform -- there is exactly one Kafka producer channel and no consumers. The gateway does not own any database or persistent state.
 
-The service is built with *Java 21* and *Quarkus 3.30.5*, packaged as a JVM container on UBI 9, and deployed via Clowder on OpenShift. It is licensed under the Apache License 2.0.
+The service is built with *Java 25* and *Quarkus 3.30.5*, packaged as a JVM container on UBI 9, and deployed via Clowder on OpenShift. It is licensed under the Apache License 2.0.
 
 == Tech Stack and Key Dependencies
 
@@ -13,7 +13,7 @@ The service is built with *Java 21* and *Quarkus 3.30.5*, packaged as a JVM cont
 | Component | Detail
 
 | Language
-| Java 21
+| Java 25
 
 | Framework
 | Quarkus 3.30.5 (RESTEasy Reactive, SmallRye Reactive Messaging, SmallRye Fault Tolerance, SmallRye Health, SmallRye OpenAPI)
@@ -87,7 +87,7 @@ AGENTS.md                        # Cross-cutting coding conventions for AI agent
 
 === Prerequisites
 
-* *JDK 21* (e.g., OpenJDK, Adoptium)
+* *JDK 25* (e.g., OpenJDK, Adoptium)
 * *Docker* or *Podman* (for Kafka in dev mode)
 
 === Running the application in dev mode

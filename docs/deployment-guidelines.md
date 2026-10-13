@@ -3,7 +3,7 @@
 ## Container Image Build
 
 - Use `src/main/docker/Dockerfile-build.jvm` as the sole Dockerfile for all builds (CI, Tekton, Jenkins). Do not introduce alternative Dockerfiles.
-- Keep the multi-stage structure: build stage uses `ubi9/openjdk-21:latest`, runtime stage uses `ubi9/openjdk-21-runtime:latest`. Both from `registry.access.redhat.com`.
+- Keep the multi-stage structure: build stage uses `ubi9/openjdk-25:latest`, runtime stage uses `ubi9/openjdk-25-runtime:latest`. Both from `registry.access.redhat.com`.
 - Preserve the four-layer COPY pattern for Quarkus app artifacts (`lib/`, `*.jar`, `app/`, `quarkus/`) to maximize Docker layer caching.
 - Keep the `COPY --from=build /home/jboss/LICENSE /licenses/LICENSE` line -- Konflux preflight checks require it.
 - Keep the `microdnf upgrade` step in the runtime stage to ensure base image packages are patched at build time.
@@ -24,7 +24,7 @@
 - `platsec-gw.yml` runs Anchore Grype vulnerability scanning and Syft SBOM generation. It points to `dockerfile_path: './src/main/docker'` and `dockerfile_name: 'Dockerfile-build.jvm'`.
 - `codeql-analysis.yml` runs CodeQL for Java on push/PR to `main`.
 - `renovate-config-validator.yml` validates `renovate.jsonc` against the Konflux schema whenever it changes.
-- Base image digest updates for `ubi9/openjdk-21` and `ubi9/openjdk-21-runtime` (both pinned to `tag@sha256` in `Dockerfile-build.jvm`) are handled by Renovate, not a standalone workflow. The old `base-image-auto-update.yml` and its `.baseimage` tracking file were removed.
+- Base image digest updates for `ubi9/openjdk-25` and `ubi9/openjdk-25-runtime` (both pinned to `tag@sha256` in `Dockerfile-build.jvm`) are handled by Renovate, not a standalone workflow. The old `base-image-auto-update.yml` and its `.baseimage` tracking file were removed.
 
 ## ClowdApp Deployment (`.rhcicd/clowdapp.yaml`)
 
