@@ -19,15 +19,24 @@
 
 ### 3.34 - Micrometer Prometheus ✅ SAFE
 **Change:** Duplicate metric registration with different tags now throws exception  
-**Our Usage:** Reviewed `GwResource.java` - uses simple counters without tags  
-**Code Pattern:**
+**Our Usage:** Reviewed `GwResource.java` - uses both untagged and tagged counters  
+**Code Patterns:**
 ```java
+// Untagged counters
 public GwResource(MeterRegistry registry) {
     receivedActions = registry.counter("notifications.gw.received");
     forwardedActions = registry.counter("notifications.gw.forwarded");
 }
+
+// Tagged counter - SAFE pattern
+private void incrementFailuresCounter(final Status status) {
+    this.meterRegistry.counter(FAILURES_COUNTER, 
+        Tags.of("status_code", String.valueOf(status.getStatusCode()))
+    ).increment();
+}
 ```
-✅ No tags used - no risk of duplicate registration issues  
+✅ **Safe pattern:** The tagged counter uses different tag VALUES (different status codes) with the same tag KEY structure. This is the correct pattern and will not cause duplicate registration issues.  
+⚠️ **Would be unsafe:** Registering the same metric name with different tag KEYS (e.g., first with "status_code", then without tags or with different keys).  
 **Action Required:** None
 
 ### 3.35 - Hibernate ORM 7.3 & REST Assured 6.0 ✅ NOT IMPACTED
@@ -90,7 +99,7 @@ The notifications-gw is a lightweight gateway service with:
 - No database/persistence layer
 - Kafka messaging for event forwarding
 - REST clients for validation
-- Simple metrics (counters without tags)
+- Simple metrics (counters with safe tag usage pattern)
 - No Hibernate/JPA/Panache usage
 
 ### Quarkus Extensions Used
@@ -110,7 +119,7 @@ The notifications-gw is a lightweight gateway service with:
 
 This project has minimal exposure to breaking changes because:
 1. No database/ORM usage (major source of changes in 3.35/3.37)
-2. Simple metrics without tags (no duplicate registration risk)
+2. Metrics use safe patterns (tagged counters with consistent tag keys, no duplicate registration risk)
 3. No Panache/Elasticsearch/TLS Registry Java usage
 4. Stateless architecture limits complexity
 
