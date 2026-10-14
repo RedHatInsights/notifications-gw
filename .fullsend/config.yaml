@@ -20,3 +20,12 @@ create_issues:
 inference:
     project: firefly-868139
     wif_provider: projects/275116376890/locations/global/workloadIdentityPools/uie-github-fullsend-inference/providers/gh-repo-321407091
+agents:
+    - name: triage
+      model: google-vertex/gemini-3.8-flash
+    - name: code
+      model: google-vertex/gemini-3.8-flash
+    - name: review
+      model: google-vertex/gemini-3.8-flash
+    - name: fix
+      model: google-vertex/gemini-3.8-flash
