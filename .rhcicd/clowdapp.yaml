@@ -1,0 +1,144 @@
+---
+apiVersion: template.openshift.io/v1
+kind: Template
+metadata:
+  name: notifications-gw
+objects:
+- apiVersion: cloud.redhat.com/v1alpha1
+  kind: ClowdApp
+  metadata:
+    name: notifications-gw
+    labels:
+      app: notifications-gw
+  spec:
+    envName: ${ENV_NAME}
+    dependencies:
+    - notifications-backend
+    kafkaTopics:
+    - topicName: platform.notifications.ingress
+      partitions: 3
+      replicas: 3
+    deployments:
+    - name: service
+      minReplicas: ${{MIN_REPLICAS}}
+      webServices:
+        public:
+          enabled: true
+          apiPath: notifications-gw
+      podSpec:
+        image: ${IMAGE}:${IMAGE_TAG}
+        resources:
+          requests:
+            cpu: ${CPU_REQUEST}
+            memory: ${MEMORY_REQUEST}
+          limits:
+            cpu: ${CPU_LIMIT}
+            memory: ${MEMORY_LIMIT}
+        volumes:
+        - name: rds-client-ca
+          emptyDir: {}
+        volumeMounts:
+        - name: rds-client-ca
+          mountPath: /tmp
+        readinessProbe:
+          httpGet:
+            path: /health/ready
+            port: 8000
+            scheme: HTTP
+          initialDelaySeconds: 40
+          periodSeconds: 10
+          timeoutSeconds: 1
+          successThreshold: 1
+          failureThreshold: 3
+        livenessProbe:
+          httpGet:
+            path: /health/live
+            port: 8000
+            scheme: HTTP
+          initialDelaySeconds: 40
+          periodSeconds: 10
+          timeoutSeconds: 1
+          successThreshold: 1
+          failureThreshold: 3
+        env:
+        - name: ENV_NAME
+          value: ${ENV_NAME}
+        - name: NOTIFICATIONS_ALLOW_LIST_ENABLED
+          value: ${NOTIFICATIONS_ALLOW_LIST_ENABLED}
+        - name: NOTIFICATIONS_ALLOW_LIST_ORG_IDS
+          value: ${NOTIFICATIONS_ALLOW_LIST_ORG_IDS}
+        - name: NOTIFICATIONS_EMAILS_INTERNAL_ONLY_ENABLED
+          value: ${NOTIFICATIONS_EMAILS_INTERNAL_ONLY_ENABLED}
+        - name: NOTIFICATIONS_KAFKA_CALLBACK_TIMEOUT_SECONDS
+          value: ${NOTIFICATIONS_KAFKA_CALLBACK_TIMEOUT_SECONDS}
+        - name: NOTIFICATIONS_BULK_CACHES_ENABLED
+          value: ${NOTIFICATIONS_BULK_CACHES_ENABLED}
+        - name: QUARKUS_HTTP_PORT
+          value: "8000"
+        - name: QUARKUS_LOG_CATEGORY__COM_REDHAT_CLOUD_NOTIFICATIONS__LEVEL
+          value: ${NOTIFICATIONS_LOG_LEVEL}
+        - name: QUARKUS_LOG_CLOUDWATCH_ENABLED
+          value: ${CLOUDWATCH_ENABLED}
+        - name: QUARKUS_LOG_CLOUDWATCH_LOG_STREAM_NAME
+          value: ${HOSTNAME}
+        - name: QUARKUS_LOG_SENTRY_ENABLED
+          value: ${SENTRY_ENABLED}
+        - name: QUARKUS_LOG_SENTRY_DSN
+          value: ${SENTRY_DSN}${ENV_NAME}
+        - name: QUARKUS_LOG_SENTRY_ENVIRONMENT
+          value: ${ENV_NAME}
+        - name: QUARKUS_LOG_LEVEL
+          value: ${QUARKUS_LOG_LEVEL}
+parameters:
+- name: CLOUDWATCH_ENABLED
+  description: Enable Cloudwatch (or not)
+  value: "false"
+- name: CPU_LIMIT
+  description: CPU limit
+  value: 500m
+- name: CPU_REQUEST
+  description: CPU request
+  value: 500m
+- name: ENV_NAME
+  description: ClowdEnvironment name (ephemeral, stage, prod)
+  required: true
+- name: IMAGE
+  description: Image URL
+  value: quay.io/redhat-services-prod/hcc-integrations-tenant/notifications/notifications-gw
+- name: IMAGE_TAG
+  description: Image tag
+  value: latest
+- name: MEMORY_LIMIT
+  description: Memory limit
+  value: 500Mi
+- name: MEMORY_REQUEST
+  description: Memory request
+  value: 250Mi
+- name: MIN_REPLICAS
+  value: "1"
+- name: NOTIFICATIONS_ALLOW_LIST_ENABLED
+  description: Is the org IDs whitelisting enabled? If true, only whitelisted org IDs are allowed to receive messages originating from a staging environment.
+  value: "false"
+- name: NOTIFICATIONS_ALLOW_LIST_ORG_IDS
+  description: The list of org IDs that are allowed to receive messages originating from a staging environment, when the org IDs whitelisting is enabled.
+  value: "[]"
+- name: NOTIFICATIONS_KAFKA_CALLBACK_TIMEOUT_SECONDS
+  description: Delay in seconds before the app stops waiting for the Kafka ack/nack callback result and returns an HTTP error to the caller
+  value: "60"
+- name: NOTIFICATIONS_LOG_LEVEL
+  description: Log level for com.redhat.cloud.notifications
+  value: INFO
+- name: SENTRY_DSN
+  description: The DSN to push data to Sentry — i.e. https://public_key@host/project_id?environment=
+- name: SENTRY_ENABLED
+  description: Enable Sentry (or not)
+  value: "false"
+- name: NOTIFICATIONS_EMAILS_INTERNAL_ONLY_ENABLED
+  description: Should the recipients.emails field from the payload be restricted to internal email addresses only?
+  value: "false"
+- name: QUARKUS_LOG_LEVEL
+  description: Log level for Quarkus
+  value: INFO
+- name: NOTIFICATIONS_BULK_CACHES_ENABLED
+  description: Enable bulk baet and certificates caches (or not)
+  value: "false"
