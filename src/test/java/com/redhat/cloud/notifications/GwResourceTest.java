@@ -22,7 +22,6 @@ import jakarta.inject.Inject;
 import jakarta.ws.rs.WebApplicationException;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
-import java.time.LocalDateTime;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.http.HttpStatus;
 import org.apache.kafka.common.header.Header;
@@ -33,6 +32,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.Mockito;
+import software.amazon.awssdk.http.HttpStatusCode;
 
 import java.time.Duration;
 import java.util.ArrayList;
@@ -43,7 +43,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
-import software.amazon.awssdk.http.HttpStatusCode;
 
 import static com.redhat.cloud.notifications.GwResource.EGRESS_CHANNEL;
 import static com.redhat.cloud.notifications.GwResource.MESSAGE_ID_HEADER;
@@ -55,8 +54,6 @@ import static org.awaitility.Awaitility.await;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.times;
@@ -382,6 +379,7 @@ public class GwResourceTest {
             .then()
             .statusCode(expectedStatusCode);
     }
+
     @Test
     public void testNotificationsWithAndWithoutRecipientsAuthorizationCriterion() {
         UUID random = UUID.randomUUID();
@@ -829,7 +827,7 @@ public class GwResourceTest {
             .get("/notifications/subscriptions/{bundle}/{application}")
             .then()
             .statusCode(HttpStatus.SC_OK).extract().as(new TypeRef<>() {
-        });
+            });
 
         assertTrue(resultMap.isEmpty());
         verify(restInternalClient, times(1)).getOrgSubscriptionsPerEventType(eq(bundle), eq(application), eq(eventTypes));

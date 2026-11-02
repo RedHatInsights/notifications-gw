@@ -14,12 +14,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.redhat.cloud.notifications;
 
-import java.util.Map;
+package com.redhat.cloud.notifications;
 
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
+
+import java.util.Map;
 
 public class RestEvent {
     @NotNull

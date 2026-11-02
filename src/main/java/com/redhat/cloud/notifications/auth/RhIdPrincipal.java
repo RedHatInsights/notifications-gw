@@ -14,14 +14,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.redhat.cloud.notifications.auth;
 
 import java.security.Principal;
 
 /**
  * Simple implementation of {@link Principal}
- *
- * @author hrupp
  */
 public class RhIdPrincipal implements Principal {
 

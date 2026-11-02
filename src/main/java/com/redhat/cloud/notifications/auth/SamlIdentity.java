@@ -14,13 +14,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.redhat.cloud.notifications.auth;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-/**
- * @author hrupp
- */
 public class SamlIdentity extends Identity {
 
     /*

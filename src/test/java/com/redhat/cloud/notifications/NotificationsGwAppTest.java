@@ -1,7 +1,8 @@
 package com.redhat.cloud.notifications;
 
-import java.util.regex.Pattern;
 import org.junit.jupiter.api.Test;
+
+import java.util.regex.Pattern;
 
 import static com.redhat.cloud.notifications.NotificationsGwApp.FILTER_REGEX;
 import static org.junit.jupiter.api.Assertions.assertFalse;

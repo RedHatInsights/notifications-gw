@@ -23,6 +23,8 @@
     <clowder-quarkus-config-source.version>2.14.0</clowder-quarkus-config-source.version>
     <quarkus-logging-cloudwatch.version>6.16.0</quarkus-logging-cloudwatch.version>
     <quarkus-logging-sentry.version>2.3.6</quarkus-logging-sentry.version>
+    <checkstyle-plugin.version>3.6.0</checkstyle-plugin.version>
+    <checkstyle.version>14.1.0</checkstyle.version>
   </properties>
   <dependencyManagement>
     <dependencies>
@@ -177,6 +179,35 @@
           </systemPropertyVariables>
           <argLine>@{argLine}</argLine>
         </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-checkstyle-plugin</artifactId>
+        <version>${checkstyle-plugin.version}</version>
+        <configuration>
+          <configLocation>checkstyle/checkstyle.xml</configLocation>
+          <suppressionsLocation>checkstyle/checkstyle-suppressions.xml</suppressionsLocation>
+          <consoleOutput>true</consoleOutput>
+          <failsOnError>true</failsOnError>
+          <linkXRef>false</linkXRef>
+          <includeTestSourceDirectory>true</includeTestSourceDirectory>
+        </configuration>
+        <dependencies>
+          <dependency>
+            <groupId>com.puppycrawl.tools</groupId>
+            <artifactId>checkstyle</artifactId>
+            <version>${checkstyle.version}</version>
+          </dependency>
+        </dependencies>
+        <executions>
+          <execution>
+            <id>validate</id>
+            <phase>validate</phase>
+            <goals>
+              <goal>check</goal>
+            </goals>
+          </execution>
+        </executions>
       </plugin>
       <plugin>
         <groupId>io.github.git-commit-id</groupId>

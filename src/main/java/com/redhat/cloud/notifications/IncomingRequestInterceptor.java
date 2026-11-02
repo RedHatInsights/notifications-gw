@@ -13,7 +13,6 @@ import java.util.regex.Pattern;
 @PreMatching
 public class IncomingRequestInterceptor implements ContainerRequestFilter {
 
-
     // Prevents the injection of characters that would break the log file pattern and lead to log forging or log poisoning.
     private static final Pattern ANTI_INJECTION_PATTERN = Pattern.compile("[\n|\r|\t]");
 

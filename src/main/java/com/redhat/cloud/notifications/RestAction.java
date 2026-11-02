@@ -14,8 +14,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.redhat.cloud.notifications;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.redhat.cloud.notifications.ingress.RecipientsAuthorizationCriterion;
 import io.vertx.core.json.JsonObject;
 import jakarta.validation.Valid;
@@ -24,15 +26,12 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Positive;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
 /**
  * Based on the Avro 'Action'
- * @author hrupp
  */
 public class RestAction {
 

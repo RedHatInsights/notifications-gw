@@ -14,6 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.redhat.cloud.notifications.auth;
 
 import io.quarkus.logging.Log;
@@ -24,18 +25,16 @@ import io.quarkus.security.identity.request.AuthenticationRequest;
 import io.quarkus.security.runtime.QuarkusSecurityIdentity;
 import io.quarkus.vertx.http.runtime.security.ChallengeData;
 import io.quarkus.vertx.http.runtime.security.HttpAuthenticationMechanism;
-import io.quarkus.vertx.http.runtime.security.HttpCredentialTransport;
 import io.smallrye.mutiny.Uni;
 import io.vertx.ext.web.RoutingContext;
-
 import jakarta.enterprise.context.ApplicationScoped;
+
 import java.util.Collections;
 import java.util.Set;
 
 /**
  * JAKARTA-375 auth mechanism. This basically just decodes he x-rh-identity header
  * and assumes that all calls have this header set.
- * @author hrupp
  */
 @ApplicationScoped
 public class RHIdAuthMechanism implements HttpAuthenticationMechanism {
