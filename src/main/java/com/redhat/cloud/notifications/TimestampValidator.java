@@ -22,10 +22,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Locale;
 
-/**
- * @author hrupp
- */
-public class TimestampValidator implements ConstraintValidator<ISO8601Timestamp,String> {
+public class TimestampValidator implements ConstraintValidator<ISO8601Timestamp, String> {
     @Override
     public void initialize(ISO8601Timestamp constraintAnnotation) {
         // TODO: Customise this generated block

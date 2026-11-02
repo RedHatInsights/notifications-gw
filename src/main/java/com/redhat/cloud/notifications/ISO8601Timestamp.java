@@ -21,9 +21,6 @@ import jakarta.validation.Payload;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 
-/**
- * @author hrupp
- */
 @Constraint(validatedBy = TimestampValidator.class)
 @Retention(RetentionPolicy.RUNTIME)
 public @interface ISO8601Timestamp {

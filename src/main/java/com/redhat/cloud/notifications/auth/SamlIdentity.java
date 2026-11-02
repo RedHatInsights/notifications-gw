@@ -18,9 +18,6 @@ package com.redhat.cloud.notifications.auth;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-/**
- * @author hrupp
- */
 public class SamlIdentity extends Identity {
 
     /*

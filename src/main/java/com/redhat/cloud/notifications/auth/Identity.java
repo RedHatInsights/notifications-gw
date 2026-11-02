@@ -47,7 +47,7 @@ public abstract class Identity {
     @JsonProperty
     public String auth_info;
 
-    abstract public String getSubject();
+    public abstract String getSubject();
 
     public String getType() {
         return type;

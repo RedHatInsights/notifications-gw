@@ -25,33 +25,28 @@ import java.io.UnsupportedEncodingException;
 import java.util.Base64;
 import java.util.Optional;
 
-
-/**
- * @author hrupp
- */
 public class IdentityTest {
 
     @Test
     void testSamlIdentity() {
 
-    String header =
-        "{\n" +
-        "  \"identity\": {\n" +
-        "    \"associate\": {\n" +
-        "      \"Role\": [\n" +
-        "        \"some-ldap-group\",\n" +
-        "        \"another-ldap-group\"\n" +
-        "      ],\n" +
-        "      \"email\": \"jschmoe@redhat.com\",\n" +
-        "      \"givenName\": \"Joseph\",\n" +
-        "      \"rhatUUID\": \"01234567-89ab-cdef-0123-456789abcdef\",\n" +
-        "      \"surname\": \"Schmoe\"\n" +
-        "    },\n" +
-        "    \"auth_type\": \"saml-auth\",\n" +
-        "    \"type\": \"Associate\"\n" +
-        "  }\n" +
-        "}\n";
-
+        String header =
+            "{\n" +
+            "  \"identity\": {\n" +
+            "    \"associate\": {\n" +
+            "      \"Role\": [\n" +
+            "        \"some-ldap-group\",\n" +
+            "        \"another-ldap-group\"\n" +
+            "      ],\n" +
+            "      \"email\": \"jschmoe@redhat.com\",\n" +
+            "      \"givenName\": \"Joseph\",\n" +
+            "      \"rhatUUID\": \"01234567-89ab-cdef-0123-456789abcdef\",\n" +
+            "      \"surname\": \"Schmoe\"\n" +
+            "    },\n" +
+            "    \"auth_type\": \"saml-auth\",\n" +
+            "    \"type\": \"Associate\"\n" +
+            "  }\n" +
+            "}\n";
 
         String xRhEncoded = null;
         try {
@@ -63,7 +58,7 @@ public class IdentityTest {
         Optional<XRhIdentity> id = HeaderHelper.getRhIdFromString(xRhEncoded);
         Assertions.assertTrue(id.isPresent());
         XRhIdentity xid = id.get();
-        Assertions.assertEquals("Associate",xid.identity.type);
+        Assertions.assertEquals("Associate", xid.identity.type);
         Assertions.assertEquals("jschmoe@redhat.com", xid.getSubject());
 
     }
@@ -92,8 +87,8 @@ public class IdentityTest {
         Optional<XRhIdentity> id = HeaderHelper.getRhIdFromString(xRhEncoded);
         Assertions.assertTrue(id.isPresent());
         XRhIdentity xid = id.get();
-        Assertions.assertEquals("X509",xid.identity.type);
-        Assertions.assertEquals("/CN=some-host.example.com",xid.getSubject());
+        Assertions.assertEquals("X509", xid.identity.type);
+        Assertions.assertEquals("/CN=some-host.example.com", xid.getSubject());
 
     }
 
@@ -121,7 +116,7 @@ public class IdentityTest {
         Optional<XRhIdentity> id = HeaderHelper.getRhIdFromString(xRhEncoded);
         Assertions.assertTrue(id.isPresent());
         XRhIdentity xid = id.get();
-        Assertions.assertEquals("ServiceAccount",xid.identity.type);
-        Assertions.assertEquals("nonprod-test",xid.getSubject());
+        Assertions.assertEquals("ServiceAccount", xid.identity.type);
+        Assertions.assertEquals("nonprod-test", xid.getSubject());
     }
 }

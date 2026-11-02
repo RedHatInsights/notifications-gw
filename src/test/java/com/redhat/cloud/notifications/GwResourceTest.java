@@ -22,7 +22,6 @@ import jakarta.inject.Inject;
 import jakarta.ws.rs.WebApplicationException;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
-import java.time.LocalDateTime;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.http.HttpStatus;
 import org.apache.kafka.common.header.Header;
@@ -33,8 +32,10 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.Mockito;
+import software.amazon.awssdk.http.HttpStatusCode;
 
 import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -43,7 +44,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
-import software.amazon.awssdk.http.HttpStatusCode;
 
 import static com.redhat.cloud.notifications.GwResource.EGRESS_CHANNEL;
 import static com.redhat.cloud.notifications.GwResource.MESSAGE_ID_HEADER;
@@ -382,6 +382,7 @@ public class GwResourceTest {
             .then()
             .statusCode(expectedStatusCode);
     }
+
     @Test
     public void testNotificationsWithAndWithoutRecipientsAuthorizationCriterion() {
         UUID random = UUID.randomUUID();

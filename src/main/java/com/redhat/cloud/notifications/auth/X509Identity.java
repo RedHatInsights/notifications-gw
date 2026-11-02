@@ -16,19 +16,16 @@
  */
 package com.redhat.cloud.notifications.auth;
 
-/**
- * @author hrupp
- */
 public class X509Identity extends Identity {
-     public X509 x509;
+    public X509 x509;
 
-     @Override
-     public String getSubject() {
-         return x509.subject_dn;
-     }
+    @Override
+    public String getSubject() {
+        return x509.subject_dn;
+    }
 
-     public class X509 {
-       public String subject_dn;
-       public String issuer_dn;
-     }
- }
+    public class X509 {
+        public String subject_dn;
+        public String issuer_dn;
+    }
+}

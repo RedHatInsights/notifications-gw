@@ -16,10 +16,10 @@
  */
 package com.redhat.cloud.notifications;
 
-import java.util.Map;
-
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
+
+import java.util.Map;
 
 public class RestEvent {
     @NotNull

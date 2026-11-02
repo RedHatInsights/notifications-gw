@@ -26,9 +26,6 @@ import java.util.Optional;
 import static com.redhat.cloud.notifications.auth.RHIdAuthMechanism.X_RH_IDENTITY_HEADER;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
-/**
- * @author hrupp
- */
 public abstract class HeaderHelper {
 
     static ObjectMapper om = new ObjectMapper();

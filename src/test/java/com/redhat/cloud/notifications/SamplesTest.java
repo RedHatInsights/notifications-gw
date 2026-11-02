@@ -21,18 +21,15 @@ import io.quarkus.test.junit.QuarkusTest;
 import io.restassured.http.ContentType;
 import org.junit.jupiter.api.Test;
 
-import static io.restassured.RestAssured.given;
-import static io.restassured.RestAssured.when;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
-/**
- * @author hrupp
- */
+import static io.restassured.RestAssured.given;
+import static io.restassured.RestAssured.when;
+
 @QuarkusTest
 @QuarkusTestResource(TestLifecycleManager.class)
 public class SamplesTest {
@@ -47,7 +44,7 @@ public class SamplesTest {
 
     @Test
     void testGood1() {
-        RestAction ra =new RestAction();
+        RestAction ra = new RestAction();
         ra.setBundle("my-bundle");
         ra.setOrgId("123");
         ra.setApplication("my-app");
@@ -60,7 +57,7 @@ public class SamplesTest {
         event.setPayload(payload);
         events.add(event);
         ra.setEvents(events);
-        ra.timestamp="2020-12-18T17:04:04.417921";
+        ra.timestamp = "2020-12-18T17:04:04.417921";
         ra.setContext(new HashMap<>());
 
         given()
@@ -74,7 +71,7 @@ public class SamplesTest {
 
     @Test
     void testGood2() {
-        RestAction ra =new RestAction();
+        RestAction ra = new RestAction();
         ra.setId(UUID.fromString("9151f21f-dead-beef-92f3-f4af67cdf544"));
         ra.setBundle("my-bundle");
         ra.setOrgId("123");
@@ -94,7 +91,7 @@ public class SamplesTest {
         events.add(event1);
 
         ra.setEvents(events);
-        ra.timestamp="2020-12-18T17:04:04.417921";
+        ra.timestamp = "2020-12-18T17:04:04.417921";
         ra.setContext(new HashMap());
 
         given()
@@ -108,12 +105,12 @@ public class SamplesTest {
 
     @Test
     void testBad() {
-        RestAction ra =new RestAction();
-        ra.accountId="123";
-        ra.application="policies";
-        ra.bundle="insights";
-        ra.eventType="policy triggered";
-        ra.timestamp="2020-12-18T17:04:04.417921";
+        RestAction ra = new RestAction();
+        ra.accountId = "123";
+        ra.application = "policies";
+        ra.bundle = "insights";
+        ra.eventType = "policy triggered";
+        ra.timestamp = "2020-12-18T17:04:04.417921";
 
         given()
                 .body(ra)
@@ -126,11 +123,11 @@ public class SamplesTest {
 
     @Test
     void testBad2() {
-        RestAction ra =new RestAction();
-        ra.accountId="123";
-        ra.application="policies";
-        ra.eventType="policy triggered";
-        ra.timestamp="2020-12-18T17:04:04.417921";
+        RestAction ra = new RestAction();
+        ra.accountId = "123";
+        ra.application = "policies";
+        ra.eventType = "policy triggered";
+        ra.timestamp = "2020-12-18T17:04:04.417921";
 
         given()
                 .body(ra)
@@ -143,12 +140,12 @@ public class SamplesTest {
 
     @Test
     void testBadOrgId() {
-        RestAction ra =new RestAction();
+        RestAction ra = new RestAction();
         ra.setOrgId("li la lu");
-        ra.accountId="123";
-        ra.application="policies";
-        ra.eventType="policy triggered";
-        ra.timestamp="2020-12-18T17:04:04.417921";
+        ra.accountId = "123";
+        ra.application = "policies";
+        ra.eventType = "policy triggered";
+        ra.timestamp = "2020-12-18T17:04:04.417921";
 
         given()
                 .body(ra)

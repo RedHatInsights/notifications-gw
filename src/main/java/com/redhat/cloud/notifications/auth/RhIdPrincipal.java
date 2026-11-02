@@ -20,8 +20,6 @@ import java.security.Principal;
 
 /**
  * Simple implementation of {@link Principal}
- *
- * @author hrupp
  */
 public class RhIdPrincipal implements Principal {
 
