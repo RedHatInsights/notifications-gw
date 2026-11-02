@@ -23,6 +23,10 @@
 
 <module name="Checker">
     <property name="localeLanguage" value="en"/>
+    <module name="SuppressionFilter">
+        <property name="file" value="${checkstyle.suppressions.file}"/>
+        <property name="optional" value="false"/>
+    </module>
     <module name="FileTabCharacter">
         <property name="eachLine" value="true" />
     </module>
@@ -48,7 +52,7 @@
 
         <!-- Checks for imports -->
         <module name="AvoidStarImport">
-            <property name="allowStaticMemberImports" value="true" />
+            <property name="allowStaticMemberImports" value="false" />
         </module>
         <module name="RedundantImport" />
 
@@ -100,7 +104,9 @@
         <!-- Checks for blocks. You know, those {}'s         -->
         <!-- See https://checkstyle.org/config_blocks.html -->
         <module name="AvoidNestedBlocks"/>
-        <module name="EmptyBlock"/>
+        <module name="EmptyBlock">
+            <property name="option" value="text"/>
+        </module>
         <!-- Checks for blocks. You know, those {}'s -->
         <module name="LeftCurly">
             <property name="option" value="eol" />

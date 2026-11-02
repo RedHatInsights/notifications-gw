@@ -35,7 +35,6 @@ import org.mockito.Mockito;
 import software.amazon.awssdk.http.HttpStatusCode;
 
 import java.time.Duration;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -55,8 +54,6 @@ import static org.awaitility.Awaitility.await;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.times;
@@ -830,7 +827,7 @@ public class GwResourceTest {
             .get("/notifications/subscriptions/{bundle}/{application}")
             .then()
             .statusCode(HttpStatus.SC_OK).extract().as(new TypeRef<>() {
-        });
+            });
 
         assertTrue(resultMap.isEmpty());
         verify(restInternalClient, times(1)).getOrgSubscriptionsPerEventType(eq(bundle), eq(application), eq(eventTypes));

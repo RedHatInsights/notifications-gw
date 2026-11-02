@@ -2,7 +2,6 @@ package com.redhat.cloud.notifications;
 
 import io.quarkus.logging.Log;
 import jakarta.enterprise.context.ApplicationScoped;
-import org.eclipse.microprofile.config.ConfigProvider;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 
 import java.util.List;
@@ -27,7 +26,9 @@ public class GwConfig {
         return allowListOrgIds;
     }
 
-    public boolean isBulkCachesEnabled() { return bulkCachesEnabled; }
+    public boolean isBulkCachesEnabled() {
+        return bulkCachesEnabled;
+    }
 
     public void logConfiguration() {
         Log.infof("notifications.bulk-caches.enabled = %s", bulkCachesEnabled);

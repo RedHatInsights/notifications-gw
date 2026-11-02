@@ -14,6 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.redhat.cloud.notifications.auth;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
@@ -29,6 +30,7 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 public abstract class HeaderHelper {
 
     static ObjectMapper om = new ObjectMapper();
+
     static {
         om.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
     }
