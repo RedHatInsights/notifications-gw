@@ -24,7 +24,7 @@
     <quarkus-logging-cloudwatch.version>6.16.0</quarkus-logging-cloudwatch.version>
     <quarkus-logging-sentry.version>2.3.6</quarkus-logging-sentry.version>
     <checkstyle-plugin.version>3.6.0</checkstyle-plugin.version>
-    <checkstyle.version>14.3.0</checkstyle.version>
+    <checkstyle.version>14.4.0</checkstyle.version>
   </properties>
   <dependencyManagement>
     <dependencies>
